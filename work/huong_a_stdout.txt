@@ -1,0 +1,828 @@
+21:42:52.596 [main legend.game.Main:64] [32mINFO [m: Initialising LWJGL version 3.4.3+4
+21:42:52.687 [main legend.core.font.FontManager:30] [32mINFO [m: Loading font gfx\fonts\default.json
+21:42:52.903 [Hardware legend.core.Updater:64] [32mINFO [m: Checking for updates...
+21:42:53.520 [Hardware legend.core.platform.SdlPlatformManager:209] [32mINFO [m: Loading gamepads...
+21:42:53.526 [Hardware org.legendofdragoon.modloader.ModManager:96] [32mINFO [m: Scanning for mods...
+21:42:53.526 [Thread-1 legend.core.GameEngine:196] [32mINFO [m: Severed Chains 3.0.0-1816-devbuild commit affcef0cba71819515fdf05521c1fedb1d7a92f0 built 2026-10-14T15:47:16Z starting
+21:42:53.541 [Thread-1 legend.game.unpacker.Unpacker:154] [32mINFO [m: Deleting old unpacked files...
+21:42:53.543 [Thread-1 legend.game.unpacker.Unpacker:156] [32mINFO [m: Files deleted in 0 seconds
+21:42:53.546 [Thread-1 legend.game.unpacker.Unpacker:395] [32mINFO [m: Found disk 1: isos\LoD_VN_Disc1.bin
+21:42:53.547 [Thread-1 legend.game.unpacker.Unpacker:395] [32mINFO [m: Found disk 2: isos\LoD_VN_Disc2.bin
+21:42:53.548 [Thread-1 legend.game.unpacker.Unpacker:395] [32mINFO [m: Found disk 3: isos\LoD_VN_Disc3.bin
+21:42:53.549 [Thread-1 legend.game.unpacker.Unpacker:395] [32mINFO [m: Found disk 4: isos\LoD_VN_Disc4.bin
+21:42:53.555 [Thread-1 legend.game.unpacker.Unpacker:204] [32mINFO [m: Populating initial file tree...
+21:42:53.742 [Hardware org.legendofdragoon.modloader.ModManager:139] [32mINFO [m: Found mod: turn_order
+21:42:53.745 [Hardware org.legendofdragoon.modloader.ModManager:139] [32mINFO [m: Found mod: lod
+21:42:53.746 [Hardware org.legendofdragoon.modloader.ModManager:139] [32mINFO [m: Found mod: lod_core
+21:42:53.746 [Hardware legend.core.GameEngine:308] [32mINFO [m: Booting mods...
+21:42:53.747 [Hardware legend.core.GameEngine:314] [32mINFO [m: Loading mods [lod, turn_order, lod_core]...
+21:42:53.771 [Hardware org.legendofdragoon.modloader.ModManager:196] [32mINFO [m: Loaded mod: lod
+21:42:53.785 [Hardware org.legendofdragoon.modloader.ModManager:196] [32mINFO [m: Loaded mod: turn_order
+21:42:53.820 [Hardware org.legendofdragoon.modloader.ModManager:196] [32mINFO [m: Loaded mod: lod_core
+21:42:53.820 [Hardware org.legendofdragoon.modloader.events.EventManager:47] [32mINFO [m: Scanning for event consumers...
+21:42:53.868 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release devbuild 2026-10-14T15:44:34Z
+21:42:53.869 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release recommended-build-2.1 2025-06-11T22:21:45Z
+21:42:53.870 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release recommended-build-2 2024-07-02T11:22:30Z
+21:42:53.870 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release recommended-build-1 2023-03-26T21:57:16Z
+21:42:53.870 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release livestream-221230 2023-01-03T01:54:52Z
+21:42:53.871 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release livestream-221217 2022-12-17T16:13:49Z (prerelease)
+21:42:53.872 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:82] [32mINFO [m: No updates found
+21:42:53.874 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release devbuild 2026-10-14T15:44:34Z
+21:42:53.874 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release recommended-build-2.1 2025-06-11T22:21:45Z
+21:42:53.875 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release recommended-build-2 2024-07-02T11:22:30Z
+21:42:53.875 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release recommended-build-1 2023-03-26T21:57:16Z
+21:42:53.876 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release livestream-221230 2023-01-03T01:54:52Z
+21:42:53.876 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:108] [32mINFO [m: Found release livestream-221217 2022-12-17T16:13:49Z (prerelease)
+21:42:53.876 [ForkJoinPool.commonPool-worker-2 legend.core.Updater:82] [32mINFO [m: No updates found
+21:42:54.043 [Hardware legend.game.saves.ConfigStorage:38] [32mINFO [m: Loading config GLOBAL from config.dcnf
+21:42:54.044 [Hardware legend.core.font.FontManager:30] [32mINFO [m: Loading font gfx\fonts\smooth.json
+21:42:54.106 [Hardware legend.core.audio.AudioThread:242] [32mINFO [m: Using first audio device OpenAL Soft on Speakers (Realtek(R) Audio)
+21:42:54.548 [Hardware legend.core.audio.AudioThread:165] [32mINFO [m: Created audio context 0x26edf973530
+21:42:54.593 [Hardware legend.core.platform.SdlWindow:146] [32mINFO [m: Initializing OpenGL 3.3...
+21:42:54.914 [Hardware legend.core.platform.SdlWindow:329] [32mINFO [m: Centering window (window [960, 720], display [0, 0, 1920, 1080])
+21:42:54.916 [Hardware legend.core.renderer.opengl.GlApi:133] [32mINFO [m: OpenGL version: 3.3.0 NVIDIA 595.71
+21:42:54.917 [Hardware legend.core.renderer.opengl.GlApi:134] [32mINFO [m: GLSL version: 3.30 NVIDIA via Cg compiler
+21:42:54.917 [Hardware legend.core.renderer.opengl.GlApi:135] [32mINFO [m: Device manufacturer: NVIDIA Corporation
+21:42:54.951 [Hardware legend.core.renderer.opengl.GlShader:76] [32mINFO [m: Compiling shader Simple vs[gfx\shaders\simple.vsh] fs[gfx\shaders\simple.fsh]
+21:42:54.951 [Hardware legend.core.renderer.opengl.GlShader:98] [32mINFO [m: Recompiling shader Simple
+21:42:54.977 [Hardware legend.core.renderer.opengl.GlShader:76] [32mINFO [m: Compiling shader Copy vs[gfx\shaders\copy.vsh] fs[gfx\shaders\copy.fsh]
+21:42:54.979 [Hardware legend.core.renderer.opengl.GlShader:98] [32mINFO [m: Recompiling shader Copy
+21:42:54.984 [Hardware legend.core.renderer.opengl.GlShader:76] [32mINFO [m: Compiling shader Post vs[gfx\shaders\post.vsh] fs[gfx\shaders\screen.fsh]
+21:42:54.984 [Hardware legend.core.renderer.opengl.GlShader:98] [32mINFO [m: Recompiling shader Post
+21:42:54.998 [Hardware legend.core.renderer.opengl.GlShader:76] [32mINFO [m: Compiling shader Standard vs[gfx\shaders\standard.vsh] fs[gfx\shaders\standard.fsh]
+21:42:55.000 [Hardware legend.core.renderer.opengl.GlShader:98] [32mINFO [m: Recompiling shader Standard
+21:42:55.021 [Hardware legend.core.renderer.opengl.GlShader:86] [32mINFO [m: Compiling shader TMD vs[gfx\shaders\tmd.vsh] gs[gfx\shaders\tmd.gsh] fs[gfx\shaders\tmd.fsh]
+21:42:55.023 [Hardware legend.core.renderer.opengl.GlShader:98] [32mINFO [m: Recompiling shader TMD
+21:42:55.030 [Hardware legend.core.renderer.opengl.GlShader:86] [32mINFO [m: Compiling shader Battle TMD vs[gfx\shaders\battle_tmd.vsh] gs[gfx\shaders\tmd.gsh] fs[gfx\shaders\battle_tmd.fsh]
+21:42:55.031 [Hardware legend.core.renderer.opengl.GlShader:98] [32mINFO [m: Recompiling shader Battle TMD
+21:42:55.064 [Hardware legend.core.renderer.RenderEngine:1259] [32mINFO [m: Resizing window to 960x720
+[VERBOSE] Sent string "{"v":1,"client_id":"1385814687458918400"}" at state HANDSHAKE
+21:42:55.154 [Hardware legend.game.fmv.VideoPlayer:79] [32mINFO [m: Playing FMV gfx\intro.mp4
+[VERBOSE] Received string "{"cmd":"DISPATCH","data":{"v":1,"config":{"cdn_host":"cdn.discordapp.com","api_endpoint":"//discord.com/api","environment":"production"},"user":{"id":"409945776073211915","username":"khuongkid","discriminator":"0","global_name":"KhuongKid","avatar":"295cd4baca13484065946fb4fa3c52fc","avatar_decoration_data":null,"bot":false,"flags":32,"premium_type":0}},"evt":"READY","nonce":null}" at state CONNECTED
+[VERBOSE] Sent string "{"cmd":"SUBSCRIBE","evt":"RELATIONSHIP_UPDATE","nonce":"1"}" at state CONNECTED
+[VERBOSE] Sent string "{"cmd":"SUBSCRIBE","args":{"pid":19532},"evt":"OVERLAY_UPDATE","nonce":"2"}" at state CONNECTED
+[VERBOSE] Sent string "{"cmd":"SUBSCRIBE","evt":"VOICE_SETTINGS_UPDATE_2","nonce":"3"}" at state CONNECTED
+[VERBOSE] Sent string "{"cmd":"SUBSCRIBE","evt":"ACTIVITY_JOIN","nonce":"4"}" at state CONNECTED
+[VERBOSE] Sent string "{"cmd":"GET_RELATIONSHIPS","args":{},"nonce":"5"}" at state CONNECTED
+21:42:55.753 [Hardware legend.game.fmv.VideoPlayer:95] [32mINFO [m: Video size 1280x720
+21:42:55.758 [Hardware legend.core.renderer.RenderEngine:1259] [32mINFO [m: Resizing window to 960x720
+21:42:57.144 [Thread-1 legend.game.unpacker.Unpacker:210] [32mINFO [m: Initial file tree populated in 3.589685s with 46 files
+21:42:57.145 [Thread-1 legend.game.unpacker.Unpacker:216] [32mINFO [m: Performing leaf transformations...
+21:43:01.168 [Thread-1 legend.game.unpacker.Unpacker:252] [32mINFO [m: Transformations finished
+21:43:01.193 [Thread-1 legend.game.unpacker.Unpacker:260] [32mINFO [m: Leaf transformations completed in 4.047745s
+21:43:01.194 [Thread-1 legend.game.unpacker.Unpacker:265] [32mINFO [m: Performing branch transformations...
+21:43:01.194 [Thread-1 legend.game.unpacker.Unpacker:268] [32mINFO [m: Running branch transformer Claire model fixer
+21:43:01.194 [ForkJoinPool.commonPool-worker-1 legend.game.unpacker.Unpacker:268] [32mINFO [m: Running branch transformer Submap PXL converter
+21:43:01.250 [ForkJoinPool.commonPool-worker-1 legend.game.unpacker.SubmapPxlTransformer:117] [33mWARN [m: Failed to find texture for SECT/DRGN23.BIN/173 sobj 16
+21:43:01.278 [Thread-1 legend.game.unpacker.Unpacker:272] [32mINFO [m: Branch transformations completed in 0.083611s
+21:43:01.278 [Thread-1 legend.game.unpacker.Unpacker:275] [32mINFO [m: Performing replacements...
+21:43:01.279 [Thread-1 legend.game.unpacker.Unpacker:278] [32mINFO [m: Running replacement Replace Chester texture
+21:43:01.286 [Thread-1 legend.game.unpacker.Unpacker:282] [32mINFO [m: Replacements completed in 0.008096s
+21:43:04.663 [Hardware legend.core.renderer.RenderEngine:1259] [32mINFO [m: Resizing window to 960x720
+21:43:27.282 [Thread-1 legend.game.unpacker.Unpacker:309] [32mINFO [m: Files written in 25.972906s
+21:43:27.283 [Thread-1 legend.game.unpacker.Unpacker:315] [32mINFO [m: Files unpacked in 33.734432s
+21:43:27.325 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:158] [32mINFO [m: Applying script patches
+21:43:27.327 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:63] [33mWARN [m: Patch cache does not exist
+21:43:27.327 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN22.BIN/1104/6...
+21:43:27.435 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.468 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 155
+21:43:27.469 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.469 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.470 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.470 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.470 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.471 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.471 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.471 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.472 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.472 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.472 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.472 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.473 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.473 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d3
+21:43:27.473 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.474 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.474 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.475 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.475 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.475 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e3
+21:43:27.475 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.476 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fb
+21:43:27.476 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.476 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.476 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.477 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.477 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e2
+21:43:27.478 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.478 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.478 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.479 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d3
+21:43:27.479 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.479 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.479 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.480 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 101
+21:43:27.480 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.480 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d4
+21:43:27.480 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.480 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 109
+21:43:27.481 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.481 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.481 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d4
+21:43:27.482 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.482 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.483 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.483 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.483 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.484 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.484 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fe
+21:43:27.485 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.485 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fb
+21:43:27.485 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.485 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e7
+21:43:27.486 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.486 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.486 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.487 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.487 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.487 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.488 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.488 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.488 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.489 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.489 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.489 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.490 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e9
+21:43:27.492 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.492 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.493 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 103
+21:43:27.493 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.493 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e8
+21:43:27.493 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.494 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.494 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.494 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.494 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.496 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.496 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.497 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e8
+21:43:27.497 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.497 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.497 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.498 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.498 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.498 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d4
+21:43:27.499 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.499 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e2
+21:43:27.499 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.500 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.500 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.500 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.500 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.501 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.501 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10c
+21:43:27.501 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.501 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.502 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.509 [Thread-1 org.legendofdragoon.scripting.Tokenizer:86] [32mINFO [m: Tokenizing .\files\SECT\DRGN22.BIN\1104\6
+21:43:27.539 [Thread-1 org.legendofdragoon.scripting.Assembler:42] [33mWARN [m: Empty pointer table at 0x18ac
+21:43:27.542 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN0.BIN/5344/1...
+21:43:27.553 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.560 [Thread-1 org.legendofdragoon.scripting.Tokenizer:86] [32mINFO [m: Tokenizing .\files\SECT\DRGN0.BIN\5344\1
+21:43:27.569 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN0.BIN/4314/1...
+21:43:27.584 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.596 [Thread-1 org.legendofdragoon.scripting.Tokenizer:86] [32mINFO [m: Tokenizing .\files\SECT\DRGN0.BIN\4314\1
+21:43:27.606 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN22.BIN/801/1...
+21:43:27.621 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.630 [Thread-1 org.legendofdragoon.scripting.Disassembler:70] [33mWARN [m: Jump table overrun at 15c8
+21:43:27.634 [Thread-1 org.legendofdragoon.scripting.Translator:78] [33mWARN [m: Empty jump table @ 0x2dac
+21:43:27.635 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.636 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.636 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.636 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.636 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 101
+21:43:27.638 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.638 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 106
+21:43:27.639 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.640 [Thread-1 org.legendofdragoon.scripting.Tokenizer:86] [32mINFO [m: Tokenizing .\files\SECT\DRGN22.BIN\801\1
+21:43:27.654 [Thread-1 org.legendofdragoon.scripting.Assembler:42] [33mWARN [m: Empty pointer table at 0x2a2c
+21:43:27.655 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN0.BIN/4352/1...
+21:43:27.667 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.675 [Thread-1 org.legendofdragoon.scripting.Tokenizer:86] [32mINFO [m: Tokenizing .\files\SECT\DRGN0.BIN\4352\1
+21:43:27.685 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN0.BIN/5152/1...
+21:43:27.697 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.702 [Thread-1 org.legendofdragoon.scripting.Tokenizer:86] [32mINFO [m: Tokenizing .\files\SECT\DRGN0.BIN\5152\1
+21:43:27.714 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN21.BIN/294/4...
+21:43:27.723 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.729 [Thread-1 org.legendofdragoon.scripting.Tokenizer:86] [32mINFO [m: Tokenizing .\files\SECT\DRGN21.BIN\294\4
+21:43:27.735 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:168] [32mINFO [m: Patching SECT/DRGN1.BIN/254...
+21:43:27.762 [Thread-1 org.legendofdragoon.scripting.Disassembler:587] [32mINFO [m: Disassembling up to 32 entrypoints
+21:43:27.772 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 108
+21:43:27.772 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.773 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10e
+21:43:27.773 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.773 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10b
+21:43:27.774 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.774 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.774 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.775 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.775 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.775 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.776 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.776 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fc
+21:43:27.776 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.777 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.777 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.777 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.777 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.778 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.778 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.778 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.778 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.778 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.779 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.779 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.779 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.779 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.781 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.781 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.781 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.781 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.781 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.781 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.781 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.782 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.782 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.782 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.782 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f1
+21:43:27.783 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.783 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.783 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e9
+21:43:27.785 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.785 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f7
+21:43:27.785 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f5
+21:43:27.785 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.785 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.785 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.785 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.786 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.786 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.786 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.788 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.788 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.788 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.788 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.788 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f7
+21:43:27.788 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.789 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f5
+21:43:27.792 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.792 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.792 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.793 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.793 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.793 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.793 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.794 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10b
+21:43:27.794 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.794 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.795 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.795 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.795 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.796 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.796 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e7
+21:43:27.796 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.797 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dc
+21:43:27.797 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.797 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.797 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.798 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.798 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.798 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.798 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f7
+21:43:27.799 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.799 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f5
+21:43:27.799 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.800 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 106
+21:43:27.800 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.800 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.800 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.800 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d8
+21:43:27.800 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.801 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.801 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.801 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.801 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.801 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.802 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.802 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.802 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.802 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.802 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.803 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.803 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.803 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.803 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.804 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 103
+21:43:27.804 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.804 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.804 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fd
+21:43:27.805 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.805 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fe
+21:43:27.805 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.805 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fe
+21:43:27.806 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.806 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.806 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e9
+21:43:27.806 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.807 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.807 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.807 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.807 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.807 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.808 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.808 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.808 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 104
+21:43:27.808 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.809 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.809 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.809 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.809 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.810 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.810 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.810 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.810 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f1
+21:43:27.810 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.810 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 102
+21:43:27.812 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.812 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.812 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.813 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.813 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.813 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.813 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.813 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f1
+21:43:27.814 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.814 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e9
+21:43:27.814 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.814 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.814 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 101
+21:43:27.815 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.815 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 103
+21:43:27.815 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.815 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e4
+21:43:27.815 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.816 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.816 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ff
+21:43:27.816 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.816 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.816 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.817 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.817 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fe
+21:43:27.817 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.817 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.818 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.818 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.818 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.818 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.819 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.819 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.819 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.819 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.820 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.820 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.820 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f7
+21:43:27.820 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.821 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 109
+21:43:27.821 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.821 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.821 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.821 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 103
+21:43:27.821 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.821 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.822 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.822 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.822 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.823 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.823 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.823 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 106
+21:43:27.824 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.824 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.824 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.824 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.825 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.825 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.825 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 102
+21:43:27.826 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.826 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.826 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.826 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fc
+21:43:27.826 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.826 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e4
+21:43:27.827 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.827 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d5
+21:43:27.827 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.827 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.827 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.828 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.828 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.828 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.829 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.829 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.829 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.830 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.830 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.830 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.830 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.831 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.831 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.831 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.831 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.831 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.832 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10a
+21:43:27.832 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.832 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.832 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.832 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 155
+21:43:27.833 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.833 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.833 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.833 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.833 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.833 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.835 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 155
+21:43:27.835 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e9
+21:43:27.835 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.835 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.835 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.835 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10a
+21:43:27.836 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.836 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.836 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.836 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.837 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fc
+21:43:27.837 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.837 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.837 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.838 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.838 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.838 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.839 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.839 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.839 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.839 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.840 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.840 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.840 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.840 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.841 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.841 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.841 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.841 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.842 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.842 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.842 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.842 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fc
+21:43:27.842 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.844 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fc
+21:43:27.844 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.844 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.844 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.845 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 104
+21:43:27.845 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.845 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.845 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.846 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.846 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.846 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.846 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.847 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.847 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 106
+21:43:27.847 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fb
+21:43:27.847 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.848 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.848 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.848 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.848 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10c
+21:43:27.849 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.849 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.849 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.849 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.850 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.850 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.850 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.850 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.851 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.851 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fb
+21:43:27.851 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.851 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ed
+21:43:27.851 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fd
+21:43:27.852 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.852 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.852 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e9
+21:43:27.852 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.853 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.853 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.853 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.853 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.853 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e7
+21:43:27.853 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.854 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.854 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.854 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.854 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.855 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.855 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d8
+21:43:27.855 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.855 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.856 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.856 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.856 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.856 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.857 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.857 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e2
+21:43:27.857 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.857 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.857 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.858 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.858 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.858 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.858 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d4
+21:43:27.859 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.859 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.859 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.860 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.860 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.860 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10c
+21:43:27.860 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.860 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.861 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.861 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.861 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.861 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.862 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.862 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.862 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.862 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.862 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.863 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.863 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.863 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.863 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fe
+21:43:27.864 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e8
+21:43:27.864 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.864 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.864 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.865 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.865 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.865 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.865 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.865 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.866 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.866 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.866 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.866 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.867 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.867 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.867 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.867 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.868 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.868 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.868 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.868 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f3
+21:43:27.869 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.869 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 104
+21:43:27.869 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.869 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.869 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f9
+21:43:27.870 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.870 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.870 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.870 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.870 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.871 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.871 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 114
+21:43:27.871 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.872 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.872 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.872 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.872 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.872 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.873 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.873 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.873 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.873 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.874 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.874 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.874 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.874 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.874 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e9
+21:43:27.874 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.876 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.876 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.876 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.876 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.877 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.877 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.877 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.877 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.878 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 155
+21:43:27.878 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 108
+21:43:27.878 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.878 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.879 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fd
+21:43:27.879 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.879 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.879 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.879 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.880 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character da
+21:43:27.880 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.880 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.880 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.881 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.881 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f0
+21:43:27.881 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.881 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f3
+21:43:27.882 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.882 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 104
+21:43:27.882 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.882 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.883 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.883 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f9
+21:43:27.883 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.883 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.884 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.884 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.884 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.884 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.885 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.885 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.885 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.885 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 114
+21:43:27.885 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 102
+21:43:27.885 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.885 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.886 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.886 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.886 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.886 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.887 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.887 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.887 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.887 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.888 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.888 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.888 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.888 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f0
+21:43:27.888 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.889 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fe
+21:43:27.889 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.889 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e3
+21:43:27.889 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.890 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.890 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f0
+21:43:27.890 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.890 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.891 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.891 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.892 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.892 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e4
+21:43:27.892 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.892 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.893 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.893 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.893 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.893 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.893 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.893 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.893 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.894 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.894 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fc
+21:43:27.894 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f1
+21:43:27.894 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.894 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 102
+21:43:27.894 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.896 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.896 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.896 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.896 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.896 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 102
+21:43:27.897 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.897 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.897 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.897 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.897 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.897 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.898 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d1
+21:43:27.898 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.898 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.898 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fc
+21:43:27.899 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.899 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.899 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.899 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.900 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.900 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.900 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.900 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d2
+21:43:27.900 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.901 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fb
+21:43:27.901 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.901 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 10a
+21:43:27.901 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.902 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.902 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.902 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.902 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character eb
+21:43:27.903 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.903 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.903 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f5
+21:43:27.903 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.904 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e3
+21:43:27.904 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.904 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.904 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f0
+21:43:27.905 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.905 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.905 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.905 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.905 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.906 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.906 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.906 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.906 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.907 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.907 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.908 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.908 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e8
+21:43:27.908 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.908 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.909 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.909 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.909 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.909 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.910 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.910 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.910 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.910 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.911 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.911 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.911 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.911 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.911 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.912 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f6
+21:43:27.912 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.912 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e4
+21:43:27.912 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.913 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f2
+21:43:27.913 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.913 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e7
+21:43:27.914 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.914 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.914 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.914 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.915 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.915 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.915 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.915 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.916 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.916 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.916 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fb
+21:43:27.916 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.916 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ed
+21:43:27.917 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.917 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.917 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 106
+21:43:27.917 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e6
+21:43:27.917 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.917 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f8
+21:43:27.917 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.919 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e0
+21:43:27.919 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.919 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character de
+21:43:27.920 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character dd
+21:43:27.920 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.920 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d5
+21:43:27.920 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.921 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ee
+21:43:27.921 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.921 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character ec
+21:43:27.921 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.922 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character e2
+21:43:27.922 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.922 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character d0
+21:43:27.922 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.923 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.923 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.923 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.923 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 159
+21:43:27.924 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.924 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 107
+21:43:27.924 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 101
+21:43:27.924 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.924 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character fd
+21:43:27.925 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.925 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.925 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character db
+21:43:27.925 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 158
+21:43:27.925 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character 112
+21:43:27.926 [Thread-1 org.legendofdragoon.scripting.tokens.LodString:146] [33mWARN [m: Found invalid character f1
+21:43:27.928 [Thread-1 legend.game.unpacker.scripts.ScriptPatcher:173] [1;31mERROR[m: Patch failed for script: scripts/DRGN1/254.diff

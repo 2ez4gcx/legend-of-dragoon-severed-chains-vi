@@ -1,0 +1,46 @@
+# Ban dich tieng Viet cho giao dien Severed Chains (lod_core) — BAN THU: chi mot phan.
+# Tu ngu theo ban PS1 (D:\LOD\tr\vi menu_01.json, tr/glossary.md). Khoa thieu -> SC tu dung tieng Anh.
+lod_core.name=Legend of Dragoon (lõi)
+
+lod_core.ui.message_box.yes=Có
+lod_core.ui.message_box.no=Không
+lod_core.ui.input_box.accept=Đồng ý
+lod_core.ui.input_box.cancel=Hủy
+
+lod_core.ui.ingame_menu.use_item=Dùng vật phẩm
+lod_core.ui.ingame_menu.equipment=Trang bị
+lod_core.ui.ingame_menu.inventory=Vật phẩm
+lod_core.ui.ingame_menu.goods=Đồ quý
+lod_core.ui.ingame_menu.quit=Thoát
+lod_core.ui.ingame_menu.quit_confirm=Về màn hình chính?
+lod_core.ui.ingame_menu.status=Trạng thái
+lod_core.ui.ingame_menu.additions=Liên Kích
+lod_core.ui.ingame_menu.replace=Thay thế
+lod_core.ui.ingame_menu.options=Cài đặt
+lod_core.ui.ingame_menu.load=Tải
+lod_core.ui.ingame_menu.save=Lưu
+
+lod_core.ui.additions.no_additions=Chưa có Liên Kích nào
+lod_core.ui.equipment.unequip=Tháo ra
+lod_core.ui.post_battle.addition_unlocked=Mở khóa Liên Kích
+lod_core.ui.post_battle.spell_unlocked=Mở khóa phép
+
+lod_core.ui.item_list.items=Vật phẩm
+lod_core.ui.item_list.equipment=Trang bị
+lod_core.ui.item_list.sort=Sắp xếp
+lod_core.ui.item_list.discard=Vứt bỏ
+lod_core.ui.item_list.back=Quay lại
+lod_core.ui.item_list.discard_confirm=Vứt bỏ?
+lod_core.ui.goods.goods=Đồ quý
+
+lod_core.ui.load_game.loading=Đang tải...
+lod_core.ui.load_game.load_confirm=Tải bản lưu này?
+lod_core.ui.load_game.delete=Xóa
+lod_core.ui.load_game.back=Quay lại
+lod_core.ui.save_game.save_game=Lưu trò chơi
+lod_core.ui.save_game.loading=Đang tải...
+lod_core.ui.save_game.new_save=<bản lưu mới>
+
+lod_core.config.retail_font.label=Phông chữ
+lod_core.config.language.label=Ngôn ngữ
+lod_core.config.language.help=Bản tiếng Việt (thử nghiệm): menu, vật phẩm và lời thoại

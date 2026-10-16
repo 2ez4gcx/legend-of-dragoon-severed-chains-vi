@@ -1,0 +1,249 @@
+# Nghiên cứu: bản tiếng Việt The Legend of Dragoon cho Severed Chains
+
+Ngày 16/10/2026. Nguồn: Severed Chains (SC) commit `affcef0` (14/10/2026, bản devbuild `3.0.0-1816`), mod-loader 4.3.5,
+script-recompiler 0.7.11. Dữ liệu dịch: dự án `D:\LOD` (bản vá PS1 v1.9).
+
+## Kết luận nhanh
+
+| Hướng | Kết quả | Ghi chú |
+|---|---|---|
+| **(a)** Cho SC đọc thẳng 4 đĩa đã vá (`play_1210`) | **Không chạy được** (đã thử) | SC dừng ở "Patching failed": bản vá script của chính SC không khớp script đã Việt hoá. Kể cả bỏ qua được thì mọi chữ có dấu thành `?` và các bản vá mã MIPS của D:\LOD không có tác dụng. |
+| **(b)** Mod SC đúng kiểu: dùng đĩa gốc + `tr/vi/*.json` + font Việt riêng | **Chạy được** (bản thử, có ảnh) | Menu/vật phẩm qua file `.lang` (không cần sửa mã); lời thoại cần **sửa nhỏ mã lõi SC** (4 lớp Java) vì SC chưa hỗ trợ dịch thoại. |
+| **(c)** Đóng góp phần sửa lõi lên SC (pull request) | Đề xuất | Khi được nhận, bản Việt chỉ còn là gói dữ liệu (lang + font), không phải giữ bản sửa riêng mỗi lần SC cập nhật. |
+
+Ảnh bản thử (đĩa gốc + bản thử tiếng Việt, PC):
+
+![Tổng hợp](docs/anh/00_tong_hop.png)
+
+## 1. Severed Chains là gì, cài đặt thế nào
+
+- Bản dịch ngược mã MIPS của LoD sang **Java** (không phải giả lập), đồ hoạ OpenGL qua LWJGL, có API mod.
+  Mã nguồn: https://github.com/Legend-of-Dragoon-Modding/Severed-Chains — giấy phép **AGPL-3.0**.
+- Người chơi tải bản build (`Severed_Chains_Windows.zip`, 131 MB, mục Releases → `devbuild`), giải nén, chép ảnh đĩa vào
+  `isos/`, chạy `launch.bat` (tự tải **JDK 25** Amazon Corretto 222 MB vào `jdk25/`). Không cần BIOS.
+- Cần **đủ 4 đĩa bản Mỹ** (NA), dạng BIN thô 2352 byte/sector (nhận đĩa theo tên volume `SCUS94491/94584/94585/94586`,
+  đọc chỉ-đọc). Tên file tuỳ ý.
+- Lần chạy đầu: giải nén tài nguyên vào `files/` (máy này: 114.333 file, 1,4 GB, ~35 giây), rồi **áp ~350 bản vá script**
+  (`patches/scripts.csv`): dịch ngược script → áp unified diff → dịch lại. Một bản vá không khớp là dừng hẳn.
+- Có trình cập nhật tự động (nút "Update Available" ở màn tựa) — thay jar của game.
+
+## 2. Kiến trúc chữ trong SC
+
+### 2.1 Ba nguồn chữ
+
+| Nguồn | Ví dụ | Dịch bằng gì | Số lượng |
+|---|---|---|---|
+| **File ngôn ngữ** `.lang` (Java properties, UTF-8, Unicode) | tên/mô tả vật phẩm, trang bị, đồ quý, phép, Liên Kích, trạng thái, menu SC, tùy chọn | Thả file `lang/<tên>.vi.lang`, chọn ngôn ngữ trong Tùy chọn — **không cần sửa mã** | `lod` 777 dòng, `lod_core` 445 dòng |
+| **Chuỗi viết cứng trong Java** | tên quái (`Monsters.java`), địa danh menu/lưu (`SItem.java`), tên chương, địa danh bản đồ thế giới (`WmapStatics.java`), trạng thái xấu trong trận | Phải sửa mã (chuyển sang khoá `.lang`) | 344 chuỗi khác nhau (`tools/sc_hardcoded.py`) |
+| **Chuỗi trong script trên đĩa** (DRGN0/1/21–24) | toàn bộ lời thoại, thông báo nhận đồ, hộp lựa chọn, chữ hướng dẫn | Phải sửa mã (SC chưa có cơ chế) | ~12,5 nghìn chuỗi khác nhau |
+
+Hiện trạng dịch của SC: bản tiếng Ba Lan thêm ngày 13/10/2026, **chỉ menu**; mục tùy chọn ghi rõ
+"Language (WIP, Menu Only) — most of the game will still display in English". Chưa có ai dịch lời thoại trên SC.
+
+### 2.2 Mã hoá và hiển thị lời thoại
+
+- Script gọi `addTextbox` (Text.java `scriptAddTextbox`, `scriptSetTextboxContents`; SMap.java `addSobjTextbox`);
+  cả 3 chỗ đều đọc chuỗi bằng **`LodString.fromParam`** → mảng mã 16-bit LoD (giống hệt bảng mã của D:\LOD:
+  `00` dấu cách … `0x56`, `A0FF` hết, `A1FF` xuống dòng, `A3FF` hộp mới, `A5xx/A7xx/A8xx/B0xx/B1xx` điều khiển).
+- Khi vẽ, mỗi mã đi qua `LodString.fromLodChar` (bảng cố định 0x00–0x56 → ký tự ASCII), rồi tra font theo ký tự Unicode.
+  **Mọi mã khác thành `?`** — nên mã chữ Việt 0xD0–0x159 và 193 mã glyph ghép của bản vá PS1 đều hiện `?`.
+- Trình dịch ngược script (script-recompiler) biểu diễn chuỗi là `str[...]` với tag `<line>`, `<speed=0>`, `<colour=5>`,
+  `<chr=0x1d0>`…; mã lạ được giữ bằng `<chr=…>` (có thể dùng để ghi mã tuỳ ý).
+
+### 2.3 Font
+
+- `gfx/fonts/<tên>.json` + `<tên>.png` cùng tên: `{"name", "glyphs": {"<ký tự Unicode>": {texU, texV, texW, texH, x, y, w, h, colour}}}`.
+  `w` là bước chữ (renderer cộng thêm 1 px) → **VWF sẵn**. Ảnh PNG kích thước tuỳ ý. Mọi file `.json` trong thư mục hiện
+  trong Tùy chọn → Giao diện → Phông chữ. Tên font cũng là khoá dịch.
+- Có 2 font: **Original** (256×256, nét đậm 2 px kiểu LoD) và **Smooth** (1024×1024, vẽ ×4, là **mặc định**). Từ 13/10/2026
+  cả hai có Latin-1 + Ba Lan + Thổ (à á â ã é ê ô õ ú ý…), **chưa có** ă ơ ư đ và dấu hỏi/ngã/nặng.
+- Hộp thoại: mỗi dòng 12 px, glyph hiện ở hàng 1–12 của ô 16 px (hàng 0 bị cắt).
+
+### 2.4 Hộp thoại
+
+- Giữ đúng kiểu PS1: lưới `w` ký tự × `l` dòng; khung rộng `w × 9` px; **ngắt dòng theo số ký tự** (không theo điểm ảnh),
+  dòng thừa thì cuộn. `w,l` do script truyền vào — thường là cặp `(w,l)` nằm ngay sau `A0FF` của chuỗi.
+- Chữ vẽ theo bề rộng thật của glyph (VWF), nên chữ tiếng Anh chỉ lấp ~70% khung.
+
+### 2.5 Hệ thống mod
+
+- `mods/*.jar` (lớp có `@Mod`), bus sự kiện (~100 sự kiện: trận, vật phẩm, cửa hàng, bản đồ, nhập liệu…), registry
+  (vật phẩm, trang bị, phép, cấu hình, phím…) — mỗi mục có khoá dịch.
+- **Không** có cơ chế sửa mã lõi (không mixin/biến đổi bytecode), và **không có sự kiện nào cho chuỗi hộp thoại** →
+  một mod `.jar` thuần không thể dịch lời thoại hay đổi cách hiển thị mã chữ.
+- Ngôn ngữ: mỗi mod có `lang/<locale>.lang` riêng; ngoài ra mọi file `lang/*.<ngôn ngữ>.lang` ở thư mục game được nạp đè
+  (`LangManager.loadLangOverrides`); ngôn ngữ nào có file thì hiện trong danh sách (đã thấy "Vietnamese").
+
+### 2.6 Đồ hoạ có chữ
+
+| Hình | Nguồn trong SC | Bản PS1 D:\LOD đã vẽ lại? |
+|---|---|---|
+| Menu màn tựa (New Campaign/Continue/Options/About/Quit) | ảnh riêng của SC `gfx/ui/title_menu.png` | Không (khác hẳn PS1) |
+| Thẻ tiêu đề chương ("Chapter 1 Serdian War") | đĩa `DRGN0/6670–6673` | Có (`font/chapter_titles.py`) |
+| Nhãn menu (GOLD, Star Dust, LV, HP…) | đĩa `DRGN0/6665` | Có một phần (`font/menu_labels.py`) |
+| Nền màn tựa / ghi công | đĩa `DRGN0/5718` | Có (dòng ghi công `font/title_credit.py`) |
+
+## 3. Đánh giá các hướng
+
+### (a) Chạy SC trên đĩa đã vá tiếng Việt — loại
+
+Đã thử thật (thư mục `game_a`, SC gốc, 4 đĩa `D:\LOD\play_1210\*.bin`): giải nén xong thì dừng ở màn
+"Patching failed" — `PatchFailedException: could not apply patch due to CONTENT_DOES_NOT_MATCH_TARGET` khi áp
+`scripts/DRGN1/254.diff` (log: `work/huong_a_stdout.txt`, `work/huong_a_debug.log`; ảnh `docs/anh/09_…png`), kèm 715 cảnh báo
+"Found invalid character" (mã chữ Việt 0x158, 0x159, 0xD0…). Lý do gốc:
+
+1. Bản vá script của SC là diff theo dòng trên script dịch ngược; script Việt hoá đổi chữ và dời chuỗi ra cuối mục → lệch.
+2. Kể cả bỏ qua bản vá: `fromLodChar` biến mọi mã ngoài 0x00–0x56 thành `?`; font Việt trong VRAM của đĩa không được dùng
+   (SC vẽ bằng font PNG riêng).
+3. Các bản vá **mã** của D:\LOD (bước ô x*9→x*5, sprite chữ ghép 8→16 px, bảng RKERN, overlay) không có tác dụng: SC không chạy
+   mã MIPS, hộp thoại là mã Java.
+4. Chỉ phần **ảnh** (thẻ chương, nhãn menu, nền màn tựa) trên đĩa vá là SC dùng được — nên dùng lại riêng lẻ (xem 5.5).
+
+### (b) Mod SC: đĩa gốc + dữ liệu dịch + font Việt — chọn
+
+- Không đụng đĩa người chơi; dùng lại gần như toàn bộ **bản dịch** của D:\LOD.
+- Menu/vật phẩm/phép: chỉ cần file `.lang`.
+- Lời thoại + chuỗi viết cứng: cần sửa mã lõi SC (nhỏ, xem mục 4). Phát hành theo (c) hoặc tạm thời kèm bản sửa.
+
+### (c) Đưa phần sửa lõi lên SC (pull request) — khuyến nghị cho lâu dài
+
+Phần sửa là tính năng chung "dịch chuỗi script + chữ Unicode + ngắt dòng theo điểm ảnh" — có ích cho mọi ngôn ngữ (nhóm Ba Lan
+đang dừng ở menu). Nếu được nhận: bản Việt = thư mục `lang/` + `gfx/fonts/`, người chơi chỉ chép vào, cập nhật SC không làm hỏng.
+Nếu không: phải tự giữ bản sửa theo từng commit SC (rủi ro mục 7).
+
+### Dùng lại được gì từ D:\LOD
+
+| Dùng lại | Không dùng |
+|---|---|
+| `tr/vi/*.json` (13.264 câu thoại + 778 mục menu), `tr/en/strings.tsv` (khoá), `tr/choices.json` (hộp chọn), `tr/glossary.md` | vá EXE/overlay (`asm_main.py`, RKERN, mã ghép, ô vô hình, nén BPE) |
+| quy tắc nhận tên người nói / nối dòng (`build.py`, `vtext.reflow`) | đóng gói DRGN, dời chuỗi, con trỏ (`modtext.py`, `scripttext.py`…) |
+| font vẽ tay `font/base.py` + `compose.py` | PPF, `apply_patch.py`, các kiểm tra theo sector |
+| ảnh đã duyệt: thẻ chương, nhãn menu, dòng ghi công | |
+
+## 4. Bản thử đã làm (thư mục `D:\LOD-SC`)
+
+### 4.1 Thành phần
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Menu/vật phẩm | `tools/sc_lang.py` → `out/lang/lod.vi.lang` | 384 khoá ghép tự động theo chữ Anh với `tr/en/menu.tsv` (vật phẩm 53/54, mô tả trận 50/54, đồ quý 37/37, phép 35/35, mô tả trang bị 105/148). Tên trang bị (148) và tên Liên Kích (35) để tiếng Anh như bản PS1. 321 khoá chưa ghép: `out/lang_missing.tsv`. |
+| Giao diện SC | `tr_sc/core.vi.lang` | Dịch tay ~45 khoá thử (menu trong game, Có/Không, Phông chữ, Ngôn ngữ…). |
+| Lời thoại | `tools/sc_dialogue.py` → `out/lang/dialogue.vi.tsv` | 13.264 câu: `chữ Anh dạng tag ⇥ chữ Việt ⇥ kiểu`. Kiểu N (dòng đầu là tên, 7.189), J (nối dòng, 2.376), L (giữ dòng: hộp chọn, khung 1 dòng, câu có B0xx, 3.699). |
+| Font | `tools/sc_font.py` → `out/fonts/vietnamese.json/.png` | 315 glyph, 212 lấy từ font vẽ tay D:\LOD (đặt ở hàng 1–12 của ô 16 px), ký hiệu/biểu tượng nút lấy từ font Original. Xem trước: `docs/anh/10_font_xem_truoc.png`. |
+| Sửa lõi SC | `sc-vi/src/…` → `out/sc-vi.jar` (8 lớp) | Diff gọn: `sc-vi/patches/sc-core-affcef0.diff`. |
+| Tự kiểm | `sc-vi/test/TagRoundTrip.java` | 13.264 câu × (khoá tag 2 cột + ngắt dòng 6 bề rộng × 2 kiểu đo): **0 lỗi**. |
+| Build / chạy | `tools/build_sc_vi.ps1`, `tools/run_sc.ps1 -Install`, `tools/sc_ui.ps1` (bấm phím/chụp cửa sổ) | Dữ liệu sinh ra xác định (build 2 lần cùng SHA-256). |
+
+### 4.2 Phần sửa lõi SC (so với commit `affcef0`)
+
+1. `LodString` (+23 dòng): mã `0x10000 + ký tự Unicode` mang chữ ngoài bảng gốc (`fromLodChar` trả lại ký tự);
+   `fromParam` đọc cặp `(w,l)` ngay sau chuỗi rồi gọi bộ dịch; trường `gridChars`.
+2. `ScriptTextTranslations` (mới): nạp `lang/dialogue.<ngôn ngữ>.tsv` theo ngôn ngữ đang chọn; tính khoá từ mảng mã giống
+   hệt `codes_to_text` của `D:\LOD\tools\dump.py`; mã hoá chữ Việt; **ngắt dòng theo điểm ảnh** của font đang chọn trong bề rộng
+   khung gốc `w × 9` px (đúng lựa chọn của bạn ở bản PS1: giữ khung như bản gốc, ngắt lấp đầy trong khung); câu không có bản dịch
+   giữ nguyên tiếng Anh, có thể ghi ra `dialogue_missing.vi.txt` (`-Dscvi.logMissing=true`).
+3. `Text.java` (3 dòng) và `SMap.java` (10 dòng): nới **lưới ký tự** của hộp (`chars_1c`) cho đủ số ký tự của dòng Việt dài nhất,
+   còn **vị trí/bề rộng khung** vẫn tính theo khung gốc (`chars_18`). Nhờ vậy câu "Ngươi là lính đánh thuê của Basil?" (34 ký tự,
+   khung gốc 29 ô) nằm gọn một dòng thay vì bị tách sang hộp thứ hai.
+4. Đã kiểm: biên dịch bản **chưa sửa** của `Text`/`LodString` từ mã nguồn ra đúng từng lệnh như lớp trong jar build; `SMap` chỉ
+   khác cách lưu một hằng số → mã nguồn khớp bản build.
+
+### 4.3 Kết quả trong game (đĩa gốc, ảnh trong `docs/anh/`)
+
+- Tùy chọn: chọn **Ngôn ngữ = Vietnamese**, **Phông chữ = Tiếng Việt (pixel)** (`08_…`).
+- Cảnh mở đầu → rừng → lính Sandora → Rồng Nanh Xanh → Rose → Seles cháy: mọi hộp thoại tiếng Việt có dấu, tên người nói màu vàng,
+  mã màu đỏ (`{A705}` "Rồng", "Seles"), ngắt dòng trong khung gốc (`02…05`). Trong vài chục hộp thoại đã qua, câu thiếu bản dịch duy
+  nhất (theo `dialogue_missing.vi.txt`) là `{B001}...?` — giống hệt bản gốc, không cần dịch.
+- Menu trong game và danh sách vật phẩm tiếng Việt (`06`, `07`): "Thiêu Rụi", "Thuốc Hồi Phục", "Hệ hỏa, đánh một địch (nhiều lần).";
+  trang bị giữ tiếng Anh.
+- Thấy ngay việc phải làm tiếp: "Dùng vật phẩm" tràn ô menu; "Ch.1 Serdian War / Seles", "Diiig" và chữ ảnh GOLD/Star Dust
+  vẫn tiếng Anh; thẻ "Chapter 1 Serdian War" là ảnh gốc.
+- **Chưa thử**: trận đánh (chữ trong trận, tên quái), hộp lựa chọn có vạch chọn, cửa hàng/quán trọ, đĩa 2–4.
+
+## 5. Kế hoạch đề xuất
+
+1. **Chốt hướng phát hành** (câu hỏi 1) và liên hệ nhóm SC (Discord #modding / GitHub) giới thiệu tính năng dịch thoại.
+2. **Hoàn thiện lõi** (1–2 phiên): bí danh cho 12 câu tiếng Anh SC đã tự sửa trong `patches/scripts/*.diff`; kiểm hộp lựa chọn
+   (vạch chọn theo dòng hiển thị), số chèn `{A8xx}`, hộp 1 dòng, hộp theo NPC, chữ trong trận (DRGN1) với lưới rộng hơn khung;
+   tự nhận font Việt khi chọn tiếng Việt (font Smooth mặc định không có dấu); đặt tên font không dấu cho danh sách chọn.
+3. **Chuỗi viết cứng** (1 phiên + dịch tay phần thiếu): đổi 344 chuỗi trong 6 file Java sang khoá `.lang` (đúng hướng SC đang đi:
+   vật phẩm đã chuyển), ghép tên quái/địa danh từ `D:\LOD tr/vi` (M-uid), phần còn lại dịch tay theo `tr/glossary.md`.
+4. **Giao diện SC** (~700 khoá `lod_core` + `lod` còn thiếu): dịch, rồi kiểm bề rộng từng ô menu SC (như `check_menu.py` của PS1),
+   ví dụ "Dùng vật phẩm" → câu ngắn hơn.
+5. **Đồ hoạ**: dùng lại ảnh đã duyệt của PS1 (thẻ chương, nhãn menu, dòng ghi công) — SC nạp chúng từ `files/SECT/DRGN0.BIN/…`
+   nên cần một bước thay file sau giải nén hoặc móc thay texture trong lõi; vẽ lại `gfx/ui/title_menu.png` của SC.
+   Theo quy trình: ảnh xem trước gốc/Việt → bạn duyệt → áp.
+6. **Font** (tuỳ câu hỏi 2): giữ font mảnh PS1, và/hoặc vẽ dấu Việt cho font Original đậm, và/hoặc bản Smooth ×4.
+7. **Chơi thử toàn bộ** bằng `-Dscvi.logMissing=true` + kịch bản bấm phím `tools/sc_ui.ps1`, chụp ảnh các cảnh; công cụ kiểm tương
+   tự `text_audit.py`: đọc `dialogue.vi.tsv`, ngắt bằng đúng hàm Java, báo dòng tràn/số dòng/hộp chọn.
+8. **Phát hành**: (c) PR lên SC rồi phát hành gói dữ liệu; hoặc gói `sc-vi` (jar + lang + font + `launch-vi.bat`, mã nguồn công khai
+   theo AGPL), ghim đúng commit SC, kiểm commit khi khởi chạy.
+
+## 6. Khối lượng ước tính
+
+| Phần | Khối lượng | Ghi chú |
+|---|---|---|
+| Lời thoại | Nhỏ (đã có 100% bản dịch, đã chạy) | Chủ yếu là kiểm thử theo cảnh |
+| Menu vật phẩm/phép | Nhỏ (384 khoá tự động) | |
+| Giao diện riêng SC | Trung bình (~700 khoá dịch tay) | nhiều mục cấu hình kỹ thuật |
+| Chuỗi viết cứng | Trung bình (sửa 6 file Java + 344 chuỗi) | cần sửa lõi |
+| Đồ hoạ | Trung bình | đã có ảnh PS1 + vẽ menu tựa SC |
+| Font đậm / Smooth | Trung bình (nếu chọn) | |
+| Duy trì theo SC | **Lớn nếu tự giữ bản sửa**, nhỏ nếu PR được nhận | SC ra devbuild gần như hằng ngày |
+
+## 7. Rủi ro
+
+- **SC thay đổi liên tục** (3.0 đang phát triển, updater tự động). Bản thử thay nguyên lớp `Text`/`SMap`/`LodString`: SC cập nhật
+  mà vẫn nạp lớp cũ có thể sai hoặc sập → phải áp lại diff và build theo từng commit; `build_sc_vi.ps1` đã chặn khi jar khác commit.
+- **Khoá tra = chữ tiếng Anh**: SC sửa câu tiếng Anh (hiện 12 câu) thì câu đó hiện tiếng Anh → cần bảng bí danh + log thiếu.
+- **Lưới rộng hơn khung**: chưa kiểm hết các kiểu hộp (chọn, số, trận, cuộn) — có thể cần chỉnh thêm.
+- **Font**: font mặc định của SC (Smooth) không có dấu Việt; người chơi phải chọn font Việt (nên tự đặt khi chọn tiếng Việt).
+- **Giấy phép AGPL-3.0**: phát hành lớp sửa thì phải công khai mã nguồn (cùng giấy phép).
+- PR có thể không được nhận hoặc nhóm SC muốn thiết kế khác (ví dụ khoá theo vị trí script thay vì chữ Anh).
+
+## 8. Câu hỏi cần bạn chốt
+
+1. **Phát hành**: gửi phần sửa lõi lên nhóm SC (PR — cần tài khoản GitHub/Discord của bạn để trao đổi) hay tự phát hành bản sửa kèm
+   (mã nguồn công khai theo AGPL)?
+2. **Font**: dùng font mảnh của bản PS1 (đang dùng trong bản thử) hay vẽ dấu Việt cho font đậm Original của SC; có cần bản Smooth
+   độ phân giải cao (mặc định của SC)?
+3. **Khung thoại**: giữ bề rộng khung gốc và ngắt theo điểm ảnh như bản thử (giống lựa chọn ở PS1) — đồng ý?
+4. **Đồ hoạ**: dùng lại ảnh đã duyệt của PS1 (thẻ chương, nhãn menu, dòng ghi công) và vẽ lại menu màn tựa riêng của SC?
+5. **Giao diện SC** (~700 chuỗi, nhiều mục cấu hình đồ hoạ/âm thanh/phím): dịch hết hay giữ tiếng Anh phần cấu hình nâng cao?
+6. **Tên riêng**: giữ như PS1 (tên người, tên trang bị, tên Liên Kích tiếng Anh; địa danh/vật phẩm/phép tiếng Việt) — đồng ý áp y hệt?
+7. **Repo**: tạo repo riêng (private) cho `D:\LOD-SC` không?
+
+## 9. Phụ lục — đường dẫn và lệnh
+
+```
+D:\LOD-SC\
+  NGHIEN_CUU.md            báo cáo này
+  Severed-Chains\          clone SC (git riêng, không commit vào repo này)
+  deps\                    clone mod-loader, script-recompiler (đọc mã)
+  game\                    bản build SC + JDK 25 + isos\ (hard link 4 BIN gốc từ D:\LOD) + files\ (giải nén 1,4 GB)
+  game_a\                  thử hướng (a): isos\ = hard link đĩa play_1210 (đã xoá files\)
+  sc-vi\src, test, patches mã sửa lõi + tự kiểm + diff so với affcef0
+  tools\                   sc_lang.py, sc_dialogue.py, sc_font.py, sc_hardcoded.py, build_sc_vi.ps1, run_sc.ps1, sc_ui.ps1
+  tr_sc\core.vi.lang       giao diện SC dịch tay (thử)
+  out\                     sản phẩm build (lang, fonts, sc-vi.jar)
+  docs\anh\                ảnh trong game
+  work\                    ảnh chụp thô, log hướng (a)
+```
+
+- Mã SC liên quan: `legend/game/types/LodString.java` (`fromParam`, `fromLodChar`), `legend/game/Text.java`
+  (`scriptSetTextboxContents`, `scriptAddTextbox`, `clearTextboxText`, `renderTextboxText`, `calculateAppropriateTextboxBounds`),
+  `legend/game/submap/SMap.java` (`addSobjTextbox`, `positionSobjTextbox`), `legend/core/font/*` (font),
+  `legend/game/modding/coremod/config/LanguageConfigEntry.java`, mod-loader `i18n/LangManager.java` (nạp `.lang`),
+  `legend/game/unpacker/scripts/ScriptPatcher.java` (bản vá script).
+- Dựng + cài + chạy bản thử:
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools/build_sc_vi.ps1
+```
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools/run_sc.ps1 -Install
+```
+
+  Trong game: Options → Global Options → User Interface → Phông chữ = "Tiếng Việt (pixel)", Ngôn ngữ = Vietnamese.
+- Phím SC: mũi tên di chuyển, Enter/Space xác nhận, Escape quay lại, E mở menu, Enter hai lần bỏ qua phim.

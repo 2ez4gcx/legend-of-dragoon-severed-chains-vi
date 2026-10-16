@@ -1,0 +1,4 @@
+ff07562adb507ece77bd03edba397775f66ea2f3dd58abdf6cb282e5779d5ff3 *out/lang/dialogue.vi.tsv
+e27bf942ec469fb7b05f56587e7d5c7ede10dc058bfbcd74c0760b72ef66aa7a *out/lang/lod.vi.lang
+22cf32c5d1cfeb50e05966d1a241aa9a9f374c11a39e15bb10d297b3f2400ccf *out/fonts/vietnamese.json
+6de59b1db970970bf474bf65a225993baf7e83b2dc2c50fac3acc153521da98a *out/fonts/vietnamese.png

@@ -1,0 +1,12 @@
+# Ma nguon/ban build ben ngoai (tai lai theo NGHIEN_CUU.md)
+/Severed-Chains/
+/deps/
+/dl/
+/game/
+/game_a/
+# San pham build (tao lai bang tools/build_sc_vi.ps1)
+/out/
+# Anh chup tho; anh chon loc nam o docs/anh
+/work/shots/
+__pycache__/
+*.pyc
