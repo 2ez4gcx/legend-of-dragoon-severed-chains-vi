@@ -18,7 +18,8 @@ addTextbox, đúng lúc chuỗi được đặt vào khung):
        Java chỉ ngắt (ở dấu cách) dòng nào dài hơn w để game không cắt giữa chữ.
     C  không bao giờ ngắt (hộp lựa chọn — vạch chọn và lựa chọn trả về đi theo số dòng; khung 1 dòng: choices.json
        "choice" + "dong1"); dòng dài hơn khung thì Java nới khung cho vừa (như bản PS1: khung vừa dòng dài nhất).
-Quy tắc nhận tên người nói và nối dòng lấy từ build.py / vtext.reflow của D:\\LOD.
+Quy tắc nhận tên người nói và nối dòng lấy từ build.py / vtext.reflow của D:\\LOD, thêm: dòng sau tên mở bằng số chèn
+{A8xx} hoặc ngoặc kép + chữ hoa cũng là câu (opens_sentence).
 
 Bí danh: SC tự sửa 12 câu tiếng Anh trong script (Severed-Chains/patches/scripts/**/*.diff, dòng "-data str[...]" /
 "+data str[...]"; biến môi trường SC_ROOT để đổi chỗ, như sc_lang/sc_font), khoá tra của các câu đó đổi theo. sc_patch_pairs() đọc các cặp
@@ -44,6 +45,7 @@ SC = os.environ.get('SC_ROOT', os.path.join(ROOT, 'Severed-Chains'))
 CODE = re.compile(r'\{[0-9A-Fa-f]{4}\}')
 UNKNOWN = re.compile(r'\?{2,}')
 PUNCT = re.compile(r'[.,!?…:"]')
+VAR_START = re.compile(r'(?:\{[0-9A-Fa-f]{4}\})*\{A8[0-9A-Fa-f]{2}\}')   # dòng mở đầu bằng số chèn {A8xx}
 
 
 def speakers(en):
@@ -58,11 +60,20 @@ def speakers(en):
     return {k for k, v in c.items() if v >= 2}
 
 
+def opens_sentence(line):
+    """dòng (Anh, dạng tag) mở đầu như một câu sau dòng tên: chữ hoa, ngoặc kép/ngoặc đơn + chữ hoa, hoặc số chèn {A8xx}.
+    Không có hai trường hợp sau thì tên dài > 24 ký tự bị nối vào câu (S02757 "Monster Conquest Game Stand{n}{A800}…
+    point(s)!", S11045 'Legislation Center Lapto 5{n}"THOSE…', S12214 'Event{n}"Description…')."""
+    s = CODE.sub('', line).strip()
+    return s[:1].isupper() or (s[:1] in '"(' and s[1:2].isupper()) or VAR_START.match(line) is not None
+
+
 def is_name(en, vi, spk):
-    ens = [CODE.sub('', x).strip() for x in en.split('{p}')[0].split('{n}')]
+    raw = en.split('{p}')[0].split('{n}')
+    ens = [CODE.sub('', x).strip() for x in raw]
     v0 = CODE.sub('', vi.split('{n}')[0]).strip()
     looks = len(ens[0]) <= 32 and not PUNCT.search(ens[0]) and v0 and not PUNCT.search(v0)
-    return len(ens) > 1 and bool(ens[0] in spk or UNKNOWN.fullmatch(ens[0]) or (looks and ens[1][:1].isupper()))
+    return len(ens) > 1 and bool(ens[0] in spk or UNKNOWN.fullmatch(ens[0]) or (looks and opens_sentence(raw[1])))
 
 
 def reflow(text, keep_first):

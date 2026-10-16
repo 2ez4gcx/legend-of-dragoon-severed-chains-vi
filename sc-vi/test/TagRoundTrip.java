@@ -22,11 +22,12 @@ import java.util.function.IntUnaryOperator;
  * 3. Như trong game (loadTable + lookup + layout, đúng đường Text/SMap.applyGrid đi): mọi câu Anh tra ra bản dịch, original()
  *    trả lại chuỗi gốc; với khung w = dòng Anh dài nhất và w + 4:
  *    - kiểu C: số dòng giữ nguyên (vạch chọn/lựa chọn trả về theo dòng), khung nới đủ cho dòng rộng nhất (tối đa 34 ô);
- *    - kiểu N/J/L: dòng vừa khung (trừ dòng tên/dòng một từ), khung giữ bề rộng gốc;
+ *    - kiểu N/J/L: dòng vừa khung (trừ dòng tên/dòng một từ), khung giữ bề rộng gốc; kiểu N: dòng tên giữ nguyên;
  *    - lưới ký tự >= khung và >= số ô dòng dài nhất cần (số {A8xx} 10 ô) — engine không tự ngắt dòng lần nữa.
  * 4. Ca riêng: hack "?Funds ?G" của SC (quán trọ) vẫn nhận ra chuỗi gốc; hộp "DÙNG CỬA HÀNG?" (khung 10) giữ 3 dòng;
- *    bí danh câu SC đã sửa tra được (kể cả câu Lisa có phần <noterm> đệm dấu cách, chép từ dialogue_missing trong game);
- *    <action> chiếm 1 ô lưới.
+ *    bí danh câu SC đã sửa tra được (kể cả câu Lisa có phần <noterm> đệm dấu cách, chép từ dialogue_missing trong game;
+ *    S08018, S10558, S02777 đã thấy trong game); <action> chiếm 1 ô lưới; hộp chọn số 1-5 "Hủy" giữ 8 dòng trong khung 6;
+ *    tên dài + dòng sau mở bằng số chèn/ngoặc kép (Quầy Diệt Quái, Lapto 5) là kiểu N, dòng tên đứng riêng.
  * Exit 0 = đạt.
  */
 public final class TagRoundTrip {
@@ -228,6 +229,11 @@ public final class TagRoundTrip {
             fail("KHUNG doi (" + box + " -> " + layout.boxChars() + "): " + cols[1]);
           }
 
+          // Kiểu N: dòng tên người nói đứng riêng, không bị nối/ngắt
+          if(mode == 'N' && !tags(ls.get(0)).equals(cols[1].split("\\{[np]\\}", 2)[0])) {
+            fail("DONG TEN bi doi (box " + box + "): " + tags(ls.get(0)) + "  <- " + cols[1]);
+          }
+
           for(int i = 0; i < ls.size(); i++) {
             final boolean nameLine = mode == 'N' && i == 0;
             if(!nameLine && words(ls.get(i)) > 1 && width(ls.get(i), pixels) > box * 9) {
@@ -269,7 +275,36 @@ public final class TagRoundTrip {
       fail("ACTION: <action> phai chiem 1 o");
     }
 
-    System.out.println("Kiem " + n + " cau (tag 2 cot + ngat 6 be rong x 2 kieu do + layout nhu trong game 2 khung; " + widened + " lan noi khung hop chon) + 4 ca rieng, loi " + bad);
+    // Câu đã chụp trong game (phiên kiểm đĩa 3-4, Quầy Diệt Quái, khoá số), khoá đúng như SC đọc:
+    // bí danh S08018 (Furni, SC sửa " gainst"), S10558 (Vellweb, SC bỏ "Rose" thừa), S02777 (khoá số, SC "?" -> "Cancel")
+    for(final String key : new String[] {"Against a Dragon, there is{n}nothing we can do.",
+      "Rose{n}Let's move on.{n}There is no reason to be{n}here now.", "{B001}{n}1{n}2{n}3{n}4{n}5{n}Cancel{n}"}) {
+      if(!(ScriptTextTranslations.lookup(new LodString(ScriptTextTranslations.fromTags(key)), font) instanceof ScriptTextTranslations.Translated)) {
+        fail("BI DANH: cau SC da sua khong tra duoc: " + key);
+      }
+    }
+
+    // Hộp chọn số (khung 6 x 8): 7 dòng giữ nguyên, dòng cuối "Hủy" (vạch chọn dòng 6 = lựa chọn 5 = huỷ)
+    final ScriptTextTranslations.Layout lock = ScriptTextTranslations.layout(ScriptTextTranslations.lookup(new LodString(ScriptTextTranslations.fromTags("{B001}{n}1{n}2{n}3{n}4{n}5{n}Cancel{n}")), font), 6, font);
+    final List<int[]> lockLines = lines(codes(lock.str()));
+    if(lockLines.size() != 8 || !"Hủy".equals(tags(lockLines.get(6))) || lock.boxChars() != 6) {
+      fail("HOP CHON SO: " + ScriptTextTranslations.toTags(lock.str()) + " khung " + lock.boxChars());
+    }
+
+    // Tên người nói dài (> 24 ký tự) + dòng sau mở bằng số chèn / ngoặc kép: dòng tên phải đứng riêng (trước khi sửa
+    // sc_dialogue.is_name, Quầy Diệt Quái hiện "Quầy Trò Chơi Diệt Quái 000000 điểm! Lại tới nhé!!" trên một dòng)
+    for(final String[] c : new String[][] {
+      {"{A500}Monster Conquest Game Stand{n}{A800}{A801}{A802}{A803}{A804}{A805} point(s)!{n}Come again!!", "{A500}Quầy Trò Chơi Diệt Quái", "36"},
+      {"{A500}Legislation Center Lapto 5{n}\"THOSE WITH LEGAL LICENSES{n}SHALL NOT AMEND LAWS\".", "{A500}Lapto Trung Tâm Lập Pháp 5", "31"}}) {
+      final LodString name = ScriptTextTranslations.lookup(new LodString(ScriptTextTranslations.fromTags(c[0])), font);
+      final ScriptTextTranslations.Layout nameLayout = ScriptTextTranslations.layout(name, Integer.parseInt(c[2]), font);
+      final List<int[]> nameLines = lines(codes(nameLayout.str()));
+      if(!(name instanceof final ScriptTextTranslations.Translated t) || t.mode() != 'N' || nameLines.size() < 2 || !c[1].equals(tags(nameLines.get(0)))) {
+        fail("DONG TEN bi noi: " + ScriptTextTranslations.toTags(nameLayout.str()));
+      }
+    }
+
+    System.out.println("Kiem " + n + " cau (tag 2 cot + ngat 6 be rong x 2 kieu do + layout nhu trong game 2 khung; " + widened + " lan noi khung hop chon) + 7 ca rieng, loi " + bad);
     System.exit(bad == 0 ? 0 : 1);
   }
 }

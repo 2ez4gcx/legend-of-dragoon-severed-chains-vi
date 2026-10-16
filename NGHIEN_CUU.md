@@ -128,12 +128,12 @@ Nếu không: phải tự giữ bản sửa theo từng commit SC (rủi ro mụ
 |---|---|---|
 | Menu/vật phẩm | `tools/sc_lang.py` → `out/lang/lod.vi.lang` | 384 khoá ghép tự động theo chữ Anh với `tr/en/menu.tsv` (vật phẩm 53/54, mô tả trận 50/54, đồ quý 37/37, phép 35/35, mô tả trang bị 105/148). Tên trang bị (148) và tên Liên Kích (35) để tiếng Anh như bản PS1. 321 khoá chưa ghép: `out/lang_missing.tsv`. |
 | Giao diện SC | `tr_sc/core.vi.lang` | Dịch tay ~45 khoá thử (menu trong game, Có/Không, Phông chữ, Ngôn ngữ…). |
-| Lời thoại | `tools/sc_dialogue.py` → `out/lang/dialogue.vi.tsv` | 13.264 câu: `chữ Anh dạng tag ⇥ chữ Việt ⇥ kiểu`. Kiểu N (dòng đầu là tên, 7.189), J (nối dòng, 2.376), L (giữ dòng: bảng, câu có B0xx, 3.317), C (không bao giờ ngắt: hộp chọn + khung 1 dòng theo `tr/choices.json`, 382). **+12 bí danh** cho câu tiếng Anh SC tự sửa (đọc thẳng `Severed-Chains/patches/scripts/**/*.diff`, thiếu/thừa thì dừng). |
+| Lời thoại | `tools/sc_dialogue.py` → `out/lang/dialogue.vi.tsv` | 13.264 câu: `chữ Anh dạng tag ⇥ chữ Việt ⇥ kiểu`. Kiểu N (dòng đầu là tên, 7.192), J (nối dòng, 2.373), L (giữ dòng: bảng, câu có B0xx, 3.317), C (không bao giờ ngắt: hộp chọn + khung 1 dòng theo `tr/choices.json`, 382). Dòng sau tên mở bằng số chèn `{A8xx}` hoặc ngoặc kép + chữ hoa cũng là câu (`opens_sentence`, sửa 3 câu tên dài bị nối, mục 4.3 (h)). **+12 bí danh** cho câu tiếng Anh SC tự sửa (đọc thẳng `Severed-Chains/patches/scripts/**/*.diff`, thiếu/thừa thì dừng). |
 | Font | `tools/sc_font.py` → `out/fonts/vietnamese.json/.png` | 315 glyph, 212 lấy từ font vẽ tay D:\LOD (đặt ở hàng 1–12 của ô 16 px), ký hiệu/biểu tượng nút lấy từ font Original. Xem trước: `docs/anh/10_font_xem_truoc.png`. |
 | Sửa lõi SC | `sc-vi/src/…` → `out/sc-vi.jar` | Diff gọn `sc-vi/patches/sc-core-affcef0.diff`, tạo lại tự động bằng `tools/sc_core_diff.py` (`--check` để so). |
-| Tự kiểm | `sc-vi/test/TagRoundTrip.java` | 13.276 câu × (khoá tag 2 cột + ngắt dòng 6 bề rộng × 2 kiểu đo + **bố cục như trong game** qua `lookup`/`layout` với 2 khung) + 4 ca riêng (Funds, hộp "DÙNG CỬA HÀNG?", bí danh Lisa, `<action>`): **0 lỗi**. Thử ngược: đổi C→L thì báo lỗi hộp cửa hàng. |
+| Tự kiểm | `sc-vi/test/TagRoundTrip.java` | 13.276 câu × (khoá tag 2 cột + ngắt dòng 6 bề rộng × 2 kiểu đo + **bố cục như trong game** qua `lookup`/`layout` với 2 khung, kiểu N giữ nguyên dòng tên) + 7 ca riêng (Funds, hộp "DÙNG CỬA HÀNG?", bí danh Lisa/S08018/S10558/S02777 đúng khoá thấy trong game, `<action>`, hộp chọn số "Hủy" khung 6, dòng tên Quầy Diệt Quái/Lapto 5 đứng riêng): **0 lỗi**. Thử ngược: đổi C→L thì báo lỗi hộp cửa hàng; bảng cũ (Quầy Diệt Quái kiểu J) báo "DONG TEN bi noi". |
 | Build / chạy | `tools/build_sc_vi.ps1`, `tools/run_sc.ps1 -Install`, `tools/sc_ui.ps1` (bấm phím/chụp cửa sổ game SDL) | Dữ liệu sinh ra xác định (build 2 lần cùng SHA-256). |
-| Tới cảnh/trận | `tools/sc_cuts.py` (uid/vị trí script → số cảnh, từ `SUBMAP/NEWROOT.RDT`), `tools/sc_dbg.ps1` (điều khiển cửa sổ Debugger F12 qua UI Automation: `-Warp <cảnh>`, `-Encounter <trận>`, `-GetMap`) | Save: chép thẻ nhớ PS1 (`D:\LOD\work\card_d*.mcd`, `release\epsxe000.mcr`) vào `game\saves`, SC tự đổi sang chiến dịch ở màn tựa (chọn **Không** xoá thẻ). |
+| Tới cảnh/trận | `tools/sc_cuts.py` (uid/vị trí script → số cảnh, từ `SUBMAP/NEWROOT.RDT`), `tools/sc_dbg.ps1` (điều khiển cửa sổ Debugger F12 qua UI Automation: `-Warp <cảnh>`, `-Encounter <trận>`, `-GetMap`; cửa sổ con GameState Editor: `-Flag2`/`-Flag1 "e1=1,fe=0"`, `-ShowFlag2`/`-ShowFlag1`, `-Chapter`; Submap Debugger: `-SobjNear <npc>` dời NPC tới cạnh người chơi, `-SobjPos "0:x,y,z"`, `-ShowPlayer`) | Save: chép thẻ nhớ PS1 (`D:\LOD\work\card_d*.mcd`, `release\epsxe000.mcr`) vào `game\saves`, SC tự đổi sang chiến dịch ở màn tựa (chọn **Không** xoá thẻ). `card_d3/d4` là **thẻ mẫu** (LV1, mọi cờ = 0, chỉ đổi cảnh): cảnh phụ thuộc cờ phải đặt cờ (xem "Bẫy khi tới cảnh" ở 4.3). |
 
 ### 4.2 Phần sửa lõi SC (so với commit `affcef0`)
 
@@ -185,16 +185,40 @@ lẻ mã được **đệm `0x00`** — câu Lisa (DRGN22/1137, "Vally" → "Val
 | (d) Hộp theo NPC (`positionSobjTextbox`) | Lapto cảnh 530 | Cả hai nhánh: khung rộng (≥ 17 ô) căn giữa ("Lapto Cửa Hàng / ĐIỀU LUẬT WINGLY…"), khung hẹp đặt cạnh NPC và được nới cho vừa ("DÙNG CỬA HÀNG?") | `14` |
 | (e) Đĩa 2 / bí danh | Fletz cảnh 702 (Lisa), gian trò chơi cảnh 636 | Cả cảnh Lisa tiếng Việt (tên người nói, câu dài cuộn trong khung). Câu bí danh có `<action>`: "…nhấn nút **Space** để chọn." (SC tự điền phím). Lỗi bí danh câu Lisa (hiện tiếng Anh) đã sửa, chụp lại | `15`, `16` |
 
-Sau khi sửa, `dialogue_missing.vi.txt` của các lần chạy chỉ còn `{B001}...?` (giống bản gốc) và `dummy_C071_0_21` (chữ giữ chỗ có
-sẵn trong script quán trọ cảnh 71 khi vào bằng Warp, không phải câu thoại thật). Chưa kiểm: đĩa 3–4 (save `card_d3/d4` có sẵn,
-dùng `sc_cuts.py` + Warp như trên), trò chơi có số `{A800}…{A805}` (Quầy Diệt Quái), hộp chọn số 1–5 "Hủy".
+**Phiên kiểm đĩa 3–4 và hộp hiếm (17/10/2026)** — save đĩa 3 `card_d3`, đĩa 4 = save chương 4 thật ("New Campaign 3", Unknown location 1):
+
+| Kiểu | Cảnh | Kết quả | Ảnh |
+|---|---|---|---|
+| (f) Đĩa 3 + bí danh S08018, S10558 | Furni cảnh 329 (Hiệp sĩ trú đóng Harris, Bulgus, ~15 hộp), NPC Furni; Vellweb cảnh 502 | Thoại tiếng Việt, tên vàng, mã màu đỏ ("Rừng Thường Xanh"). S08018 là lời NPC 11 ở giai đoạn "có Rồng" (cờ flags2 0xe1, 0xf5 bật, 0xfe tắt), lần nói thứ hai: "Trước Rồng, chúng ta chẳng làm gì được." — bí danh của câu SC sửa " gainst" (khung SC nới 25→26 ô) tra đúng, không dấu cách thừa. S10558 tự chạy khi vào cảnh 502 (flags2 0x11c tắt, một trong flags1 0xbe–0xc1 bật): "Rose / Đi tiếp thôi. Giờ không có lý do để ở đây." (SC bỏ "Rose" lặp) | `17`, `18` |
+| (g) Đĩa 4 | mở đầu Death Frontier (cảnh 746), Zenebatos cảnh 529 | ~20 hộp tiếng Việt, tên vàng, mã màu ("Thành Phố Luật Pháp Zenebatos", "Ulara"), số "10.000" giữ đúng | `19` |
+| (h) Số chèn `{A800}…{A805}` | Quầy Trò Chơi Diệt Quái cảnh 152 (Lohan) | Ô điểm 6 ô "000000" như bản gốc (6 biến, mỗi biến 1 chữ số). **Lỗi đã sửa**: màn kết quả hiện "Quầy Trò Chơi Diệt Quái 000000 điểm! Lại tới nhé!!" trên **một dòng** — tên quầy bị nối vào câu vì dòng 2 bản Anh mở bằng số chèn (không phải chữ hoa) và tên dài 27 > 24 ký tự nên `is_name` xếp kiểu J. Sửa `sc_dialogue.py` (`opens_sentence`: số chèn `{A8xx}` hoặc ngoặc kép + chữ hoa cũng mở câu) → đúng 3 câu đổi sang kiểu N: S02757 (quầy), S11045 ('Lapto Trung Tâm Lập Pháp 5 / "NGƯỜI CÓ GIẤY PHÉP…"'), S12214 ('Sự kiện / "Rose giới thiệu…"'). Sau sửa: "Quầy Trò Chơi Diệt Quái / 000000 điểm! Lại tới nhé!!" | `20` (trái: trước, phải: sau) |
+| (i) Hộp chọn số 1–5 "Hủy" | khoá số Đền Shirley cảnh 157 (S02777, khung 6 × 8) | Cả cảnh Lavitz/Dart tiếng Việt; hộp "1 2 3 4 5 Hủy" (bí danh của câu SC sửa "?" → "Cancel"), khung giữ 6 ô; vạch chọn đúng dòng ở "1" và "Hủy"; chọn "Hủy" chạy đúng nhánh của bản gốc ("Dart / Chắc sai rồi.") | `21` |
+
+Sau các phiên trên, `dialogue_missing.vi.txt` chỉ còn: `{B001}...?` và `...` (giống bản gốc), `{B000}{A800}…{A805}` (ô điểm Quầy
+Diệt Quái, chỉ có số), `dummy_C071_0_21` (chữ giữ chỗ trong script quán trọ cảnh 71 khi vào bằng Warp). Cùng quy tắc nhận tên
+có trong `build.py` của D:\LOD → bản PS1 có thể cũng nối tên ở 3 câu (h) (chưa kiểm trên PS1).
+
+**Bẫy khi tới cảnh** (ghi lại để kiểm tiếp):
+- Script cảnh đọc cờ cốt truyện: flags2 = `scriptReadGlobalFlag2` (ô "Script Flags 1" của GameState Editor — SC đặt tên ngược),
+  flags1 = `scriptReadGlobalFlag1` (ô "Script Flags 2"). Tìm cờ cần bật bằng cách dịch ngược script của cảnh với
+  script-recompiler có sẵn trong `game\libs` (chạy trong thư mục có `cache\meta` = bản sao `game\patches\meta`):
+  `java -cp "game/libs/*" org.legendofdragoon.scripting.Shell d -v meta -i game/files/SECT/DRGN23.BIN/12/1 -o x.txt`
+  (thư mục script = thư mục cảnh + 2; tệp 0 = điều khiển cảnh, thường đếm cờ trong bảng `LABEL_x` để ra "giai đoạn").
+- NPC bản đồ: bảng thoại theo (giai đoạn × số sobj + số sobj của NPC) → (cờ "đã nói", câu đầu); lần nói thứ hai là câu kế.
+  NPC đứng chỗ khó tới: `sc_dbg.ps1 -SobjNear <số sobj>` dời NPC tới cạnh Dart (NPC đứng yên giữ vị trí).
+- `card_d4` nạp xong kẹt màn đen ở cảnh 510 (thẻ mẫu, cờ 0); Warp không nhận khi bản đồ chưa vào trạng thái hiển thị.
+- Warp dùng điểm vào 0: điểm 0 của cảnh 157 nằm trên lối ra → bị chuyển ngay sang 154 cảnh 12. Vào đúng: ở cảnh 154 đặt Dart
+  lên ô lối ra dẫn sang 157 (bảng `collisionAndTransitions` của `NEWROOT.RDT`: ô 6 → cảnh 157; vùng ô tính từ tệp va chạm
+  `DRGN21/466/1`), rồi `-SobjPos` vào ô khoá (ô va chạm 0x34, tệp `DRGN21/475/1`).
+- Cảnh có bản "cuối game" (`lateGameFile` trong NEWROOT, ví dụ khu đền đĩa 1 ↔ DRGN22): SC chọn theo chương và đĩa hiện tại, save
+  chương 4 vào bản cuối (không có khoá số) → `sc_dbg.ps1 -Chapter 0` trước khi Warp (không lưu game sau đó).
 
 ## 5. Kế hoạch đề xuất
 
 1. **Hướng phát hành**: đã chốt tự phát hành ghim SC `affcef0` (xem `PHAT_HANH.md`, `tools/make_release.py`); liên hệ nhóm SC
    (Discord #modding / GitHub) giới thiệu tính năng dịch thoại vẫn là lựa chọn lâu dài.
 2. **Hoàn thiện lõi** — đã xong phần lớn (mục 4.2–4.3): bí danh 12 câu SC, hộp chọn (kiểu C), số chèn `{A8xx}`, hack Funds, hộp 1 dòng,
-   hộp theo NPC, chữ trong trận, ngắt theo khung thật. Còn: kiểm đĩa 3–4 và các hộp ở cuối mục 4.3; tự nhận font Việt khi chọn tiếng
+   hộp theo NPC, chữ trong trận, ngắt theo khung thật, đĩa 3–4, số chèn Quầy Diệt Quái, hộp chọn số "Hủy". Còn: tự nhận font Việt khi chọn tiếng
    Việt (font Smooth mặc định không có dấu); đặt tên font không dấu cho danh sách chọn. Mỗi lần SC đổi `patches/scripts`,
    `sc_dialogue.py` dừng nếu số câu đổi khác 12 → cập nhật `SC_VI_FIX`.
 3. **Chuỗi viết cứng** (1 phiên + dịch tay phần thiếu): đổi 344 chuỗi trong 6 file Java sang khoá `.lang` (đúng hướng SC đang đi:
@@ -229,7 +253,10 @@ dùng `sc_cuts.py` + Warp như trên), trò chơi có số `{A800}…{A805}` (Qu
   mà vẫn nạp lớp cũ có thể sai hoặc sập → phải áp lại diff và build theo từng commit; `build_sc_vi.ps1` đã chặn khi jar khác commit.
 - **Khoá tra = chữ tiếng Anh**: SC sửa câu tiếng Anh thì câu đó hiện tiếng Anh → đã có bí danh tự đọc `patches/scripts` (12 câu,
   dừng build khi số câu đổi) + log thiếu; câu SC sửa ở chỗ khác (mã Java) vẫn chỉ bắt được bằng log.
-- **Lưới rộng hơn khung**: đã kiểm hộp thoại thường, chọn, số, trận, cuộn, theo NPC (mục 4.3); còn đĩa 3–4 và vài hộp hiếm.
+- **Lưới rộng hơn khung**: đã kiểm hộp thoại thường, chọn, số, trận, cuộn, theo NPC, đĩa 1–4 (mục 4.3); còn các hộp chưa đi qua khi
+  chơi thử toàn bộ (mục 5.7).
+- **Nhận dòng tên theo quy tắc** (`is_name`): sai thì tên bị nối vào câu (đã gặp 3 câu, mục 4.3 (h)); tự kiểm chỉ bắt được khi đã
+  biết câu — chơi thử toàn bộ vẫn cần.
 - **Font**: font mặc định của SC (Smooth) không có dấu Việt; người chơi phải chọn font Việt (nên tự đặt khi chọn tiếng Việt).
 - **Giấy phép AGPL-3.0**: phát hành lớp sửa thì phải công khai mã nguồn (cùng giấy phép).
 - PR có thể không được nhận hoặc nhóm SC muốn thiết kế khác (ví dụ khoá theo vị trí script thay vì chữ Anh).
