@@ -711,3 +711,18 @@
 +    }
 +  }
 +}
+--- a/src/main/java/legend/game/saves/ConfigStorage.java
++++ b/src/main/java/legend/game/saves/ConfigStorage.java
+@@ -118,6 +118,12 @@
+ 
+     EVENTS.postEvent(new ConfigLoadedEvent(configs, storageLocation));
+     RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
++
++    // [sc-vi] On startup bootMods() loads the lang files before config.dcnf is read, so a saved language other than the
++    // system one was only applied after a campaign booted the mods again. Reload the lang once the global config is in.
++    if(storageLocation == ConfigStorageLocation.GLOBAL && configs == CONFIG) {
++      legend.core.GameEngine.loadLang();
++    }
+   }
+ 
+   public static void saveConfig(final ConfigCollection configs, final ConfigStorageLocation storageLocation, final FileData data, final IntRef offset) {
