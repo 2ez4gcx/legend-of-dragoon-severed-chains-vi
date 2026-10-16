@@ -5,6 +5,8 @@ Thử đưa bản dịch tiếng Việt The Legend of Dragoon (dự án `D:\LOD`
 
 Đọc **[NGHIEN_CUU.md](NGHIEN_CUU.md)**: kiến trúc chữ/font/mod của SC, đánh giá các hướng, bản thử, kế hoạch, câu hỏi cần chốt.
 
+Phát hành (tự phát hành, ghim SC commit `affcef0`): **[PHAT_HANH.md](PHAT_HANH.md)** — `python tools/make_release.py --version 0.1`.
+
 Dựng bản thử (cần thư mục `game` = bản build SC devbuild commit `affcef0` + JDK 25, và `D:\LOD` cạnh thư mục này):
 
 ```bash
