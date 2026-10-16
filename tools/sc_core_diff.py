@@ -44,7 +44,7 @@ def main():
         out += difflib.unified_diff(lines(old), lines(os.path.join(src, f)), a, 'b/src/main/java/' + f, n=3)
     text = ''.join(out)
     if '--check' in sys.argv:
-        same = os.path.exists(OUT) and open(OUT, encoding='utf-8', newline='').read() == text
+        same = os.path.exists(OUT) and open(OUT, encoding='utf-8', newline='').read().replace('\r\n', '\n') == text
         print('diff %s' % ('khop' if same else 'KHAC — chay lai khong co --check'))
         sys.exit(0 if same else 1)
     open(OUT, 'w', encoding='utf-8', newline='\n').write(text)
