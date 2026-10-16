@@ -130,7 +130,7 @@ public final class Text {
     textboxText.type_04 = script.params_20[1].get();
     textboxText.flags_08 |= TextboxText84.SHOW_ARROW;
     textboxText.str_24 = LodString.fromParam(script.params_20[2]);
-    legend.game.i18n.ScriptTextTranslations.applyGrid(textboxText); // [sc-vi]
+    legend.game.i18n.ScriptTextTranslations.applyGrid(textboxes_800be358[textboxIndex], textboxText); // [sc-vi]
     textboxText.chars_58 = new TextboxChar08[textboxText.chars_1c * (textboxText.lines_1e + 1)];
     Arrays.setAll(textboxText.chars_58, i -> new TextboxChar08());
     calculateAppropriateTextboxBounds(textboxIndex, textboxText.x_14, textboxText.y_16);
@@ -168,12 +168,12 @@ public final class Text {
       textboxText.str_24 = LodString.fromParam(script.params_20[6]);
 
       // This is a stupid hack to allow inns to display 99,999,999 gold without the G falling down to the next line (see GH#546)
-      if("?Funds ?G".equals(textboxText.str_24.get())) {
+      if("?Funds ?G".equals(legend.game.i18n.ScriptTextTranslations.original(textboxText.str_24).get())) { // [sc-vi] retail text of a translation
         textbox.chars_18++;
       }
 
       clearTextboxText(textboxIndex);
-      legend.game.i18n.ScriptTextTranslations.applyGrid(textboxText); // [sc-vi]
+      legend.game.i18n.ScriptTextTranslations.applyGrid(textbox, textboxText); // [sc-vi]
 
       if(textType == 1 && (packed & 0x1000) != 0) {
         textboxText.flags_08 |= TextboxText84.NO_INPUT;

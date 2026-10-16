@@ -128,25 +128,41 @@ Nếu không: phải tự giữ bản sửa theo từng commit SC (rủi ro mụ
 |---|---|---|
 | Menu/vật phẩm | `tools/sc_lang.py` → `out/lang/lod.vi.lang` | 384 khoá ghép tự động theo chữ Anh với `tr/en/menu.tsv` (vật phẩm 53/54, mô tả trận 50/54, đồ quý 37/37, phép 35/35, mô tả trang bị 105/148). Tên trang bị (148) và tên Liên Kích (35) để tiếng Anh như bản PS1. 321 khoá chưa ghép: `out/lang_missing.tsv`. |
 | Giao diện SC | `tr_sc/core.vi.lang` | Dịch tay ~45 khoá thử (menu trong game, Có/Không, Phông chữ, Ngôn ngữ…). |
-| Lời thoại | `tools/sc_dialogue.py` → `out/lang/dialogue.vi.tsv` | 13.264 câu: `chữ Anh dạng tag ⇥ chữ Việt ⇥ kiểu`. Kiểu N (dòng đầu là tên, 7.189), J (nối dòng, 2.376), L (giữ dòng: hộp chọn, khung 1 dòng, câu có B0xx, 3.699). |
+| Lời thoại | `tools/sc_dialogue.py` → `out/lang/dialogue.vi.tsv` | 13.264 câu: `chữ Anh dạng tag ⇥ chữ Việt ⇥ kiểu`. Kiểu N (dòng đầu là tên, 7.189), J (nối dòng, 2.376), L (giữ dòng: bảng, câu có B0xx, 3.317), C (không bao giờ ngắt: hộp chọn + khung 1 dòng theo `tr/choices.json`, 382). **+12 bí danh** cho câu tiếng Anh SC tự sửa (đọc thẳng `Severed-Chains/patches/scripts/**/*.diff`, thiếu/thừa thì dừng). |
 | Font | `tools/sc_font.py` → `out/fonts/vietnamese.json/.png` | 315 glyph, 212 lấy từ font vẽ tay D:\LOD (đặt ở hàng 1–12 của ô 16 px), ký hiệu/biểu tượng nút lấy từ font Original. Xem trước: `docs/anh/10_font_xem_truoc.png`. |
-| Sửa lõi SC | `sc-vi/src/…` → `out/sc-vi.jar` (8 lớp) | Diff gọn: `sc-vi/patches/sc-core-affcef0.diff`. |
-| Tự kiểm | `sc-vi/test/TagRoundTrip.java` | 13.264 câu × (khoá tag 2 cột + ngắt dòng 6 bề rộng × 2 kiểu đo): **0 lỗi**. |
-| Build / chạy | `tools/build_sc_vi.ps1`, `tools/run_sc.ps1 -Install`, `tools/sc_ui.ps1` (bấm phím/chụp cửa sổ) | Dữ liệu sinh ra xác định (build 2 lần cùng SHA-256). |
+| Sửa lõi SC | `sc-vi/src/…` → `out/sc-vi.jar` | Diff gọn `sc-vi/patches/sc-core-affcef0.diff`, tạo lại tự động bằng `tools/sc_core_diff.py` (`--check` để so). |
+| Tự kiểm | `sc-vi/test/TagRoundTrip.java` | 13.276 câu × (khoá tag 2 cột + ngắt dòng 6 bề rộng × 2 kiểu đo + **bố cục như trong game** qua `lookup`/`layout` với 2 khung) + 4 ca riêng (Funds, hộp "DÙNG CỬA HÀNG?", bí danh Lisa, `<action>`): **0 lỗi**. Thử ngược: đổi C→L thì báo lỗi hộp cửa hàng. |
+| Build / chạy | `tools/build_sc_vi.ps1`, `tools/run_sc.ps1 -Install`, `tools/sc_ui.ps1` (bấm phím/chụp cửa sổ game SDL) | Dữ liệu sinh ra xác định (build 2 lần cùng SHA-256). |
+| Tới cảnh/trận | `tools/sc_cuts.py` (uid/vị trí script → số cảnh, từ `SUBMAP/NEWROOT.RDT`), `tools/sc_dbg.ps1` (điều khiển cửa sổ Debugger F12 qua UI Automation: `-Warp <cảnh>`, `-Encounter <trận>`, `-GetMap`) | Save: chép thẻ nhớ PS1 (`D:\LOD\work\card_d*.mcd`, `release\epsxe000.mcr`) vào `game\saves`, SC tự đổi sang chiến dịch ở màn tựa (chọn **Không** xoá thẻ). |
 
 ### 4.2 Phần sửa lõi SC (so với commit `affcef0`)
 
-1. `LodString` (+23 dòng): mã `0x10000 + ký tự Unicode` mang chữ ngoài bảng gốc (`fromLodChar` trả lại ký tự);
-   `fromParam` đọc cặp `(w,l)` ngay sau chuỗi rồi gọi bộ dịch; trường `gridChars`.
+1. `LodString` (+8 dòng): mã `0x10000 + ký tự Unicode` mang chữ ngoài bảng gốc (`fromLodChar` trả lại ký tự); `fromParam` gọi
+   bộ dịch.
 2. `ScriptTextTranslations` (mới): nạp `lang/dialogue.<ngôn ngữ>.tsv` theo ngôn ngữ đang chọn; tính khoá từ mảng mã giống
-   hệt `codes_to_text` của `D:\LOD\tools\dump.py`; mã hoá chữ Việt; **ngắt dòng theo điểm ảnh** của font đang chọn trong bề rộng
-   khung gốc `w × 9` px (đúng lựa chọn của bạn ở bản PS1: giữ khung như bản gốc, ngắt lấp đầy trong khung); câu không có bản dịch
-   giữ nguyên tiếng Anh, có thể ghi ra `dialogue_missing.vi.txt` (`-Dscvi.logMissing=true`).
-3. `Text.java` (3 dòng) và `SMap.java` (10 dòng): nới **lưới ký tự** của hộp (`chars_1c`) cho đủ số ký tự của dòng Việt dài nhất,
-   còn **vị trí/bề rộng khung** vẫn tính theo khung gốc (`chars_18`). Nhờ vậy câu "Ngươi là lính đánh thuê của Basil?" (34 ký tự,
-   khung gốc 29 ô) nằm gọn một dòng thay vì bị tách sang hộp thứ hai.
+   hệt `codes_to_text` của `D:\LOD\tools\dump.py`; mã hoá chữ Việt; câu không có bản dịch giữ nguyên tiếng Anh, có thể ghi ra
+   `dialogue_missing.vi.txt` (`-Dscvi.logMissing=true`). Bản dịch là lớp con `Translated` của `LodString`, giữ chuỗi gốc
+   (`original()`), khoá và kiểu để **ngắt lại theo khung thật** lúc chuỗi được đặt vào hộp (`applyGrid`/`layout`):
+   - **ngắt theo điểm ảnh** của font đang chọn trong bề rộng khung gốc `w × 9` px, `w` = số script truyền cho addTextbox (trước đây
+     đoán từ 2 word sau chuỗi — không phải chuỗi nào cũng có);
+   - kiểu **C** (hộp chọn, khung 1 dòng) không bao giờ ngắt — vạch chọn và lựa chọn trả về đi theo số dòng; dòng dài hơn khung thì
+     **nới khung** (tối đa 34 ô) như bản PS1. Trước khi sửa: "DÙNG CỬA HÀNG?" (khung 10 ô) bị ngắt thành 4 dòng → vạch chọn lệch 1 dòng
+     và chọn "DÙNG" ra "KHÔNG DÙNG"; 7 hộp chọn bị ảnh hưởng (S02077, S04508, S07817, S10055, S10954, S10983, S11023);
+   - số chèn `{A8xx}`: khi ngắt tính chỗ 3 chữ số (1 chữ số/mã khi liền nhau như `{A800}{A801}…`), lưới chừa 10 ô (đủ 10 chữ số của
+     `digits_46`) — trước đây số không chiếm chỗ nên dòng có số có thể bị engine tự ngắt giữa số;
+   - mã nút `<action=lod:…>` của SC (`C0LL` + tên đóng gói): không bị tách khi ngắt, chiếm 1 ô lưới, đo bằng 6 chữ số.
+3. `Text.java` (+4/−2) và `SMap.java` (+10/−9): gọi `applyGrid(hộp, chữ)`; nới **lưới ký tự** (`chars_1c`), còn **vị trí/bề rộng
+   khung** tính theo khung (`chars_18`, chỉ đổi khi kiểu C phải nới); hack quán trọ `"?Funds ?G"` của SC so với **chuỗi gốc** của bản
+   dịch (trước đây hack không chạy với chữ Việt).
 4. Đã kiểm: biên dịch bản **chưa sửa** của `Text`/`LodString` từ mã nguồn ra đúng từng lệnh như lớp trong jar build; `SMap` chỉ
-   khác cách lưu một hằng số → mã nguồn khớp bản build.
+   khác cách lưu một hằng số → mã nguồn khớp bản build. Diff áp sạch lên clone SC `affcef0` (`git apply --check`).
+
+**Bí danh 12 câu SC tự sửa** (`tools/sc_dialogue.py`): đọc cặp `-data str[…]`/`+data str[…]` trong `patches/scripts`, đổi tag SC sang
+tag bảng (`<line>` `{n}`, `<multibox>` `{p}`, `<speed=0>` `{A500}`, `<colour=5>` `{A705}`, `` ` `` `{000E}`, `□` `{0056}`,
+`<action=lod:x>` `{C0LL}` + tên), ghi thêm dòng khoá-SC → chữ Việt (`SC_VI_FIX`: "nút {000E}" → `<action>`, bỏ dấu cách thừa
+" he Mayor"/" gainst"/" Is this civil war!? ", "?" → "Hủy" ở hộp chọn số). Bẫy: script-recompiler đóng 2 mã/word nên phần `<noterm>`
+lẻ mã được **đệm `0x00`** — câu Lisa (DRGN22/1137, "Vally" → "Valley") trong game là "to␣␣find" hai dấu cách; chỉ bắt được nhờ
+`dialogue_missing.vi.txt`, đã thêm vào tự kiểm.
 
 ### 4.3 Kết quả trong game (đĩa gốc, ảnh trong `docs/anh/`)
 
@@ -158,14 +174,29 @@ Nếu không: phải tự giữ bản sửa theo từng commit SC (rủi ro mụ
   trang bị giữ tiếng Anh.
 - Thấy ngay việc phải làm tiếp: "Dùng vật phẩm" tràn ô menu; "Ch.1 Serdian War / Seles", "Diiig" và chữ ảnh GOLD/Star Dust
   vẫn tiếng Anh; thẻ "Chapter 1 Serdian War" là ảnh gốc.
-- **Chưa thử**: trận đánh (chữ trong trận, tên quái), hộp lựa chọn có vạch chọn, cửa hàng/quán trọ, đĩa 2–4.
+
+**Phiên kiểm các kiểu hộp (16–17/10/2026, bản đã sửa ở 4.2)** — save chuyển từ thẻ PS1 + Debugger F12 (`sc_dbg.ps1`):
+
+| Kiểu | Cảnh | Kết quả | Ảnh |
+|---|---|---|---|
+| (a) Trận đánh | trận 0 (berserk_mouse), trận 431 (Lavitz linh hồn, Mặt Trăng) | Thoại trong trận (DRGN1) tiếng Việt, ngắt trong khung trận ("Cậu quên chuyến đi của chúng ta rồi sao!? / Tớ không muốn đánh cậu! Tỉnh lại đi! / Lavitz!!"). Ghi nhận, chưa sửa: nhãn lệnh "Attack", HP/MP/SP, tên chiêu "Double Punch", màn kết quả GOLD/EXP./ITEMS vẫn tiếng Anh (chuỗi viết cứng/ảnh của SC) | `11` |
+| (b) Hộp chọn có vạch | trong trận ("Lavitz! / Gọi cậu ta / Mặc kệ"), quán trọ cảnh 146, cửa hàng cảnh 530 | Vạch chọn đúng dòng; chọn dòng 2 và dòng 3 đều chạy đúng nhánh (ở trọ → trừ 20G; "DÙNG" → hỏi "DÙNG CỬA HÀNG NÀO?"; "Mặc kệ" → không thoại) | `12`, `13`, `14` |
+| (c) Quán trọ / cửa hàng | quán trọ 146 (99.858.017 vàng), Lapto cảnh 530 | "Tiền 99858017G" một dòng (8 chữ số, hack Funds chạy); danh sách mua tiếng Việt. Màn cửa hàng Buy/Sell/Carried/Leave, Items/Gold, "Carrying" là menu Java của SC chưa dịch (thuộc mục 5.4) | `13`, `14` |
+| (d) Hộp theo NPC (`positionSobjTextbox`) | Lapto cảnh 530 | Cả hai nhánh: khung rộng (≥ 17 ô) căn giữa ("Lapto Cửa Hàng / ĐIỀU LUẬT WINGLY…"), khung hẹp đặt cạnh NPC và được nới cho vừa ("DÙNG CỬA HÀNG?") | `14` |
+| (e) Đĩa 2 / bí danh | Fletz cảnh 702 (Lisa), gian trò chơi cảnh 636 | Cả cảnh Lisa tiếng Việt (tên người nói, câu dài cuộn trong khung). Câu bí danh có `<action>`: "…nhấn nút **Space** để chọn." (SC tự điền phím). Lỗi bí danh câu Lisa (hiện tiếng Anh) đã sửa, chụp lại | `15`, `16` |
+
+Sau khi sửa, `dialogue_missing.vi.txt` của các lần chạy chỉ còn `{B001}...?` (giống bản gốc) và `dummy_C071_0_21` (chữ giữ chỗ có
+sẵn trong script quán trọ cảnh 71 khi vào bằng Warp, không phải câu thoại thật). Chưa kiểm: đĩa 3–4 (save `card_d3/d4` có sẵn,
+dùng `sc_cuts.py` + Warp như trên), trò chơi có số `{A800}…{A805}` (Quầy Diệt Quái), hộp chọn số 1–5 "Hủy".
 
 ## 5. Kế hoạch đề xuất
 
-1. **Chốt hướng phát hành** (câu hỏi 1) và liên hệ nhóm SC (Discord #modding / GitHub) giới thiệu tính năng dịch thoại.
-2. **Hoàn thiện lõi** (1–2 phiên): bí danh cho 12 câu tiếng Anh SC đã tự sửa trong `patches/scripts/*.diff`; kiểm hộp lựa chọn
-   (vạch chọn theo dòng hiển thị), số chèn `{A8xx}`, hộp 1 dòng, hộp theo NPC, chữ trong trận (DRGN1) với lưới rộng hơn khung;
-   tự nhận font Việt khi chọn tiếng Việt (font Smooth mặc định không có dấu); đặt tên font không dấu cho danh sách chọn.
+1. **Hướng phát hành**: đã chốt tự phát hành ghim SC `affcef0` (xem `PHAT_HANH.md`, `tools/make_release.py`); liên hệ nhóm SC
+   (Discord #modding / GitHub) giới thiệu tính năng dịch thoại vẫn là lựa chọn lâu dài.
+2. **Hoàn thiện lõi** — đã xong phần lớn (mục 4.2–4.3): bí danh 12 câu SC, hộp chọn (kiểu C), số chèn `{A8xx}`, hack Funds, hộp 1 dòng,
+   hộp theo NPC, chữ trong trận, ngắt theo khung thật. Còn: kiểm đĩa 3–4 và các hộp ở cuối mục 4.3; tự nhận font Việt khi chọn tiếng
+   Việt (font Smooth mặc định không có dấu); đặt tên font không dấu cho danh sách chọn. Mỗi lần SC đổi `patches/scripts`,
+   `sc_dialogue.py` dừng nếu số câu đổi khác 12 → cập nhật `SC_VI_FIX`.
 3. **Chuỗi viết cứng** (1 phiên + dịch tay phần thiếu): đổi 344 chuỗi trong 6 file Java sang khoá `.lang` (đúng hướng SC đang đi:
    vật phẩm đã chuyển), ghép tên quái/địa danh từ `D:\LOD tr/vi` (M-uid), phần còn lại dịch tay theo `tr/glossary.md`.
 4. **Giao diện SC** (~700 khoá `lod_core` + `lod` còn thiếu): dịch, rồi kiểm bề rộng từng ô menu SC (như `check_menu.py` của PS1),
@@ -174,8 +205,9 @@ Nếu không: phải tự giữ bản sửa theo từng commit SC (rủi ro mụ
    nên cần một bước thay file sau giải nén hoặc móc thay texture trong lõi; vẽ lại `gfx/ui/title_menu.png` của SC.
    Theo quy trình: ảnh xem trước gốc/Việt → bạn duyệt → áp.
 6. **Font** (tuỳ câu hỏi 2): giữ font mảnh PS1, và/hoặc vẽ dấu Việt cho font Original đậm, và/hoặc bản Smooth ×4.
-7. **Chơi thử toàn bộ** bằng `-Dscvi.logMissing=true` + kịch bản bấm phím `tools/sc_ui.ps1`, chụp ảnh các cảnh; công cụ kiểm tương
-   tự `text_audit.py`: đọc `dialogue.vi.tsv`, ngắt bằng đúng hàm Java, báo dòng tràn/số dòng/hộp chọn.
+7. **Chơi thử toàn bộ** bằng `-Dscvi.logMissing=true` + `tools/sc_ui.ps1` + `tools/sc_dbg.ps1 -Warp` (tra cảnh bằng `sc_cuts.py`),
+   chụp ảnh các cảnh. Kiểm kiểu `text_audit.py` (ngắt bằng đúng hàm Java, dòng tràn/số dòng/hộp chọn) đã nằm trong `TagRoundTrip`
+   (phần bố cục như trong game); còn thiếu bề rộng khung thật theo từng câu (hiện thử 2 khung giả định: dòng Anh dài nhất và +4).
 8. **Phát hành**: (c) PR lên SC rồi phát hành gói dữ liệu; hoặc gói `sc-vi` (jar + lang + font + `launch-vi.bat`, mã nguồn công khai
    theo AGPL), ghim đúng commit SC, kiểm commit khi khởi chạy.
 
@@ -195,8 +227,9 @@ Nếu không: phải tự giữ bản sửa theo từng commit SC (rủi ro mụ
 
 - **SC thay đổi liên tục** (3.0 đang phát triển, updater tự động). Bản thử thay nguyên lớp `Text`/`SMap`/`LodString`: SC cập nhật
   mà vẫn nạp lớp cũ có thể sai hoặc sập → phải áp lại diff và build theo từng commit; `build_sc_vi.ps1` đã chặn khi jar khác commit.
-- **Khoá tra = chữ tiếng Anh**: SC sửa câu tiếng Anh (hiện 12 câu) thì câu đó hiện tiếng Anh → cần bảng bí danh + log thiếu.
-- **Lưới rộng hơn khung**: chưa kiểm hết các kiểu hộp (chọn, số, trận, cuộn) — có thể cần chỉnh thêm.
+- **Khoá tra = chữ tiếng Anh**: SC sửa câu tiếng Anh thì câu đó hiện tiếng Anh → đã có bí danh tự đọc `patches/scripts` (12 câu,
+  dừng build khi số câu đổi) + log thiếu; câu SC sửa ở chỗ khác (mã Java) vẫn chỉ bắt được bằng log.
+- **Lưới rộng hơn khung**: đã kiểm hộp thoại thường, chọn, số, trận, cuộn, theo NPC (mục 4.3); còn đĩa 3–4 và vài hộp hiếm.
 - **Font**: font mặc định của SC (Smooth) không có dấu Việt; người chơi phải chọn font Việt (nên tự đặt khi chọn tiếng Việt).
 - **Giấy phép AGPL-3.0**: phát hành lớp sửa thì phải công khai mã nguồn (cùng giấy phép).
 - PR có thể không được nhận hoặc nhóm SC muốn thiết kế khác (ví dụ khoá theo vị trí script thay vì chữ Anh).
@@ -223,7 +256,8 @@ D:\LOD-SC\
   game\                    bản build SC + JDK 25 + isos\ (hard link 4 BIN gốc từ D:\LOD) + files\ (giải nén 1,4 GB)
   game_a\                  thử hướng (a): isos\ = hard link đĩa play_1210 (đã xoá files\)
   sc-vi\src, test, patches mã sửa lõi + tự kiểm + diff so với affcef0
-  tools\                   sc_lang.py, sc_dialogue.py, sc_font.py, sc_hardcoded.py, build_sc_vi.ps1, run_sc.ps1, sc_ui.ps1
+  tools\                   sc_lang.py, sc_dialogue.py, sc_font.py, sc_hardcoded.py, sc_core_diff.py, build_sc_vi.ps1, run_sc.ps1,
+                           sc_ui.ps1, sc_dbg.ps1 (Debugger F12), sc_cuts.py (số cảnh), make_release.py
   tr_sc\core.vi.lang       giao diện SC dịch tay (thử)
   out\                     sản phẩm build (lang, fonts, sc-vi.jar)
   docs\anh\                ảnh trong game

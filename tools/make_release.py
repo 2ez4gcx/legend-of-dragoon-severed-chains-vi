@@ -227,7 +227,7 @@ def main():
     files.append(('vi/sc-vi.jar', jar_bytes(os.path.join(out, 'classes'))))
     for name, data in zip_dir_deterministic(os.path.join(src, 'sc-vi'), 'vi/NGUON/sc-vi/'):
         files.append((name, data))
-    for f in ('sc_lang.py', 'sc_dialogue.py', 'sc_font.py', 'build_sc_vi.ps1'):
+    for f in ('sc_lang.py', 'sc_dialogue.py', 'sc_font.py', 'sc_core_diff.py', 'build_sc_vi.ps1'):
         files.append(('vi/NGUON/tools/' + f, open(os.path.join(src, 'tools', f), 'rb').read()))
     files.append(('lang/lod.vi.lang', open(os.path.join(out, 'lang', 'lod.vi.lang'), 'rb').read()))
     files.append(('lang/dialogue.vi.tsv', open(os.path.join(out, 'lang', 'dialogue.vi.tsv'), 'rb').read()))

@@ -10,13 +10,22 @@ Cách gọi:
 Đầu ra: mỗi dòng "<chữ Anh>\\t<chữ Việt>\\t<kiểu>" (UTF-8, NFC), tag giống tools/dump.py của D:\\LOD:
     {n} = A1FF, {p} = A3FF, {XXXX} = mã 16-bit giữ nguyên, ký tự thường = glyph LoD 0x00-0x56 (bảng EN).
     Lớp Java ScriptTextTranslations tính đúng chuỗi khoá này từ mảng mã LodString rồi tra bảng.
-Kiểu (cột 3) — lớp Java tự NGẮT DÒNG lúc chạy theo bề rộng khung w của chính chuỗi (cặp (w,l) sau A0FF trong
-script, thứ SC dùng để dựng khung; không có cặp thì lấy số ký tự dòng tiếng Anh dài nhất):
+Kiểu (cột 3) — lớp Java tự NGẮT DÒNG lúc chạy theo bề rộng thật của khung (w ô x 9 px, w = số script truyền cho
+addTextbox, đúng lúc chuỗi được đặt vào khung):
     N  dòng đầu là tên người nói (giữ nguyên), các dòng còn lại trong mỗi trang đã được nối lại -> Java ngắt lấp đầy
     J  mọi dòng trong trang đã được nối lại -> Java ngắt lấp đầy
-    L  giữ nguyên các dòng (hộp lựa chọn, khung 1 dòng, bảng, câu có mã B0xx như vtext.reflow của D:\\LOD);
+    L  giữ nguyên các dòng (bảng, câu có mã B0xx như vtext.reflow của D:\\LOD);
        Java chỉ ngắt (ở dấu cách) dòng nào dài hơn w để game không cắt giữa chữ.
+    C  không bao giờ ngắt (hộp lựa chọn — vạch chọn và lựa chọn trả về đi theo số dòng; khung 1 dòng: choices.json
+       "choice" + "dong1"); dòng dài hơn khung thì Java nới khung cho vừa (như bản PS1: khung vừa dòng dài nhất).
 Quy tắc nhận tên người nói và nối dòng lấy từ build.py / vtext.reflow của D:\\LOD.
+
+Bí danh: SC tự sửa 12 câu tiếng Anh trong script (Severed-Chains/patches/scripts/**/*.diff, dòng "-data str[...]" /
+"+data str[...]"; biến môi trường SC_ROOT để đổi chỗ, như sc_lang/sc_font), khoá tra của các câu đó đổi theo. sc_patch_pairs() đọc các cặp
+đó, đổi tag SC sang tag của bảng (<line> {n}, <multibox> {p}, <speed=0> {A500}, <colour=5> {A705}, <action=lod:x>
+{C0LL} + tên đóng gói 2 ký tự/mã, ký tự theo bảng mã của script-recompiler: ` {000E}, @ ○, + □, □ {0056}) rồi ghi thêm
+dòng "<câu Anh của SC> <chữ Việt> <kiểu>"; chữ Việt sửa theo SC_VI_FIX (nút bấm -> <action>, bỏ dấu cách thừa...).
+Không khớp đủ 12 câu (SC đổi bản vá) thì dừng.
 """
 import collections
 import glob
@@ -29,6 +38,8 @@ import unicodedata
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 LOD = os.environ.get('LOD_ROOT', os.path.join(ROOT, '..', 'LOD'))
 OUT = os.path.join(ROOT, 'out')
+
+SC = os.environ.get('SC_ROOT', os.path.join(ROOT, 'Severed-Chains'))
 
 CODE = re.compile(r'\{[0-9A-Fa-f]{4}\}')
 UNKNOWN = re.compile(r'\?{2,}')
@@ -70,6 +81,105 @@ def reflow(text, keep_first):
     return '{p}'.join(pages)
 
 
+# Bảng mã ký tự của script-recompiler (LodString.fromString)
+SC_CHARS = {' ': 0x00, ',': 0x01, '.': 0x02, '·': 0x03, ':': 0x04, '?': 0x05, '!': 0x06, '_': 0x07, '/': 0x08, "'": 0x09,
+            '"': 0x0a, '(': 0x0b, ')': 0x0c, '-': 0x0d, '`': 0x0e, '%': 0x0f, '&': 0x10, '*': 0x11, '@': 0x12, '+': 0x13,
+            '~': 0x14, '[': 0x53, ']': 0x54, ';': 0x55, '□': 0x56}
+SC_CHARS.update({c: 0x15 + i for i, c in enumerate('0123456789')})
+SC_CHARS.update({c: 0x1f + i for i, c in enumerate('ABCDEFGHIJKLMNOPQRSTUVWXYZ')})
+SC_CHARS.update({c: 0x39 + i for i, c in enumerate('abcdefghijklmnopqrstuvwxyz')})
+# Mã glyph -> ký tự trong tag của bảng (như tools/dump.py của D:\LOD và ScriptTextTranslations.RETAIL; 0x0e không giải)
+RETAIL = ' ,.·:?!_/\'"()-×%&*○□△0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[];'
+SC_CONTROLS = {'line': 0xa1ff, 'button': 0xa200, 'multibox': 0xa3ff, 'speed': 0xa500, 'pause': 0xa600,
+               'colour': 0xa700, 'var': 0xa800, 'xoffset': 0xad00, 'yoffset': 0xae00, 'sauto': 0xb000,
+               'element': 0xb100, 'arrow': 0xb200, 'action': 0xc000, 'chr': 0}
+
+# Sửa chữ Việt của các câu SC đổi (theo uid của D:\LOD): [(cũ, mới)], "mới" viết được bằng tag SC (<action=...>);
+# hoặc cả câu cho câu D:\LOD không dịch. Mỗi "cũ" phải có trong chữ Việt (sau khi nối dòng theo kiểu).
+SC_VI_FIX = {
+    'S12563': [('nút {000E}', '<action=lod:bttl_attack>')],         # SC: "press <action>."
+    'S12568': [('Nhấn nút ○', 'Nhấn <action=lod:bttl_counter>')],   # SC: "Press <action> when..."
+    'S04301': [('{000E}', '<action=lod:bttl_attack>')],             # SC: "Press the <action> button"
+    'S03598': [('{000E}', '<action=lod:smap_interact>')],
+    'S03709': [('{000E}', '<action=lod:smap_interact>')],
+    'S13556': [(' Nội chiến à!? ', 'Nội chiến à!?')],               # SC bỏ dấu cách thừa
+    'S05792': [(' Thị trưởng nói đúng.', 'Thị trưởng nói đúng.')],  # SC: " he Mayor" -> "The Mayor"
+    'S08018': [(' Trước Rồng', 'Trước Rồng')],                      # SC: " gainst" -> "Against"
+    'S02777': '{B001}{n}1{n}2{n}3{n}4{n}5{n}Hủy{n}',                # SC: "?" -> "Cancel"
+}
+
+
+def sc_codes(text):
+    """chuỗi trong data str[...] của SC -> (danh sách mã 16-bit, có <noterm> không)"""
+    out, noterm, i = [], False, 0
+    while i < len(text):
+        c = text[i]
+        if c == '<':
+            end = text.index('>', i)
+            m = re.fullmatch(r'<\s*([a-z]+)(?:\s*=\s*([^>]*?))?\s*>', text[i:end + 1], re.I)
+            name, param = m.group(1).lower(), m.group(2)
+            if name == 'noterm':
+                noterm = True
+            elif name == 'action':
+                out.append(0xc000 | len(param))
+                for n in range((len(param) + 1) // 2):
+                    w = ord(param[2 * n])
+                    if 2 * n + 1 < len(param):
+                        w |= ord(param[2 * n + 1]) << 8
+                    out.append(w)
+            elif param is None:
+                out.append(SC_CONTROLS[name])
+            else:
+                out.append(SC_CONTROLS[name] | int(param, 0))
+            i = end + 1
+            continue
+        out.append(SC_CHARS[c])
+        i += 1
+    return out, noterm
+
+
+def codes_to_text(codes):
+    """như codes_to_text của D:\\LOD tools/dump.py và ScriptTextTranslations.toTags"""
+    s = ''
+    for c in codes:
+        if c == 0xa1ff:
+            s += '{n}'
+        elif c == 0xa3ff:
+            s += '{p}'
+        elif c < len(RETAIL) and c != 0x0e:
+            s += RETAIL[c]
+        else:
+            s += '{%04X}' % c
+    return s
+
+
+def sc_tags(text):
+    """chữ lẫn tag SC (<action=...>) -> chỉ tag của bảng"""
+    return re.sub(r'<[^>]*>', lambda m: codes_to_text(sc_codes(m.group(0))[0]), text)
+
+
+def sc_patch_pairs():
+    """[(câu Anh gốc, câu Anh SC, noterm)] từ patches/scripts/**/*.diff của SC, dạng tag của bảng"""
+    pairs = []
+    for f in sorted(glob.glob(os.path.join(SC, 'patches', 'scripts', '**', '*.diff'), recursive=True)):
+        minus = []
+        for line in open(f, encoding='utf-8'):
+            line = line.rstrip('\n')
+            if line.startswith('-data str['):
+                minus.append(line[len('-data str['):-1])
+            elif line.startswith('+data str['):
+                (oc, ont), (nc, nnt) = sc_codes(minus.pop(0)), sc_codes(line[len('+data str['):-1])
+                assert ont == nnt, f
+                if ont:
+                    # script-recompiler đóng 2 mã/word: phần <noterm> lẻ mã được đệm 0x00 (dấu cách) trước phần sau
+                    # (DRGN22/1137: "Valley" dài hơn "Vally" 1 ký tự -> "to  find" hai dấu cách)
+                    oc, nc = oc + [0] * (len(oc) % 2), nc + [0] * (len(nc) % 2)
+                pairs.append((codes_to_text(oc), codes_to_text(nc), ont))
+            elif not line.startswith(('-', '+')):
+                minus = []
+    return pairs
+
+
 def main():
     only = None
     if '--only' in sys.argv:
@@ -84,20 +194,28 @@ def main():
     choices = json.load(open(os.path.join(LOD, 'tr', 'choices.json'), encoding='utf-8'))
     keep = set(choices.get('choice', {})) | set(choices.get('dong1', []))
     spk = speakers(en)
+    pairs = [] if only else sc_patch_pairs()
+    if not only and len(pairs) != 12:
+        print('LOI: patches/scripts cua SC (%s) co %d cau doi, can 12: kiem lai SC_VI_FIX' % (SC, len(pairs)))
+        sys.exit(1)
 
     os.makedirs(os.path.join(OUT, 'lang'), exist_ok=True)
     stat = collections.Counter()
+    aliases = []
     with open(os.path.join(OUT, 'lang', 'dialogue.vi.tsv'), 'w', encoding='utf-8', newline='\n') as f:
         f.write('# Bang thoai tieng Viet cho Severed Chains (tools/sc_dialogue.py). '
-                'Cot: chu Anh dang tag | chu Viet | kieu N/J/L\n')
+                'Cot: chu Anh dang tag | chu Viet | kieu N/J/L/C\n')
         for uid, e in en.items():
-            if not uid.startswith('S') or uid not in vi or (only and uid not in only):
+            if not uid.startswith('S') or (uid not in vi and uid not in SC_VI_FIX) or (only and uid not in only):
                 continue
-            v = unicodedata.normalize('NFC', vi[uid])
+            fix = SC_VI_FIX.get(uid, [])
+            v = unicodedata.normalize('NFC', vi[uid] if uid in vi else sc_tags(fix))
             if '\t' in e or '\t' in v or '\n' in v:
                 stat['bo'] += 1
                 continue
-            if uid in keep or re.search(r'\{B0[0-9A-Fa-f]{2}\}', v):
+            if uid in keep:
+                mode = 'C'
+            elif re.search(r'\{B0[0-9A-Fa-f]{2}\}', v):
                 mode = 'L'
             elif is_name(e, v, spk):
                 mode = 'N'
@@ -105,10 +223,23 @@ def main():
             else:
                 mode = 'J'
                 v = reflow(v, False)
-            stat[mode] += 1
-            f.write('%s\t%s\t%s\n' % (e, v, mode))
-    print('dialogue.vi.tsv: %d cau (N co ten %d, J noi dong %d, L giu dong %d, bo %d)' % (
-        stat['N'] + stat['J'] + stat['L'], stat['N'], stat['J'], stat['L'], stat['bo']))
+            for old, new, noterm in pairs:
+                if e == old or (noterm and e.startswith(old)):
+                    va = v
+                    for a, b in (fix if isinstance(fix, list) else []):
+                        assert a in va, (uid, a, va)
+                        va = va.replace(a, sc_tags(b))
+                    aliases.append((new + e[len(old):], va, mode))
+            if uid in vi:
+                stat[mode] += 1
+                f.write('%s\t%s\t%s\n' % (e, v, mode))
+        for row in aliases:
+            f.write('%s\t%s\t%s\n' % row)
+    if len(aliases) != len(pairs):
+        print('LOI: %d/%d cau SC doi khop duoc cau cua D:\\LOD' % (len(aliases), len(pairs)))
+        sys.exit(1)
+    print('dialogue.vi.tsv: %d cau (N co ten %d, J noi dong %d, L giu dong %d, C khong ngat %d, bo %d) + %d bi danh SC' % (
+        sum(stat[k] for k in 'NJLC'), stat['N'], stat['J'], stat['L'], stat['C'], stat['bo'], len(aliases)))
 
 
 if __name__ == '__main__':

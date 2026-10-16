@@ -8,8 +8,10 @@ Các bước:
   3. python tools/sc_font.py      -> out/fonts/vietnamese.json/.png + out/font_preview.png
   4. javac (JDK 25 trong <Game>\jdk25) các lớp sc-vi/src với classpath = jar + libs của bản build SC -> out/classes
      Lớp ghi đè PHẢI khớp đúng commit SC của bản build (tên jar lod-game-<commit>.jar; bản thử: affcef0).
-  5. tự kiểm sc-vi/test/TagRoundTrip.java (khoá tag + ngắt dòng theo ô và theo điểm ảnh font Việt), lỗi thì dừng
+  5. tự kiểm sc-vi/test/TagRoundTrip.java (khoá tag, ngắt dòng theo ô và theo điểm ảnh font Việt, bố cục như trong game:
+     hộp chọn giữ số dòng, lưới đủ rộng, Funds, bí danh SC), lỗi thì dừng
   6. jar -> out/sc-vi.jar
+  7. python tools/sc_core_diff.py -> sc-vi/patches/sc-core-affcef0.diff (nếu có clone Severed-Chains)
 Exit 0 = đạt.
 #>
 param([string]$Game = 'game')
@@ -45,4 +47,10 @@ if ($LASTEXITCODE) { Write-Output 'TU KIEM LOI'; exit 1 }
 
 Remove-Item out\sc-vi.jar -ErrorAction SilentlyContinue
 & $jartool --create --file out\sc-vi.jar -C out\classes .; if ($LASTEXITCODE) { exit 1 }
+
+# diff gọn của phần sửa lõi (cần clone Severed-Chains đúng commit affcef0; SC_ROOT như sc_lang/sc_font/make_release)
+$scRoot = if ($env:SC_ROOT) { $env:SC_ROOT } else { Join-Path $root 'Severed-Chains' }
+if (Test-Path (Join-Path $scRoot '.git')) {
+  python tools/sc_core_diff.py; if ($LASTEXITCODE) { exit 1 }
+} else { Write-Output 'CANH BAO: khong co clone Severed-Chains, khong tao lai sc-vi/patches/sc-core-affcef0.diff' }
 Write-Output 'DAT: out\sc-vi.jar (cai bang: powershell -File tools/run_sc.ps1 -Install)'

@@ -38,7 +38,14 @@ $scpid = [int](Get-Content (Join-Path $Game 'sc.pid'))
 $p = Get-Process -Id $scpid -ErrorAction SilentlyContinue
 if (-not $p) { Write-Output "ABORT: SC (PID $scpid) khong chay"; exit 1 }
 $p.Refresh()
-$h = $p.MainWindowHandle
+# Cửa sổ game (lớp SDL_app) — không lấy MainWindowHandle vì khi mở Debugger (F12) đó có thể là cửa sổ JavaFX
+Add-Type -AssemblyName UIAutomationClient
+$AE = [System.Windows.Automation.AutomationElement]
+$cond = New-Object System.Windows.Automation.AndCondition(
+  (New-Object System.Windows.Automation.PropertyCondition($AE::ProcessIdProperty, $scpid)),
+  (New-Object System.Windows.Automation.PropertyCondition($AE::ClassNameProperty, 'SDL_app')))
+$sdl = $AE::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Children, $cond)
+$h = if ($sdl) { [IntPtr]$sdl.Current.NativeWindowHandle } else { $p.MainWindowHandle }
 if ($h -eq 0) { Write-Output "ABORT: SC chua co cua so"; exit 1 }
 if ($Info) { Write-Output "cua so: '$($p.MainWindowTitle)' handle $h"; }
 

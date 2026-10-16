@@ -942,7 +942,7 @@ public class SMap extends EngineState<SMap> {
       if((packed & TextboxText84.NO_ARROW) == 0) {
         textboxText.flags_08 |= TextboxText84.SHOW_ARROW;
       }
-      legend.game.i18n.ScriptTextTranslations.applyGrid(textboxText); // [sc-vi]
+      legend.game.i18n.ScriptTextTranslations.applyGrid(textbox, textboxText); // [sc-vi]
       textboxText.chars_58 = new TextboxChar08[textboxText.chars_1c * (textboxText.lines_1e + 1)];
       Arrays.setAll(textboxText.chars_58, i -> new TextboxChar08());
       this.positionSobjTextbox(textboxIndex, script.params_20[1].get());

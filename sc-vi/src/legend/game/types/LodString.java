@@ -7,9 +7,6 @@ public class LodString {
   /** [sc-vi] Characters not in the retail glyph table are stored as UNICODE_BASE + codepoint */
   public static final int UNICODE_BASE = 0x10000;
 
-  /** [sc-vi] For translated strings: the most characters on one line (the textbox grid is widened to fit), else -1 */
-  public int gridChars = -1;
-
   private final int[] chars;
 
   public LodString(final int length) {
@@ -47,21 +44,8 @@ public class LodString {
       chars[charIndex] = p.get() >>> ((charIndex & 1) * 16) & 0xffff;
     }
 
-    // [sc-vi] Textbox strings from scripts can be replaced by a translation (lang/dialogue.<language>.tsv).
-    // Retail scripts usually store the textbox size (chars per line, lines) in the 2 words after the string;
-    // the translation is word-wrapped to that width.
-    int boxChars = -1;
-    try {
-      final int words = (charCount + 1) / 2;
-      final int w = param.array(words).get();
-      final int l = param.array(words + 1).get();
-      if(w > 0 && w <= 0xff && l > 0 && l <= 0xff) {
-        boxChars = w;
-      }
-    } catch(final RuntimeException ignored) {
-    }
-
-    return legend.game.i18n.ScriptTextTranslations.translate(new LodString(chars), boxChars);
+    // [sc-vi] Textbox strings from scripts can be replaced by a translation (lang/dialogue.<language>.tsv)
+    return legend.game.i18n.ScriptTextTranslations.translate(new LodString(chars));
   }
 
   public String get() {

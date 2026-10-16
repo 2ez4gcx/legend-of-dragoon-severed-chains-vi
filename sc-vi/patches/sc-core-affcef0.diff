@@ -1,42 +1,26 @@
 --- a/src/main/java/legend/game/types/LodString.java
 +++ b/src/main/java/legend/game/types/LodString.java
-@@ -4,6 +4,12 @@
+@@ -4,6 +4,9 @@
  import legend.game.scripting.Param;
  
  public class LodString {
 +  /** [sc-vi] Characters not in the retail glyph table are stored as UNICODE_BASE + codepoint */
 +  public static final int UNICODE_BASE = 0x10000;
 +
-+  /** [sc-vi] For translated strings: the most characters on one line (the textbox grid is widened to fit), else -1 */
-+  public int gridChars = -1;
-+
    private final int[] chars;
  
    public LodString(final int length) {
-@@ -41,7 +47,21 @@
+@@ -41,7 +44,8 @@
        chars[charIndex] = p.get() >>> ((charIndex & 1) * 16) & 0xffff;
      }
  
 -    return new LodString(chars);
-+    // [sc-vi] Textbox strings from scripts can be replaced by a translation (lang/dialogue.<language>.tsv).
-+    // Retail scripts usually store the textbox size (chars per line, lines) in the 2 words after the string;
-+    // the translation is word-wrapped to that width.
-+    int boxChars = -1;
-+    try {
-+      final int words = (charCount + 1) / 2;
-+      final int w = param.array(words).get();
-+      final int l = param.array(words + 1).get();
-+      if(w > 0 && w <= 0xff && l > 0 && l <= 0xff) {
-+        boxChars = w;
-+      }
-+    } catch(final RuntimeException ignored) {
-+    }
-+
-+    return legend.game.i18n.ScriptTextTranslations.translate(new LodString(chars), boxChars);
++    // [sc-vi] Textbox strings from scripts can be replaced by a translation (lang/dialogue.<language>.tsv)
++    return legend.game.i18n.ScriptTextTranslations.translate(new LodString(chars));
    }
  
    public String get() {
-@@ -208,6 +228,11 @@
+@@ -208,6 +212,11 @@
    }
  
    public static char fromLodChar(final int lodChar) {
@@ -54,15 +38,21 @@
      textboxText.type_04 = script.params_20[1].get();
      textboxText.flags_08 |= TextboxText84.SHOW_ARROW;
      textboxText.str_24 = LodString.fromParam(script.params_20[2]);
-+    legend.game.i18n.ScriptTextTranslations.applyGrid(textboxText); // [sc-vi]
++    legend.game.i18n.ScriptTextTranslations.applyGrid(textboxes_800be358[textboxIndex], textboxText); // [sc-vi]
      textboxText.chars_58 = new TextboxChar08[textboxText.chars_1c * (textboxText.lines_1e + 1)];
      Arrays.setAll(textboxText.chars_58, i -> new TextboxChar08());
      calculateAppropriateTextboxBounds(textboxIndex, textboxText.x_14, textboxText.y_16);
-@@ -172,6 +173,7 @@
+@@ -167,11 +168,12 @@
+       textboxText.str_24 = LodString.fromParam(script.params_20[6]);
+ 
+       // This is a stupid hack to allow inns to display 99,999,999 gold without the G falling down to the next line (see GH#546)
+-      if("?Funds ?G".equals(textboxText.str_24.get())) {
++      if("?Funds ?G".equals(legend.game.i18n.ScriptTextTranslations.original(textboxText.str_24).get())) { // [sc-vi] retail text of a translation
+         textbox.chars_18++;
        }
  
        clearTextboxText(textboxIndex);
-+      legend.game.i18n.ScriptTextTranslations.applyGrid(textboxText); // [sc-vi]
++      legend.game.i18n.ScriptTextTranslations.applyGrid(textbox, textboxText); // [sc-vi]
  
        if(textType == 1 && (packed & 0x1000) != 0) {
          textboxText.flags_08 |= TextboxText84.NO_INPUT;
@@ -81,7 +71,7 @@
        if((packed & TextboxText84.NO_ARROW) == 0) {
          textboxText.flags_08 |= TextboxText84.SHOW_ARROW;
        }
-+      legend.game.i18n.ScriptTextTranslations.applyGrid(textboxText); // [sc-vi]
++      legend.game.i18n.ScriptTextTranslations.applyGrid(textbox, textboxText); // [sc-vi]
        textboxText.chars_58 = new TextboxChar08[textboxText.chars_1c * (textboxText.lines_1e + 1)];
        Arrays.setAll(textboxText.chars_58, i -> new TextboxChar08());
        this.positionSobjTextbox(textboxIndex, script.params_20[1].get());
@@ -168,7 +158,7 @@
        }
 --- /dev/null
 +++ b/src/main/java/legend/game/i18n/ScriptTextTranslations.java
-@@ -0,0 +1,383 @@
+@@ -0,0 +1,552 @@
 +package legend.game.i18n;
 +
 +import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -177,6 +167,7 @@
 +import legend.core.font.Font;
 +import legend.game.modding.coremod.CoreMod;
 +import legend.game.types.LodString;
++import legend.game.types.Textbox4c;
 +import legend.game.types.TextboxText84;
 +import org.apache.logging.log4j.LogManager;
 +import org.apache.logging.log4j.Logger;
@@ -208,11 +199,15 @@
 + * the Unicode character (stored as {@link LodString#UNICODE_BASE} + codepoint, drawn with the selected font).</p>
 + *
 + * <p>Layout: retail textboxes are a grid of N chars x L lines drawn in 9 px cells, but glyphs are drawn with their real
-+ * (variable) width. Translations are word-wrapped to the PIXEL width of the original box (N x 9 px, N = textbox width read
-+ * from the script) using the selected font, so the box keeps its retail size; {@link #applyGrid} then widens the textbox's
-+ * character grid so the engine does not break those lines again. Modes: {@code N} first line is the speaker name (kept),
-+ * the rest of each page is wrapped; {@code J} each page is wrapped; {@code L} explicit lines are kept and only lines wider
-+ * than the box are broken at spaces (selection boxes, tables).</p>
++ * (variable) width. {@link #applyGrid} (called when the string is put in a textbox) word-wraps the translation to the
++ * PIXEL width of the retail box (N x 9 px) using the selected font, so the box keeps its retail size, then widens the
++ * textbox's character grid so the engine does not break those lines again. Modes: {@code N} first line is the speaker
++ * name (kept), the rest of each page is wrapped; {@code J} each page is wrapped; {@code L} explicit lines are kept and
++ * only lines wider than the box are broken at spaces; {@code C} lines are never broken (selection boxes: the selection
++ * bar and the selected index follow the lines; one-line boxes), the box is widened instead when a line does not fit.
++ * Numbers inserted at run time ({@code {A8xx}}) get room for 3 digits (1 per code in runs like {@code {A800}{A801}})
++ * when wrapping, and 10 cells in the grid. An input action ({@code {C0LL}} + LL packed ASCII bytes of its registry id,
++ * {@code <action=...>} in SC script patches) takes 1 cell and room for 6 digits (key or button name).</p>
 + *
 + * <p>Strings without a translation are left untouched. With {@code -Dscvi.logMissing=true} every untranslated string is
 + * appended once to {@code dialogue_missing.<language>.txt} (to measure coverage while playing).</p>
@@ -229,59 +224,152 @@
 +  private static final int CELL = 9;
 +  /** Upper bound for the widened character grid */
 +  private static final int MAX_GRID = 64;
++  /** Upper bound for a widened box (C mode), in cells: stays inside the 320 px screen */
++  private static final int MAX_BOX = 34;
++  /** Grid cells for a number inserted at run time (TextboxText84.digits_46) */
++  private static final int VAR_CELLS = 10;
++  /** Room (in digits) for the key/button name of an input action */
++  private static final int ACTION_DIGITS = 6;
 +
 +  private static final int SPACE = 0x00;
++  private static final int DIGIT_0 = 0x15;
 +  private static final int LINE = 0xa1ff;
 +  private static final int PAGE = 0xa3ff;
 +  private static final int END = 0xa0ff;
 +
 +  private record Entry(String text, char mode) { }
 +
-+  private static Locale loadedLocale;
-+  private static Map<String, Entry> table = Map.of();
-+  private static final Map<String, int[]> encoded = new HashMap<>();
-+  private static final Set<String> missingLogged = new HashSet<>();
++  private record Wrapped(int[] codes, int widestLine) { }
 +
-+  public static LodString translate(final LodString original) {
-+    return translate(original, -1);
++  /** A translated textbox string, wrapped for one box width; keeps what is needed to wrap it again for the real box */
++  public static final class Translated extends LodString {
++    /** The retail string this translation replaces */
++    public final LodString original;
++    private final String key;
++    private final Entry entry;
++    private final int boxChars;
++    private final Font font;
++    /** Grid cells the longest line needs */
++    private final int gridChars;
++    /** Widest line in pixels */
++    private final int widestLine;
++
++    private Translated(final LodString original, final String key, final Entry entry, final int boxChars, final Font font, final Wrapped wrapped) {
++      super(wrapped.codes);
++      this.original = original;
++      this.key = key;
++      this.entry = entry;
++      this.boxChars = boxChars;
++      this.font = font;
++      this.gridChars = maxLineCells(wrapped.codes);
++      this.widestLine = wrapped.widestLine;
++    }
++
++    public char mode() {
++      return this.entry.mode;
++    }
 +  }
 +
-+  /**
-+   * @param boxChars textbox width in characters from the script (the 2 words after the string), or -1 if unknown
-+   */
-+  public static LodString translate(final LodString original, final int boxChars) {
++  private static Locale loadedLocale;
++  private static Map<String, Entry> table = Map.of();
++  private static final Map<String, Wrapped> encoded = new HashMap<>();
++  private static final Set<String> missingLogged = new HashSet<>();
++
++  /** The retail string a translation replaced (for code that checks the retail text), or the string itself */
++  public static LodString original(final LodString str) {
++    return str instanceof final Translated translated ? translated.original : str;
++  }
++
++  public static LodString translate(final LodString original) {
 +    try {
 +      ensureLoaded();
-+
-+      if(table.isEmpty()) {
-+        return original;
-+      }
-+
-+      final String key = toTags(original);
-+      final Entry entry = table.get(key);
-+
-+      if(entry == null) {
-+        logMissing(key);
-+        return original;
-+      }
-+
-+      final int width = boxChars > 0 ? boxChars : longestLine(original);
-+      final Font font = GameEngine.DEFAULT_FONT;
-+      final int[] codes = encoded.computeIfAbsent(key + '\u0000' + width + '\u0000' + System.identityHashCode(font), k -> wrap(fromTags(entry.text), entry.mode, width * CELL, c -> advance(font, c)));
-+      final LodString out = new LodString(codes);
-+      out.gridChars = maxLineChars(codes);
-+      return out;
++      return lookup(original, GameEngine.DEFAULT_FONT);
 +    } catch(final Throwable t) {
 +      LOGGER.warn("Failed to translate textbox string", t);
 +      return original;
 +    }
 +  }
 +
-+  /** Widens the textbox character grid when a translated line has more characters than the retail box (call before allocating chars_58) */
-+  public static void applyGrid(final TextboxText84 textboxText) {
-+    if(textboxText.str_24 != null && textboxText.str_24.gridChars > textboxText.chars_1c) {
-+      textboxText.chars_1c = Math.min(textboxText.str_24.gridChars, MAX_GRID);
++  /** Looks a retail string up in the loaded table: its translation, or the string itself */
++  public static LodString lookup(final LodString original, final Font font) {
++    if(table.isEmpty()) {
++      return original;
 +    }
++
++    final String key = toTags(original);
++    final Entry entry = table.get(key);
++
++    if(entry == null) {
++      logMissing(key);
++      return original;
++    }
++
++    // Wrapped for a guess of the box width; applyGrid wraps it again for the real box
++    return wrapFor(original, key, entry, longestLine(original), font);
++  }
++
++  /**
++   * A string laid out in a textbox
++   *
++   * @param boxChars box width in chars (textbox chars_18 - 1)
++   * @param gridChars character grid width (textbox text chars_1c), may be wider than the box
++   */
++  public record Layout(LodString str, int boxChars, int gridChars) { }
++
++  /**
++   * Wraps a translation to a box {@code boxChars} wide (C mode: widens the box instead when a line doesn't fit) and
++   * widens the character grid so no line is broken again by the engine. Other strings are returned unchanged.
++   */
++  public static Layout layout(final LodString str, final int boxChars, final Font font) {
++    if(!(str instanceof final Translated translated)) {
++      return new Layout(str, boxChars, boxChars);
++    }
++
++    final Translated wrapped = translated.boxChars == boxChars && translated.font == font ? translated : wrapFor(translated.original, translated.key, translated.entry, boxChars, font);
++    int box = boxChars;
++
++    if(wrapped.entry.mode == 'C') {
++      box = Math.max(box, Math.min((wrapped.widestLine + CELL - 1) / CELL, MAX_BOX));
++    }
++
++    return new Layout(wrapped, box, Math.max(box, Math.min(wrapped.gridChars, MAX_GRID)));
++  }
++
++  public static void applyGrid(final Textbox4c textbox, final TextboxText84 textboxText) {
++    applyGrid(textbox, textboxText, GameEngine.DEFAULT_FONT);
++  }
++
++  /**
++   * Call after the string is set and {@code chars_1c} is the retail box width (clearTextboxText), before allocating
++   * {@code chars_58}: lays a translation out with {@link #layout} (the box keeps its retail width, except C mode lines
++   * that don't fit)
++   */
++  public static void applyGrid(final Textbox4c textbox, final TextboxText84 textboxText, final Font font) {
++    if(!(textboxText.str_24 instanceof Translated)) {
++      return;
++    }
++
++    try {
++      final Layout layout = layout(textboxText.str_24, textboxText.chars_1c, font);
++      textboxText.str_24 = layout.str;
++
++      if(layout.boxChars != textboxText.chars_1c) {
++        textbox.chars_18 = layout.boxChars + 1;
++      }
++
++      textboxText.chars_1c = layout.gridChars;
++    } catch(final Throwable t) {
++      LOGGER.warn("Failed to lay out textbox translation", t);
++    }
++  }
++
++  private static Translated wrapFor(final LodString original, final String key, final Entry entry, final int boxChars, final Font font) {
++    final IntUnaryOperator advance = c -> advance(font, c);
++    final Wrapped wrapped = encoded.computeIfAbsent(key + '\u0000' + boxChars + '\u0000' + System.identityHashCode(font), k -> {
++      final int[] codes = wrap(fromTags(entry.text), entry.mode, boxChars * CELL, advance);
++      return new Wrapped(codes, widestLine(codes, advance));
++    });
++    return new Translated(original, key, entry, boxChars, font, wrapped);
 +  }
 +
 +  /** Pixel advance of one code with the given font, as drawn by Text.renderTextboxText (glyph width + 1) */
@@ -307,10 +395,14 @@
 +    }
 +
 +    loadedLocale = locale;
++    loadTable(Path.of("lang", "dialogue." + locale.getLanguage() + ".tsv"));
++  }
++
++  /** Replaces the translation table with the one in {@code file} (empty if it doesn't exist) */
++  public static synchronized void loadTable(final Path file) {
 +    encoded.clear();
 +    missingLogged.clear();
 +
-+    final Path file = Path.of("lang", "dialogue." + locale.getLanguage() + ".tsv");
 +    if(!Files.isRegularFile(file)) {
 +      table = Map.of();
 +      return;
@@ -417,18 +509,40 @@
 +    return c < 0xa000 || c >= LodString.UNICODE_BASE;
 +  }
 +
-+  private static int maxLineChars(final int[] codes) {
++  /** {A8xx}: a number inserted at run time */
++  public static boolean isVar(final int c) {
++    return c >>> 8 == TextboxText84.VAR;
++  }
++
++  /** {C0LL}: input action, followed by (LL + 1) / 2 words of its packed registry id */
++  public static boolean isAction(final int c) {
++    return c >>> 8 == TextboxText84.ACTION;
++  }
++
++  /** Number of words after an input action code that hold its registry id */
++  public static int actionPayload(final int c) {
++    return ((c & 0xff) + 1) / 2;
++  }
++
++  /** Grid cells the longest line needs: visible chars + {@link #VAR_CELLS} per number, 1 per input action */
++  public static int maxLineCells(final int[] codes) {
 +    int max = 0;
 +    int current = 0;
-+    for(final int c : codes) {
++    for(int i = 0; i < codes.length; i++) {
++      final int c = codes[i];
 +      if(c == LINE || c == PAGE || c == END) {
 +        max = Math.max(max, current);
 +        current = 0;
++      } else if(isVar(c)) {
++        current += VAR_CELLS;
++      } else if(isAction(c)) {
++        current++;
++        i += actionPayload(c);
 +      } else if(visible(c)) {
 +        current++;
 +      }
 +    }
-+    return max;
++    return Math.max(max, current);
 +  }
 +
 +  private static int longestLine(final LodString str) {
@@ -455,7 +569,51 @@
 +  }
 +
 +  /**
-+   * Word-wraps a code array (terminated by 0xa0ff) so no line is wider than {@code maxWidth}
++   * Widths of the codes of one line (without line/page/end codes): a number {A8xx} counts as 3 digits, or 1 digit next
++   * to another number; an input action as {@link #ACTION_DIGITS} digits and its registry id words as 0
++   */
++  public static int[] widths(final int[] line, final IntUnaryOperator advance) {
++    final int[] widths = new int[line.length];
++    final int digit = advance.applyAsInt(DIGIT_0);
++    for(int i = 0; i < widths.length; i++) {
++      final int c = line[i];
++      if(isVar(c)) {
++        final boolean run = i > 0 && isVar(line[i - 1]) || i + 1 < widths.length && isVar(line[i + 1]);
++        widths[i] = run ? digit : 3 * digit;
++      } else if(isAction(c)) {
++        widths[i] = ACTION_DIGITS * digit;
++        i += actionPayload(c); // payload widths stay 0
++      } else {
++        widths[i] = advance.applyAsInt(c);
++      }
++    }
++    return widths;
++  }
++
++  /** Widest line of a code array (terminated by 0xa0ff), measured like {@link #wrap} */
++  public static int widestLine(final int[] codes, final IntUnaryOperator advance) {
++    final IntList line = new IntArrayList();
++    int widest = 0;
++    for(final int c : codes) {
++      if(c == LINE || c == PAGE || c == END) {
++        int width = 0;
++        for(final int w : widths(line.toIntArray(), advance)) {
++          width += w;
++        }
++        widest = Math.max(widest, width);
++        line.clear();
++        if(c == END) {
++          break;
++        }
++      } else {
++        line.add(c);
++      }
++    }
++    return widest;
++  }
++
++  /**
++   * Word-wraps a code array (terminated by 0xa0ff) so no line is wider than {@code maxWidth} (mode C: unchanged)
 +   *
 +   * @param advance width of one code (pixels with a font, or 1 per visible char to wrap by count)
 +   */
@@ -466,8 +624,8 @@
 +
 +    for(final int c : codes) {
 +      if(c == LINE || c == PAGE || c == END) {
-+        if(mode == 'N' && firstLine) {
-+          out.addAll(line); // speaker name: never wrapped
++        if(mode == 'C' || mode == 'N' && firstLine) {
++          out.addAll(line); // selection boxes, one-line boxes and the speaker name: never wrapped
 +        } else {
 +          wrapLine(line, maxWidth, advance, out);
 +        }
@@ -487,12 +645,13 @@
 +  }
 +
 +  private static void wrapLine(final IntList line, final int maxWidth, final IntUnaryOperator advance, final IntList out) {
++    final int[] widths = widths(line.toIntArray(), advance);
 +    int total = 0;
-+    for(int i = 0; i < line.size(); i++) {
-+      total += advance.applyAsInt(line.getInt(i));
++    for(final int w : widths) {
++      total += w;
 +    }
 +
-+    // Lines that fit are kept as-is (keeps alignment spaces in selection boxes and tables)
++    // Lines that fit are kept as-is (keeps alignment spaces in tables)
 +    if(total <= maxWidth) {
 +      out.addAll(line);
 +      return;
@@ -512,7 +671,7 @@
 +      final int start = i;
 +      int wordWidth = 0;
 +      while(i < line.size() && line.getInt(i) != SPACE) {
-+        wordWidth += advance.applyAsInt(line.getInt(i));
++        wordWidth += widths[i];
 +        i++;
 +      }
 +
@@ -541,7 +700,7 @@
 +  }
 +
 +  private static void logMissing(final String key) {
-+    if(!Boolean.getBoolean("scvi.logMissing") || !missingLogged.add(key)) {
++    if(loadedLocale == null || !Boolean.getBoolean("scvi.logMissing") || !missingLogged.add(key)) {
 +      return;
 +    }
 +

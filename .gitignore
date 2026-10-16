@@ -13,3 +13,6 @@ __pycache__/
 # Goi phat hanh (tao lai bang tools/make_release.py)
 /release/
 /test_cai/
+# The nho PS1 chep tu D:\LOD (save du lieu nguoi choi) va to anh ghep tam
+/work/cards/
+/work/sheet_*.png
