@@ -10,3 +10,5 @@
 /work/shots/
 __pycache__/
 *.pyc
+# Goi phat hanh (tao lai bang tools/make_release.py)
+/release/

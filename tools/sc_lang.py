@@ -23,7 +23,7 @@ import sys
 import unicodedata
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-SC = os.path.join(ROOT, 'Severed-Chains')
+SC = os.environ.get('SC_ROOT', os.path.join(ROOT, 'Severed-Chains'))  # ma nguon SC dung commit ban build
 LOD = os.environ.get('LOD_ROOT', os.path.join(ROOT, '..', 'LOD'))
 OUT = os.path.join(ROOT, 'out')
 
