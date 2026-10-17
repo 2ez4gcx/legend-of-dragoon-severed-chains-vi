@@ -101,4 +101,6 @@ Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
   dùng; người dùng tự bật public khi muốn). Gói zip (132 MB, quá 100 MB/file của git) đưa lên mục **Releases**, tag
   `v<ver>-sc-<commit7>`, đánh dấu pre-release khi còn thử nghiệm, kèm `SHA256SUMS.txt`. Sau khi tải lên: tải lại từ GitHub và so
   SHA-256 với bản đã kiểm.
+- Đã phát hành (pre-release): v0.1-sc-affcef0 (tag → 243d150, zip SHA `3eccc6c3…`), v0.2-sc-affcef0 (17/10/2026, tag → adb4e65,
+  zip 132.807.079 byte, SHA `834384aa…`; tải lại từ GitHub khớp).
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
