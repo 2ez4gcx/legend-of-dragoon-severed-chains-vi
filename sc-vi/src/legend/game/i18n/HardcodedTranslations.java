@@ -44,61 +44,106 @@ public final class HardcodedTranslations {
   private static Locale appliedLocale;
   private static boolean failed;
 
-  private static Object titlePatched;
-  private static int[] titleWidths;
-  private static boolean titleWidthsRead;
+  private static Object titleState;
+  private static Object titleTex;
+  private static boolean titleTexTranslated;
+  private static String titleTag;
+  private static int[] titleOriginalWidths;
+  private static Field titleTexField;
+  private static Field titleWidthField;
+  private static Field textureDeletedField;
+  private static boolean titleFailed;
 
   /**
-   * The title menu image (gfx/ui/title_menu.png) is centred with hard-coded English text widths (Ttle.menuTextWidth).
-   * When a translated image ships with gfx/ui/title_menu.widths ("w0,w1,w2,w3,w4"), copy those widths into the title
-   * screen instance so the translated items stay centred.
+   * The title menu items are drawn from an image (gfx/ui/title_menu.png, Ttle.menuTextTex) centred with hard-coded English
+   * text widths (Ttle.menuTextWidth). When the current language ships gfx/ui/title_menu.&lt;language tag&gt;.png plus
+   * gfx/ui/title_menu.&lt;language tag&gt;.widths ("w0,w1,w2,w3,w4"), swap that image into the title screen and copy the
+   * widths so the translated items stay centred; any other language gets the original image and widths back.
+   *
+   * <p>Ttle.loadTextures loads gfx/ui/title_menu.png again every time the main menu comes back (after Options, About...),
+   * and Ttle.deallocate deletes it while those screens are open: a texture object not seen before is therefore the
+   * original image, and a deleted one is left alone (the next loadTextures replaces it). Swapping mid-frame is safe:
+   * Texture.delete() only marks the old texture, it is freed after the frame is drawn.</p>
    */
-  private static void titleMenu() {
+  private static void titleMenu(final Locale locale) {
     final Object state = legend.game.EngineStates.currentEngineState_8004dd04;
-    if(!(state instanceof legend.game.title.Ttle) || state == titlePatched) {
+    if(titleFailed || !(state instanceof legend.game.title.Ttle)) {
       return;
     }
 
-    titlePatched = state;
-
     try {
-      if(!titleWidthsRead) {
-        titleWidthsRead = true;
-        final java.nio.file.Path file = java.nio.file.Path.of("gfx", "ui", "title_menu.widths");
-        if(java.nio.file.Files.isRegularFile(file)) {
-          final String[] parts = java.nio.file.Files.readString(file).trim().split(",");
-          titleWidths = new int[parts.length];
-          for(int i = 0; i < parts.length; i++) {
-            titleWidths[i] = Integer.parseInt(parts[i].trim());
-          }
-        }
+      if(titleTexField == null) {
+        titleTexField = legend.game.title.Ttle.class.getDeclaredField("menuTextTex");
+        titleTexField.setAccessible(true);
+        titleWidthField = legend.game.title.Ttle.class.getDeclaredField("menuTextWidth");
+        titleWidthField.setAccessible(true);
+        textureDeletedField = legend.core.renderer.Texture.class.getDeclaredField("deleted");
+        textureDeletedField.setAccessible(true);
       }
 
-      if(titleWidths != null) {
-        final Field field = legend.game.title.Ttle.class.getDeclaredField("menuTextWidth");
-        field.setAccessible(true);
-        final int[] widths = (int[])field.get(state);
-        System.arraycopy(titleWidths, 0, widths, 0, Math.min(widths.length, titleWidths.length));
+      final legend.core.renderer.Texture current = (legend.core.renderer.Texture)titleTexField.get(state);
+      if(current == null || textureDeletedField.getBoolean(current)) {
+        return; // textures not loaded yet, or deallocated while another screen is open
+      }
+
+      final String tag = locale == null ? "" : locale.toLanguageTag();
+      if(state == titleState && current == titleTex && tag.equals(titleTag)) {
+        return;
+      }
+
+      final int[] widths = (int[])titleWidthField.get(state);
+      if(state != titleState) {
+        titleState = state;
+        titleOriginalWidths = widths.clone();
+      }
+
+      final boolean original = current != titleTex || !titleTexTranslated;
+      titleTag = tag;
+
+      final java.nio.file.Path png = java.nio.file.Path.of("gfx", "ui", "title_menu." + tag + ".png");
+      final java.nio.file.Path widthFile = java.nio.file.Path.of("gfx", "ui", "title_menu." + tag + ".widths");
+      System.arraycopy(titleOriginalWidths, 0, widths, 0, widths.length);
+
+      if(!tag.isEmpty() && java.nio.file.Files.isRegularFile(png) && java.nio.file.Files.isRegularFile(widthFile)) {
+        final String[] parts = java.nio.file.Files.readString(widthFile).trim().split(",");
+        for(int i = 0; i < Math.min(widths.length, parts.length); i++) {
+          widths[i] = Integer.parseInt(parts[i].trim());
+        }
+        current.delete();
+        titleTex = legend.core.renderer.Texture.filteredPng("Menu", png);
+        titleTexTranslated = true;
+        titleTexField.set(state, titleTex);
+        LOGGER.info("Title menu: %s", png);
+      } else if(!original) {
+        current.delete();
+        titleTex = legend.core.renderer.Texture.filteredPng("Menu", java.nio.file.Path.of("gfx", "ui", "title_menu.png"));
+        titleTexTranslated = false;
+        titleTexField.set(state, titleTex);
+        LOGGER.info("Title menu: original image");
+      } else {
+        titleTex = current;
+        titleTexTranslated = false;
       }
     } catch(final Throwable t) {
-      LOGGER.warn("Failed to apply title menu widths", t);
+      titleFailed = true;
+      LOGGER.warn("Failed to swap the title menu image", t);
     }
   }
 
   /** Called at the start of Text.renderText: applies the tables once per language and translates UI literals */
   public static String onRender(final String text) {
-    titleMenu();
+    Locale locale = null;
+    try {
+      locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
+    } catch(final Throwable t) {
+      // Config/registries not ready yet: try again on the next call
+    }
 
-    if(!failed) {
-      try {
-        final Locale locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
-        if(locale != null && !locale.equals(appliedLocale)) {
-          appliedLocale = locale;
-          apply();
-        }
-      } catch(final Throwable t) {
-        // Config/registries not ready yet: try again on the next call
-      }
+    titleMenu(locale);
+
+    if(!failed && locale != null && !locale.equals(appliedLocale)) {
+      appliedLocale = locale;
+      apply();
     }
 
     if(text == null || text.length() > 64) {

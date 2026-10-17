@@ -10,7 +10,8 @@ Gói ra: release/LoD-SC-VN-v<ver>-sc-<commit7>-windows.zip (+ release/SHA256SUMS
     - vi/sc-vi.jar (lớp sửa lõi), vi/NGUON/ (mã nguồn sc-vi + diff + tự kiểm + công cụ sinh dữ liệu, theo AGPL-3.0),
       vi/VERSION.txt (commit D:\\LOD-SC, D:\\LOD, SC), vi/LICENSE (AGPL-3.0 của SC).
     - lang/lod.vi.lang, lang/scvi.vi.lang, lang/core.vi.lang, lang/unpacker.vi.lang, lang/turnorder.vi.lang,
-      lang/dialogue.vi.tsv, gfx/fonts/vietnamese.json/.png
+      lang/dialogue.vi.tsv, gfx/fonts/vietnamese.json/.png, gfx/ui/title_menu.vi.png/.widths (menu màn tựa),
+      vi/files/ (lớp phủ đồ hoạ tiếng Việt: ảnh đã duyệt của bản PS1, Loader đọc thay files/)
     - config.dcnf tối giản: ngôn ngữ = vi, phông chữ = vietnamese.json (mọi mục khác để SC tự đặt mặc định)
     - launch-vi.bat (sinh từ launch.bat của bản build: tự tải JDK 25 như bản gốc, kiểm đúng jar commit, thêm vi/sc-vi.jar
       vào ĐẦU classpath), HUONG_DAN_VIET_HOA.txt.
@@ -159,18 +160,21 @@ CÀI ĐẶT
 2. Chép 4 file .bin vào thư mục isos (tên file tuỳ ý).
 3. Chạy launch-vi.bat (KHÔNG chạy launch.bat — đó là bản tiếng Anh).
    Lần đầu: tải Java, rồi SC giải nén tài nguyên từ đĩa (~1,4 GB vào thư mục files, khoảng 1 phút).
-4. Ngôn ngữ và phông chữ đã đặt sẵn tiếng Việt. Nếu cần chỉnh: Options → Global Options → User Interface →
+4. Ngôn ngữ và phông chữ đã đặt sẵn tiếng Việt. Nếu cần chỉnh: Tùy chọn → Tùy chọn chung → Giao diện →
    Phông chữ = "Tiếng Việt (pixel)", Ngôn ngữ = Vietnamese.
 
 PHÍM MẶC ĐỊNH: mũi tên di chuyển, Enter/Space xác nhận/nói chuyện, Escape quay lại, E mở menu,
 Enter 2 lần bỏ qua phim. Có thể đổi trong Tùy chọn → Controls. Tay cầm được hỗ trợ sẵn.
 
 LƯU Ý QUAN TRỌNG
-- ĐỪNG bấm "Update Available" ở màn tựa: bản cập nhật của SC sẽ xoá phần Việt hoá và thay mã game.
-  Nếu lỡ cập nhật, launch-vi.bat sẽ báo; hãy giải nén lại gói này (giữ isos, saves).
-- Bản thử nghiệm: lời thoại, vật phẩm, phép, đồ quý, menu chính đã tiếng Việt. Còn tiếng Anh: tên quái, địa danh
-  trong menu/lưu, tên chương, một phần giao diện riêng của SC, chữ vẽ trong ảnh (GOLD, Star Dust, tiêu đề chương).
+- Gói ghim theo một bản build SC nên đã tắt kiểm tra cập nhật (không hiện "Update Available"). Đừng cập nhật SC
+  bằng cách khác: bản mới sẽ thay mã game và mất phần Việt hoá. Nếu lỡ cập nhật, launch-vi.bat sẽ báo; hãy giải nén
+  lại gói này (giữ isos, saves).
+- Đã tiếng Việt: lời thoại, vật phẩm, phép, đồ quý, menu, tuỳ chọn và giao diện riêng của SC, tên quái, địa danh,
+  tên chương, trạng thái, màn tựa, chữ vẽ trong ảnh (Vàng, Bụi Sao, nhãn menu, thẻ tiêu đề chương, tên vùng bản đồ).
   Tên người, tên trang bị và tên Liên Kích giữ tiếng Anh (như bản PS1).
+- Chuyển về tiếng Anh: Tùy chọn → Tùy chọn chung → Giao diện → Ngôn ngữ = English. Chữ vẽ trong ảnh (thư mục
+  vi/files) vẫn tiếng Việt; muốn đúng bản gốc thì chạy launch.bat và chọn Ngôn ngữ = English.
 - Lưu game: SC lưu không giới hạn ô trong thư mục saves. Save thẻ nhớ PS1/giả lập chép vào saves để SC chuyển đổi.
 
 GIẤY PHÉP VÀ MÃ NGUỒN
@@ -230,7 +234,8 @@ def main():
         files.append((name, data))
     for name, data in zip_dir_deterministic(os.path.join(src, 'sc-vi'), 'vi/NGUON/sc-vi/'):
         files.append((name, data))
-    for f in ('sc_lang.py', 'sc_hardcoded.py', 'sc_lang_check.py', 'sc_gfx.py', 'sc_dialogue.py', 'sc_font.py', 'sc_core_diff.py', 'build_sc_vi.ps1'):
+    for f in ('sc_lang.py', 'sc_hardcoded.py', 'sc_lang_check.py', 'sc_gfx.py', 'sc_title_menu.py', 'sc_dialogue.py', 'sc_font.py',
+              'sc_core_diff.py', 'build_sc_vi.ps1'):
         files.append(('vi/NGUON/tools/' + f, open(os.path.join(src, 'tools', f), 'rb').read()))
     files.append(('lang/lod.vi.lang', open(os.path.join(out, 'lang', 'lod.vi.lang'), 'rb').read()))
     files.append(('lang/dialogue.vi.tsv', open(os.path.join(out, 'lang', 'dialogue.vi.tsv'), 'rb').read()))
@@ -239,6 +244,8 @@ def main():
         files.append(('lang/' + f, open(os.path.join(src, 'tr_sc', f), 'rb').read()))
     files.append(('gfx/fonts/vietnamese.json', open(os.path.join(out, 'fonts', 'vietnamese.json'), 'rb').read()))
     files.append(('gfx/fonts/vietnamese.png', open(os.path.join(out, 'fonts', 'vietnamese.png'), 'rb').read()))
+    for f in ('title_menu.vi.png', 'title_menu.vi.widths'):
+        files.append(('gfx/ui/' + f, open(os.path.join(out, 'gfx', 'ui', f), 'rb').read()))
     files.append(('config.dcnf', config_dcnf()))
     files.append(('vi/VERSION.txt', ('viet_hoa=%s\nlod_sc_commit=%s\nlod_commit=%s\nsc_commit=%s\nsc_zip_sha256=%s\n' % (
         a.version, src_commit, lod_commit, SC_COMMIT, SC_ZIP_SHA)).encode()))

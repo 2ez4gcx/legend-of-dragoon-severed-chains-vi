@@ -1,12 +1,15 @@
 """Vẽ lại ảnh menu màn tựa riêng của Severed Chains (gfx/ui/title_menu.png) bằng tiếng Việt.
 
 Cách gọi:
-    python tools/sc_title_menu.py   -> out/gfx/ui/title_menu.png + out/title_menu_preview.png (gốc | Việt, nền tối)
+    python tools/sc_title_menu.py   -> out/gfx/ui/title_menu.vi.png + title_menu.vi.widths
+                                       + out/title_menu_preview.png (gốc | Việt, nền tối)
+Gói cài vào gfx/ui/ (tên riêng, không đè ảnh gốc của SC): HardcodedTranslations chỉ thay ảnh khi ngôn ngữ đang chọn là vi.
 Ảnh gốc 1024x512 RGBA: hàng i (cao 64) = mục i; cột trái (x 0..511) chữ trắng sắc, cột phải (512..1023) bản làm mờ (phát sáng
 khi được chọn); hàng 7 = biểu tượng (giữ nguyên).
 Mục 0..4 (Ttle.java): quad đặt tại x = 184 - menuTextWidth[i]*scale/2 với menuTextWidth = {407, 257, 227, 189, 141} (bề rộng
-chữ Anh, ghi cứng; = mép phải chữ + 17). Chữ Việt căn trái ở x = 16 như gốc, bề rộng mới ghi ra out/gfx/ui/title_menu.widths;
-lớp HardcodedTranslations ghi bảng này vào Ttle.menuTextWidth (reflection) khi màn tựa hiện -> căn giữa đúng.
+chữ Anh, ghi cứng; = mép phải chữ + 17). Chữ Việt căn trái ở x = 16 như gốc, bề rộng mới ghi ra title_menu.vi.widths;
+lớp HardcodedTranslations thay Ttle.menuTextTex bằng ảnh này và ghi bảng vào Ttle.menuTextWidth (reflection) khi màn tựa hiện
+-> căn giữa đúng.
 Mục 5, 6 (Convert Memcard / Update Available) căn trái ở x = 16 như gốc.
 Chữ: Cambria (có đủ dấu tiếng Việt), chữ hoa cao bằng chữ gốc (29 px), vẽ ở 4x rồi thu nhỏ, viền mảnh cho nét đậm như gốc,
 kéo giãn ngang theo hệ số đo từ "New Campaign" (chữ gốc là kiểu serif mặt rộng). Lớp phát sáng = làm mờ Gaussian chữ sắc với
@@ -108,8 +111,8 @@ def main():
             widths.append(x0 + w + 17)   # như gốc: menuTextWidth = mép phải chữ + 17 (407 = 390 + 17 ...)
         print('%-16s rong %3d px' % (text, w))
     os.makedirs(os.path.join(ROOT, 'out', 'gfx', 'ui'), exist_ok=True)
-    Image.fromarray(out).save(os.path.join(ROOT, 'out', 'gfx', 'ui', 'title_menu.png'))
-    with open(os.path.join(ROOT, 'out', 'gfx', 'ui', 'title_menu.widths'), 'w', encoding='ascii', newline='\n') as fw:
+    Image.fromarray(out).save(os.path.join(ROOT, 'out', 'gfx', 'ui', 'title_menu.vi.png'))
+    with open(os.path.join(ROOT, 'out', 'gfx', 'ui', 'title_menu.vi.widths'), 'w', encoding='ascii', newline='\n') as fw:
         fw.write(','.join(str(x) for x in widths) + '\n')
     print('menuTextWidth tieng Viet: %s (goc %s)' % (widths, MENU_TEXT_WIDTH))
     print('he so keo ngang %.3f, phat sang: Gaussian r=%.1f x%.2f' % (k, r, s))
