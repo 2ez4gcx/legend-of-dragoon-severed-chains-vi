@@ -22,3 +22,6 @@ work/build_log.txt
 work/credit209_5718_0
 work/jstack*.txt
 work/dialogue_truoc.tsv
+work/*.zip
+work/rel_log*.txt
+work/test_cai_*.txt

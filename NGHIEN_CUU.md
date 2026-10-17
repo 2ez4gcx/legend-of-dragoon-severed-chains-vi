@@ -221,13 +221,14 @@ có trong `build.py` của D:\LOD → bản PS1 có thể cũng nối tên ở 3
    hộp theo NPC, chữ trong trận, ngắt theo khung thật, đĩa 3–4, số chèn Quầy Diệt Quái, hộp chọn số "Hủy". Còn: tự nhận font Việt khi chọn tiếng
    Việt (font Smooth mặc định không có dấu); đặt tên font không dấu cho danh sách chọn. Mỗi lần SC đổi `patches/scripts`,
    `sc_dialogue.py` dừng nếu số câu đổi khác 12 → cập nhật `SC_VI_FIX`.
-3. **Chuỗi viết cứng** (1 phiên + dịch tay phần thiếu): đổi 344 chuỗi trong 6 file Java sang khoá `.lang` (đúng hướng SC đang đi:
-   vật phẩm đã chuyển), ghép tên quái/địa danh từ `D:\LOD tr/vi` (M-uid), phần còn lại dịch tay theo `tr/glossary.md`.
-4. **Giao diện SC** (~700 khoá `lod_core` + `lod` còn thiếu): dịch, rồi kiểm bề rộng từng ô menu SC (như `check_menu.py` của PS1),
-   ví dụ "Dùng vật phẩm" → câu ngắn hơn.
-5. **Đồ hoạ**: dùng lại ảnh đã duyệt của PS1 (thẻ chương, nhãn menu, dòng ghi công) — SC nạp chúng từ `files/SECT/DRGN0.BIN/…`
-   nên cần một bước thay file sau giải nén hoặc móc thay texture trong lõi; vẽ lại `gfx/ui/title_menu.png` của SC.
-   Theo quy trình: ảnh xem trước gốc/Việt → bạn duyệt → áp.
+3. **Chuỗi viết cứng** — XONG (v0.2): không sửa 6 file Java mà dùng lớp mới `HardcodedTranslations` ghi đè bảng lúc chạy
+   theo khoá `scvi.<bảng>.<slug>` (`tools/sc_hardcoded.py` ghép từ `D:\LOD tr/vi`, dịch tay trong `tr_sc/gop/scvi.vi.lang`),
+   câu viết thẳng dịch ở đầu `Text.renderText`, địa danh trên thẻ lưu cũ dịch lúc hiện.
+4. **Giao diện SC** — XONG (v0.2): toàn bộ 399 khoá `lod_core` + phần `lod` còn thiếu; `tools/sc_lang_check.py` kiểm khoá, tham số
+   và liệt kê dòng có thể tràn.
+5. **Đồ hoạ** — XONG phần ảnh PS1 (v0.2): lớp sửa `Loader` đọc `vi/files/<đường dẫn>` thay `files/` (`tools/sc_gfx.py` dựng từ
+   `gfx.patch` của `D:\LOD`, kiểm từng byte với bản SC giải nén). Menu màn tựa riêng của SC: `tools/sc_title_menu.py` →
+   `gfx/ui/title_menu.vi.png` (đổi theo ngôn ngữ); dòng ghi công trên màn tựa SC: chờ bạn duyệt vị trí (`docs/anh/26`).
 6. **Font** (tuỳ câu hỏi 2): giữ font mảnh PS1, và/hoặc vẽ dấu Việt cho font Original đậm, và/hoặc bản Smooth ×4.
 7. **Chơi thử toàn bộ** bằng `-Dscvi.logMissing=true` + `tools/sc_ui.ps1` + `tools/sc_dbg.ps1 -Warp` (tra cảnh bằng `sc_cuts.py`),
    chụp ảnh các cảnh. Kiểm kiểu `text_audit.py` (ngắt bằng đúng hàm Java, dòng tràn/số dòng/hộp chọn) đã nằm trong `TagRoundTrip`
