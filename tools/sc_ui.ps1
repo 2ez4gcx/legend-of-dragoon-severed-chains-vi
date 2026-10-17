@@ -30,6 +30,8 @@ public class SCW {
  [DllImport("user32.dll")] public static extern uint MapVirtualKey(uint c, uint t);
  [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr h, out R r);
  [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr h, ref P p);
+ [DllImport("user32.dll")] public static extern bool GetCursorPos(out P p);
+ [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
  public struct R { public int L, T, Ri, B; }
  public struct P { public int X, Y; }
 }
@@ -57,10 +59,22 @@ function Focus {
   return ([SCW]::GetForegroundWindow() -eq $h)
 }
 
+# Menu SC chọn mục theo vị trí chuột: con trỏ nằm trên cửa sổ (vd trên "Quit" ở màn tựa) thì Enter chọn nhầm mục đó.
+# Trước khi bấm phím, nếu con trỏ ở trong vùng client thì dời nó ra ngay dưới mép trái cửa sổ.
+function MouseAway {
+  $r = New-Object SCW+R; [SCW]::GetClientRect($h, [ref]$r) | Out-Null
+  $o = New-Object SCW+P; [SCW]::ClientToScreen($h, [ref]$o) | Out-Null
+  $c = New-Object SCW+P; [SCW]::GetCursorPos([ref]$c) | Out-Null
+  if ($c.X -ge $o.X -and $c.X -lt $o.X + $r.Ri -and $c.Y -ge $o.Y -and $c.Y -lt $o.Y + $r.B) {
+    [SCW]::SetCursorPos($o.X, $o.Y + $r.B + 40) | Out-Null
+  }
+}
+
 $map = @{Up = 0x26; Down = 0x28; Left = 0x25; Right = 0x27; Return = 0x0D; Escape = 0x1B; Space = 0x20; Tab = 0x09;
   W = 0x57; A = 0x41; S = 0x53; D = 0x44; Q = 0x51; E = 0x45; F11 = 0x7A; F12 = 0x7B; Back = 0x08}
 if ($Keys) {
   if (-not (Focus)) { Write-Output 'ABORT: SC khong o tren cung'; exit 1 }
+  MouseAway
   foreach ($tok in $Keys.Split(',')) {
     $tok = $tok.Trim(); if (-not $tok) { continue }
     if ($tok -like 'wait:*') { Start-Sleep -Milliseconds ([int]$tok.Substring(5)); continue }
