@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LoD tiếng Việt</string>
+    <string name="pick_discs">Chọn 4 đĩa gốc (.bin)</string>
+    <string name="play">Chơi</string>
+    <string name="preparing">Đang chuẩn bị…</string>
+    <string name="extracting">Đang giải nén dữ liệu chương trình (lần đầu sau khi cài): %1$d%%</string>
+    <string name="extract_failed">Giải nén thất bại: %1$s\nHãy kiểm tra bộ nhớ trống rồi mở lại.</string>
+    <string name="need_discs">The Legend of Dragoon tiếng Việt chạy trên Severed Chains.\n\nGói này KHÔNG chứa dữ liệu game. Hãy chọn 4 file .bin đĩa gốc bản Mỹ (NA, SCUS-94491 / 94584 / 94585 / 94586, BIN 2352 byte/sector) mà bạn đã chép vào điện thoại. Dùng đĩa gốc, không dùng đĩa đã vá tiếng Việt bản PS1.\n\nỨng dụng chỉ xin quyền đọc 4 file bạn chọn (không chép đĩa). Lần chơi đầu, game giải nén tài nguyên từ đĩa (~1,4 GB, vài phút); đừng di chuyển hay xoá các file đĩa sau đó.</string>
+    <string name="need_four">Cần chọn đúng 4 file .bin (đĩa 1–4), bạn đã chọn %1$d file.</string>
+    <string name="bad_discs">Có file không dùng được:\n%1$s\nHãy chọn đúng 4 file .bin (2352 byte/sector) của đĩa gốc.</string>
+    <string name="cannot_open">không mở được file</string>
+    <string name="too_small">file quá nhỏ, không phải ảnh đĩa</string>
+    <string name="not_bin">không phải ảnh đĩa BIN 2352 byte/sector</string>
+    <string name="ready">Đã có 4 đĩa. Bấm Chơi.</string>
+    <string name="launch_failed">Không mở được đĩa: %1$s\nHãy chọn lại 4 đĩa.</string>
+</resources>
