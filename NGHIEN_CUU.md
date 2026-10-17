@@ -82,6 +82,7 @@ Hiện trạng dịch của SC: bản tiếng Ba Lan thêm ngày 13/10/2026, **c
 | Thẻ tiêu đề chương ("Chapter 1 Serdian War") | đĩa `DRGN0/6670–6673` | Có (`font/chapter_titles.py`) |
 | Nhãn menu (GOLD, Star Dust, LV, HP…) | đĩa `DRGN0/6665` | Có một phần (`font/menu_labels.py`) |
 | Nền màn tựa / ghi công | đĩa `DRGN0/5718` | Có (dòng ghi công `font/title_credit.py`) |
+| Màn kết quả trận GOLD/ITEMS | đĩa `DRGN0/4113` sub 0 (texture HUD trận) + mảnh sprite `DRGN0/6666` | Có (`font/result_labels.py`: "Vàng", "Vật phẩm"; EXP. giữ) |
 
 ## 3. Đánh giá các hướng
 
@@ -229,7 +230,9 @@ có trong `build.py` của D:\LOD → bản PS1 có thể cũng nối tên ở 3
 5. **Đồ hoạ** — XONG phần ảnh PS1 (v0.2): lớp sửa `Loader` đọc `vi/files/<đường dẫn>` thay `files/` (`tools/sc_gfx.py` dựng từ
    `gfx.patch` của `D:\LOD`, kiểm từng byte với bản SC giải nén). Menu màn tựa riêng của SC: `tools/sc_title_menu.py` →
    `gfx/ui/title_menu.vi.png` (đổi theo ngôn ngữ); dòng ghi công trên màn tựa SC ở hàng 209, dưới "Thoát" (phương án B,
-   người dùng duyệt 17/10/2026, `docs/anh/26`).
+   người dùng duyệt 17/10/2026, `docs/anh/26`). Màn kết quả trận "Vàng"/"Vật phẩm" (duyệt 17/10/2026): `DRGN0/4113/0` + `6666`;
+   SC tự vá `6666` lúc giải nén (0x24A8–0x24D3) nên `sc_gfx.py` chép đúng 5 byte metrics lên file của SC (`SC_OWN`), ảnh `docs/anh/32`.
+   Cần `D:\LOD` có `font/result_labels.py` (nhánh claude/beautiful-mendel-9dff75 → main) hoặc `LOD_ROOT` trỏ tới worktree đó.
 6. **Font** (tuỳ câu hỏi 2): giữ font mảnh PS1, và/hoặc vẽ dấu Việt cho font Original đậm, và/hoặc bản Smooth ×4.
 7. **Chơi thử toàn bộ** bằng `-Dscvi.logMissing=true` + `tools/sc_ui.ps1` + `tools/sc_dbg.ps1 -Warp` (tra cảnh bằng `sc_cuts.py`),
    chụp ảnh các cảnh. Kiểm kiểu `text_audit.py` (ngắt bằng đúng hàm Java, dòng tràn/số dòng/hộp chọn) đã nằm trong `TagRoundTrip`
