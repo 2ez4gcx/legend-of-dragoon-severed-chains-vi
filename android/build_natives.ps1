@@ -85,6 +85,9 @@ if ($Only -contains 'launcher') {
   $b = CMakeBuild 'launcher' (Join-Path $PSScriptRoot 'launcher') @("-DSDL_INCLUDE=$(& $fwd (Join-Path $src 'SDL3-3.4.14\include'))",
     "-DSDL_LIB=$(& $fwd (Join-Path $out 'libSDL3.so'))")
   Copy-Item (Join-Path $b 'libsclauncher.so') $out -Force
+  # dấu mã nguồn: make_apk.py từ chối đóng gói nếu sclauncher.c/CMakeLists.txt đổi mà chưa dựng lại cho ABI này
+  $h = (Get-FileHash -Algorithm SHA256 -InputStream ([IO.MemoryStream]::new([byte[]]((Get-Content -Raw -Encoding Byte (Join-Path $PSScriptRoot 'launcher\sclauncher.c')) + (Get-Content -Raw -Encoding Byte (Join-Path $PSScriptRoot 'launcher\CMakeLists.txt')))))).Hash.ToLower()
+  Set-Content -Path (Join-Path $out 'libsclauncher.src.sha256') -Value $h -Encoding ascii -NoNewline
   Write-Output 'DAT launcher'
 }
 

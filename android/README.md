@@ -46,6 +46,12 @@ python android/make_apk.py --version 0.2
 Khoá ký: `deps/android/keys/lodsc-release.jks` + `keystore.pass` (tạo lần đầu, **sao lưu** — bản cập nhật phải cùng khoá).
 Dựng 2 lần ra cùng SHA-256.
 
+Sửa `launcher/sclauncher.c` thì phải dựng lại launcher **cho cả hai ABI** (`-Abi arm64-v8a -Only launcher` và
+`-Abi x86_64 -Only launcher`): `build_natives.ps1` ghi dấu SHA-256 của mã nguồn vào `out/<abi>/libsclauncher.src.sha256`,
+`make_apk.py` từ chối đóng gói khi dấu không khớp. (APK arm64 đầu tiên ngày 17/10, SHA `1400a698…`, chở launcher arm64 cũ thiếu
+`--add-opens java.base/java.io` → `IsoReader` không dùng được fd → SC báo "Please place US ISOs/BINs in "isos" directory"
+dù đã chọn đủ 4 đĩa; `retest.ps1` chỉ dựng lại x86_64.)
+
 ## Thử
 
 - Trên máy tính, đường ES của bản Android: `powershell -File tools/run_sc.ps1 -Gles` (ES 3.2 qua WGL của driver NVIDIA).

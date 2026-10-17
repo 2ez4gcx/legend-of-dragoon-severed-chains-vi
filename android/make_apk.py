@@ -220,6 +220,14 @@ def main():
     run(os.path.join(BT, 'd8.bat'), '--release', '--min-api', '29', '--lib', ANDROID_JAR, '--output', dex, '@' + cargs, env=env)
 
     print('ghep APK...')
+    # thư viện khởi chạy phải được dựng từ đúng mã nguồn hiện tại cho ABI này (lỗi 17/10: bản arm64 cũ thiếu
+    # --add-opens java.base/java.io -> SC không đọc được đĩa); build_natives.ps1 ghi dấu SHA-256 của nguồn
+    src_hash = hashlib.sha256(open(os.path.join(AND, 'launcher', 'sclauncher.c'), 'rb').read()
+                              + open(os.path.join(AND, 'launcher', 'CMakeLists.txt'), 'rb').read()).hexdigest()
+    stamp = os.path.join(DEPS, 'out', a.abi, 'libsclauncher.src.sha256')
+    if not os.path.exists(stamp) or open(stamp, encoding='ascii').read().strip() != src_hash:
+        sys.exit('LOI: libsclauncher.so (%s) khong khop sclauncher.c: chay android/build_natives.ps1 -Abi %s -Only launcher'
+                 % (a.abi, a.abi))
     libs = {}
     for n in NATIVE_LIBS:
         libs[n] = open(os.path.join(DEPS, 'out', a.abi, n), 'rb').read()
