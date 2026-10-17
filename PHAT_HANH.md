@@ -73,6 +73,16 @@ Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
 - Công cụ: menu SC chọn mục theo vị trí chuột (con trỏ nằm trên "Quit" + Enter làm game thoát) → `sc_ui.ps1` dời chuột ra
   ngoài cửa sổ trước khi bấm phím; phim intro chỉ chạy khi cửa sổ ở trên cùng → `test_cai.ps1` tự đưa cửa sổ lên.
 
+## Đã kiểm (v0.2 — bản dựng thử từ 375e2cd, chờ duyệt menu màn tựa / vị trí dòng ghi công)
+
+| Kiểm | Kết quả |
+|---|---|
+| Tự kiểm khi dựng (`TagRoundTrip`) | 13.276 câu, 530 câu B0xx có bản nối dòng, 10 ca riêng, 0 lỗi |
+| Dựng 2 lần | cùng SHA-256 `7a4bd19f…` |
+| Nội dung gói | 51 file `vi/files`, `gfx/ui/title_menu.vi.png/.widths`, `gfx/ui/title_menu.png` giữ nguyên bản SC, 8 lớp sửa |
+| Cài sạch `test_cai.ps1 -Choi` | lên màn tựa 107 s (gồm giải nén), classpath đúng, không lỗi trong log; menu tựa tiếng Việt, Tùy chọn, thoại mở đầu, menu "Chương 1: Chiến Sự Serdio", Vàng/Bụi Sao, vật phẩm (`docs/anh/31`) |
+| Trong game (thư mục `game`) | menu tựa Việt → English → Việt, vào/ra Giới thiệu (`docs/anh/28`); thẻ lưu cũ "Chương 4: Trăng & Số Mệnh" (`29`); trận + màn kết quả (`30`) |
+
 ## Đổi sang commit SC mới (khi cần)
 
 1. `git -C Severed-Chains fetch && git checkout <commit>`; tải `Severed_Chains_Windows.zip` của devbuild **cùng commit** (tên jar
