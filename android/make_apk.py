@@ -9,7 +9,7 @@ deps/android/maven/{ffmpeg-8.0.1-1.5.13,javacpp-1.5.13}-android-arm64.jar (Maven
 
 Nội dung APK:
     lib/arm64-v8a/*.so      SDL3, OpenAL Soft, Opus, LWJGL (core/opengles/stb), libsclauncher, FFmpeg+JavaCPP (bytedeco)
-                            — không nén, căn 16 KB (zipalign -P 16), nạp thẳng từ APK (extractNativeLibs=false)
+                            — không nén, căn 16 KB (zipalign -P 16); extractNativeLibs=true: LWJGL, JavaCPP và HotSpot tìm tệp .so trong nativeLibraryDir
     classes.dex             vn.lodsc.* (SetupActivity, VnGameActivity, TouchPad, Payload) + lớp Java của SDL3
     assets/payload.zip      (không nén lại) jre/ = JRE 25; game/ = gói Windows đã phát hành bỏ phần chỉ dùng cho Windows
                             (launch*.bat, launch.conf, updater.jar, natives Windows/Linux, FFmpeg Windows) + vi/sc-android.jar
@@ -55,7 +55,7 @@ FIXED = (2026, 10, 17, 0, 0, 0)
 DROP_TOP = re.compile(r'^(launch[^/]*\.(bat|sh|command)|launch\.conf|updater\.jar|HUONG_DAN_VIET_HOA\.txt)$')
 DROP_LIB = re.compile(r'natives-(windows|linux|macos)|-windows-x86_64\.jar$')
 NATIVE_LIBS = ['libSDL3.so', 'libopenal.so', 'libopus.so', 'liblwjgl.so', 'liblwjgl_opengles.so', 'liblwjgl_stb.so',
-               'libsclauncher.so']
+               'libsclauncher.so', 'libc++_shared.so']
 
 
 def sha256(data):
@@ -102,6 +102,9 @@ def payload(zip_path, version, abi):
     if missing:
         sys.exit('LOI: classpath thieu %s' % missing)
     entries.append(('game/android-classpath.txt', ('\n'.join(cp) + '\n').encode()))
+    # legend.core.Config (config.conf): giải nén đĩa kiểu ít bộ nhớ ngay từ đầu (heap Java trên điện thoại chỉ 1–2 GB;
+    # kiểu thường hết bộ nhớ, SC chuyển sang kiểu này rồi bắt chơi lại)
+    entries.append(('game/config.conf', b'low_memory_unpacker=true\n'))
     entries.append(('game/vi/sc-android.jar', open(os.path.join(ROOT, 'out', 'android', 'sc-android.jar'), 'rb').read()))
     es = os.path.join(ROOT, 'out', 'android', 'shaders_es')
     for f in sorted(os.listdir(es)):
@@ -191,8 +194,9 @@ def main():
     run(aapt2, 'compile', '--dir', os.path.join(AND, 'app', 'res'), '-o', os.path.join(work, 'res.zip'))
     gen = os.path.join(work, 'gen')
     os.makedirs(gen)
+    # bản x86_64 (thử trên giả lập) bật debuggable để dùng được "adb shell run-as vn.lodsc" xem tệp/log
     run(aapt2, 'link', '-o', os.path.join(work, 'base.apk'), '-I', ANDROID_JAR, '--manifest', mpath,
-        os.path.join(work, 'res.zip'), '--java', gen, '--auto-add-overlay')
+        os.path.join(work, 'res.zip'), '--java', gen, '--auto-add-overlay', *([] if a.abi == 'arm64-v8a' else ['--debug-mode']))
 
     print('javac + d8...')
     srcs = []

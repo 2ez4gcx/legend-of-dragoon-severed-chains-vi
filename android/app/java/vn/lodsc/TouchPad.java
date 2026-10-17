@@ -11,7 +11,7 @@ import android.view.View;
 import java.util.Arrays;
 
 /**
- * Tay cầm ảo vẽ trên màn hình: D-pad trái, ○ × △ □ phải, L1/L2/R1/R2 trên, SELECT/START dưới; nút ẩn/hiện ở giữa trên.
+ * Tay cầm ảo vẽ trên màn hình: D-pad trái, ○ × △ □ phải, L1/L2/R1/R2 trên, SELECT/START dưới L1/R1; nút ẩn/hiện ở giữa trên.
  * Gửi trạng thái nút vào tay cầm ảo của SDL (libsclauncher.so: SDL_AttachVirtualJoystick kiểu gamepad, nút theo thứ tự
  * SDL_GamepadButton), SC nhận như tay cầm thật. Chạm ngoài các nút: chuyển cho SDL (chuột/cảm ứng của menu SC).
  * Tự ẩn khi có tay cầm thật bấm nút.
@@ -113,8 +113,9 @@ public final class TouchPad extends View {
     this.l1.set(m, m * 2 + bh, m + bw, m * 2 + bh * 2);
     this.r2.set(w - m - bw, m, w - m, m + bh);
     this.r1.set(w - m - bw, m * 2 + bh, w - m, m * 2 + bh * 2);
-    this.select.set(w / 2f - bw - m, h - m - bh * 0.8f, w / 2f - m, h - m);
-    this.start.set(w / 2f + m, h - m - bh * 0.8f, w / 2f + bw + m, h - m);
+    // SELECT/START ở hai cột bên (dưới L1/R1): giữa đáy màn hình là dòng ghi công/bản quyền của màn tựa
+    this.select.set(m, m * 3 + bh * 2, m + bw, m * 3 + bh * 2.8f);
+    this.start.set(w - m - bw, m * 3 + bh * 2, w - m, m * 3 + bh * 2.8f);
     this.toggle.set(w / 2f - bh * 0.6f, 0, w / 2f + bh * 0.6f, bh * 0.7f);
     this.text.setTextSize(bh * 0.45f);
     this.stroke.setStrokeWidth(Math.max(2f, u * 0.006f));

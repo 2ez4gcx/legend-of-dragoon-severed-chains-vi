@@ -25,3 +25,7 @@ work/dialogue_truoc.tsv
 work/*.zip
 work/rel_log*.txt
 work/test_cai_*.txt
+work/*.apk
+work/anr*.txt
+work/bt*.txt
+work/ui.xml

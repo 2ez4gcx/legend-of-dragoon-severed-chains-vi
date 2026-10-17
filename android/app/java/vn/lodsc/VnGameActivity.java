@@ -59,6 +59,15 @@ public class VnGameActivity extends SDLActivity {
         }
       }
       args.add("cp=" + cp);
+      // tuỳ chọn JVM thêm để gỡ lỗi (mỗi dòng một tuỳ chọn "-D..."/"-X..."), không có trong bản phát hành
+      final File extra = new File(game, "android-jvm.txt");
+      if(extra.isFile()) {
+        for(final String line : Files.readAllLines(extra.toPath(), StandardCharsets.UTF_8)) {
+          if(line.trim().startsWith("-")) {
+            args.add(line.trim());
+          }
+        }
+      }
     } catch(final IOException e) {
       throw new RuntimeException(e);
     }

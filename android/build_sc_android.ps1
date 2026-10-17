@@ -4,7 +4,7 @@ rồi sinh bộ đệm shader GLSL ES dịch sẵn out/android/shaders_es (chạ
 của lwjgl-shaderc/spvc có sẵn trong game/libs).
 
 Cách gọi:  powershell -ExecutionPolicy Bypass -File android/build_sc_android.ps1 [-Game game]
-Kiểm trước khi sửa: mã nguồn gốc của SdlWindow/ShaderManager (Severed-Chains đúng commit) biên dịch ra trùng lớp trong jar
+Kiểm trước khi sửa: mã nguồn gốc của SdlWindow/ShaderManager/GlesTexture/IsoReader (Severed-Chains đúng commit) biên dịch ra trùng lớp trong jar
 (-CheckOriginal).
 #>
 param([string]$Game = 'game', [switch]$CheckOriginal)
@@ -25,15 +25,15 @@ if ($CheckOriginal) {
   Remove-Item $orig -Recurse -Force -ErrorAction SilentlyContinue
   New-Item -ItemType Directory -Force $orig | Out-Null
   $sc = Join-Path $root 'Severed-Chains\src\main\java'
-  & "$jdk\javac.exe" -encoding UTF-8 --release 25 -nowarn -cp $cp -d $orig "$sc\legend\core\platform\SdlWindow.java" "$sc\legend\core\renderer\ShaderManager.java"
+  & "$jdk\javac.exe" -encoding UTF-8 --release 25 -nowarn -cp $cp -d $orig "$sc\legend\core\platform\SdlWindow.java" "$sc\legend\core\renderer\ShaderManager.java" "$sc\legend\core\renderer\opengles\GlesTexture.java" "$sc\legend\game\unpacker\IsoReader.java"
   if ($LASTEXITCODE) { throw 'javac goc loi' }
   $x = Join-Path $out 'jarx'
   Remove-Item $x -Recurse -Force -ErrorAction SilentlyContinue
   New-Item -ItemType Directory -Force $x | Out-Null
   Push-Location $x
-  & "$jdk\jar.exe" xf $jar.FullName legend/core/platform/SdlWindow.class legend/core/renderer/ShaderManager.class
+  & "$jdk\jar.exe" xf $jar.FullName legend/core/platform/SdlWindow.class legend/core/renderer/ShaderManager.class legend/core/renderer/opengles/GlesTexture.class legend/game/unpacker/IsoReader.class
   Pop-Location
-  foreach ($c in 'legend\core\platform\SdlWindow', 'legend\core\renderer\ShaderManager') {
+  foreach ($c in 'legend\core\platform\SdlWindow', 'legend\core\renderer\ShaderManager', 'legend\core\renderer\opengles\GlesTexture', 'legend\game\unpacker\IsoReader') {
     $a = & "$jdk\javap.exe" -p -c (Join-Path $orig "$c.class") | Out-String
     $b = & "$jdk\javap.exe" -p -c (Join-Path $x "$c.class") | Out-String
     if ($a -ne $b) { throw "$c goc KHAC lop trong jar" }

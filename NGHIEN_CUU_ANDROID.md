@@ -1,5 +1,10 @@
 # Nghiên cứu: đồ hoạ upscale và bản Android cho Severed Chains (17/10/2026)
 
+> **Cập nhật cùng ngày**: người dùng đồng ý làm theo hướng mục 2. Bản Android đã dựng được (APK arm64, chạy JRE 25 trong
+> app, SDL3 + OpenGL ES 3.2), thử trên giả lập Android 15 và đường ES trên PC — chi tiết, cách dựng, kết quả và phần còn
+> thiếu (thử máy thật) trong **[android/README.md](android/README.md)**. JRE: dùng bản dựng sẵn `download_jre25` của nhóm
+> Amethyst (AngelAuraMC) thay vì tự dựng OpenJDK (máy không có WSL).
+
 ## 1. Bản SC hiện tại đã "upscale" đồ hoạ chưa?
 
 **Chưa có ảnh upscale (AI/HD).** Bản SC commit `affcef0` mà gói Việt hoá ghim theo:

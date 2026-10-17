@@ -6,7 +6,7 @@ Cách gọi:
     -Abi  arm64-v8a (mặc định, bản phát hành) hoặc x86_64 (chỉ để thử trên giả lập Android của máy tính)
 Cần: Android SDK (%LOCALAPPDATA%\Android\Sdk hoặc ANDROID_HOME) có ndk;28.2.13676358 và cmake;3.31.6; mã nguồn chính thức
      giải nén trong deps/android/src (android/README.md): SDL3 3.4.14 và LWJGL 3.4.3 (đúng bản mà build SC affcef0 dùng),
-     libffi 3.8.0, Opus 1.5.2, OpenAL Soft 1.24.3 (1.25 cần C++20 mới hơn NDK r28; LWJGL gọi qua con trỏ hàm nên dùng được).
+     libffi 3.8.0, Opus 1.6.1 (LWJGL 3.4.3 cần opus_encode24), OpenAL Soft 1.25.2 (cùng bản build SC; vá nhỏ cho NDK r28: natives/patch_openal.py).
 Kết quả: deps/android/out/<abi>/*.so (libSDL3, libopenal, libopus, liblwjgl, liblwjgl_opengles, liblwjgl_stb, libsclauncher;
          đã strip, căn trang 16 KB) và deps/android/out/sdl-java (lớp Java SDLActivity... của SDL3).
 #>
@@ -56,14 +56,16 @@ if ($Only -contains 'sdl3') {
 
 if ($Only -contains 'openal') {
   # LWJGL nạp "libopenal.so" (Platform.mapLibraryNameBundled("openal")); OpenAL Soft dùng OpenSL ES trên Android
-  $b = CMakeBuild 'openal' (Join-Path $src 'openal-soft-1.24.3') @('-DALSOFT_UTILS=OFF', '-DALSOFT_EXAMPLES=OFF', '-DALSOFT_TESTS=OFF',
+  python (Join-Path $PSScriptRoot 'natives\patch_openal.py') (Join-Path $src 'openal-soft-1.25.2')
+  if ($LASTEXITCODE) { throw 'patch_openal loi' }
+  $b = CMakeBuild 'openal' (Join-Path $src 'openal-soft-1.25.2') @('-DALSOFT_UTILS=OFF', '-DALSOFT_EXAMPLES=OFF', '-DALSOFT_TESTS=OFF',
     '-DALSOFT_INSTALL=OFF', '-DLIBTYPE=SHARED')
   Copy-Item (Join-Path $b 'libopenal.so') $out -Force
   Write-Output 'DAT openal'
 }
 
 if ($Only -contains 'opus') {
-  $b = CMakeBuild 'opus' (Join-Path $src 'opus-1.5.2') @('-DBUILD_SHARED_LIBS=ON', '-DOPUS_BUILD_PROGRAMS=OFF', '-DOPUS_BUILD_TESTING=OFF',
+  $b = CMakeBuild 'opus' (Join-Path $src 'opus-1.6.1') @('-DBUILD_SHARED_LIBS=ON', '-DOPUS_BUILD_PROGRAMS=OFF', '-DOPUS_BUILD_TESTING=OFF',
     '-DCMAKE_POLICY_VERSION_MINIMUM=3.5')
   Copy-Item (Join-Path $b 'libopus.so') $out -Force
   Write-Output 'DAT opus'
@@ -85,6 +87,10 @@ if ($Only -contains 'launcher') {
   Copy-Item (Join-Path $b 'libsclauncher.so') $out -Force
   Write-Output 'DAT launcher'
 }
+
+# libc++_shared.so của NDK: libjvm.so và các thư viện của JRE 25 Android cần (thư viện của ta dùng libc++ tĩnh)
+$triple = @{ 'arm64-v8a' = 'aarch64-linux-android'; 'x86_64' = 'x86_64-linux-android' }[$Abi]
+Copy-Item (Join-Path $ndk "toolchains\llvm\prebuilt\windows-x86_64\sysroot\usr\lib\$triple\libc++_shared.so") $out -Force
 
 # Bỏ thông tin gỡ lỗi (APK nhỏ hơn); bản chưa strip giữ trong deps/android/build
 $strip = Join-Path $ndk 'toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe'

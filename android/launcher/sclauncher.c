@@ -14,6 +14,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <android/log.h>
+#include <dirent.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <jni.h>
@@ -79,11 +80,65 @@ static void redirect_stdio(void) {
   pthread_detach(t);
 }
 
+/*
+ * Móc "exit" của JVM (System.exit, Thoát trong game): kết thúc tiến trình bằng _exit. exit() thường chạy atexit/huỷ
+ * mutex tĩnh khi các luồng giao diện của Android (hwui) còn chạy -> "FORTIFY: pthread_mutex_lock called on a destroyed
+ * mutex" và hộp thoại "ứng dụng bị dừng".
+ */
+static void jvm_exit_hook(jint code) {
+  LOGI("JVM exit(%d)", code);
+  _exit(code);
+}
+
 static char *fmt(const char *format, const char *a) {
   const size_t n = strlen(format) + (a ? strlen(a) : 0) + 1;
   char *s = malloc(n);
   snprintf(s, n, format, a ? a : "");
   return s;
+}
+
+/*
+ * Không gian tên linker của app không tìm được thư viện phụ thuộc trong jre/lib (vd libnio.so cần libnet.so) ->
+ * nạp trước mọi .so của JRE (dlopen đường dẫn đầy đủ, nhiều lượt cho tới khi không nạp thêm được); về sau HotSpot nạp
+ * lại theo đường dẫn sẽ nhận đúng thư viện đã nạp (khớp soname). Thư viện cần X11 (libawt_xawt) hỏng là bình thường.
+ */
+static void preload_jre(const char *jre) {
+  static const char *dirs[] = {"lib/server", "lib"};
+  char paths[160][512];
+  int loaded[160] = {0};
+  int count = 0;
+  for(unsigned d = 0; d < sizeof dirs / sizeof dirs[0]; d++) {
+    char dir[512];
+    snprintf(dir, sizeof dir, "%s/%s", jre, dirs[d]);
+    DIR *dp = opendir(dir);
+    if(dp == NULL) {
+      continue;
+    }
+    struct dirent *e;
+    while((e = readdir(dp)) != NULL && count < 160) {
+      const size_t len = strlen(e->d_name);
+      if(len > 3 && strcmp(e->d_name + len - 3, ".so") == 0) {
+        snprintf(paths[count++], sizeof paths[0], "%s/%s", dir, e->d_name);
+      }
+    }
+    closedir(dp);
+  }
+  int progress = 1;
+  while(progress) {
+    progress = 0;
+    for(int i = 0; i < count; i++) {
+      if(!loaded[i] && dlopen(paths[i], RTLD_NOW | RTLD_GLOBAL) != NULL) {
+        loaded[i] = 1;
+        progress = 1;
+      }
+    }
+  }
+  for(int i = 0; i < count; i++) {
+    if(!loaded[i]) {
+      dlopen(paths[i], RTLD_NOW | RTLD_GLOBAL);
+      LOGI("khong nap truoc %s: %s", paths[i], dlerror());
+    }
+  }
 }
 
 static void *jvm_thread(void *unused) {
@@ -106,6 +161,7 @@ static void *jvm_thread(void *unused) {
   setenv("JAVA_HOME", jre, 1);
   setenv("TMPDIR", tmp, 1);
 
+  preload_jre(jre);
   char *jvm_path = fmt("%s/lib/server/libjvm.so", jre);
   void *jvm = dlopen(jvm_path, RTLD_NOW | RTLD_GLOBAL);
   if(jvm == NULL) {
@@ -135,6 +191,8 @@ static void *jvm_thread(void *unused) {
   opts[n++].optionString = fmt("--add-opens=java.base/java.util=ALL-UNNAMED", NULL);
   opts[n++].optionString = fmt("--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED", NULL);
   opts[n++].optionString = fmt("--enable-native-access=ALL-UNNAMED", NULL);
+  /* IsoReader (sc-android) dựng FileDescriptor từ fd đĩa người chơi đã chọn */
+  opts[n++].optionString = fmt("--add-opens=java.base/java.io=ALL-UNNAMED", NULL);
   /* thư viện native: tất cả nằm trong nativeLibraryDir của APK */
   opts[n++].optionString = fmt("-Dorg.lwjgl.librarypath=%s", lib);
   opts[n++].optionString = fmt("-Dorg.lwjgl.system.allocator=system", NULL);
@@ -158,6 +216,8 @@ static void *jvm_thread(void *unused) {
     opts[i].extraInfo = NULL;
     LOGI("JVM opt: %s", opts[i].optionString);
   }
+  opts[n].optionString = "exit";
+  opts[n++].extraInfo = (void *)jvm_exit_hook;
 
   JavaVMInitArgs args;
   args.version = JNI_VERSION_1_8;
@@ -199,6 +259,9 @@ int SDL_main(int argc, char *argv[]) {
   g_argc = argc;
   g_argv = argv;
   redirect_stdio();
+
+  /* Cửa sổ SC có thể đổi cỡ -> SDL cho xoay theo cảm biến (cả dọc); game chỉ chơi ngang */
+  SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);

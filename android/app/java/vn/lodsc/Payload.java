@@ -18,7 +18,8 @@ import java.util.zip.ZipInputStream;
 /**
  * Giải nén assets/payload.zip (JRE 25 + Severed Chains + bản Việt, dựng bởi android/make_apk.py) vào bộ nhớ riêng của app:
  * filesDir/jre, filesDir/game. Chỉ chạy khi assets/payload.version khác bản đã giải nén (lần đầu, sau khi cập nhật APK).
- * Giữ nguyên dữ liệu người chơi trong game/: files (tài nguyên SC đã giải nén từ đĩa), saves, config.dcnf (nếu đã có).
+ * Giữ nguyên dữ liệu người chơi trong game/: files (tài nguyên SC đã giải nén từ đĩa), saves, config.dcnf, config.conf
+ * (nếu đã có).
  */
 final class Payload {
   private Payload() { }
@@ -102,7 +103,7 @@ final class Payload {
           mkdirs(out);
           continue;
         }
-        if(e.getName().equals("game/config.dcnf") && out.isFile()) {
+        if((e.getName().equals("game/config.dcnf") || e.getName().equals("game/config.conf")) && out.isFile()) {
           continue; // giữ cài đặt của người chơi
         }
         mkdirs(out.getParentFile());
