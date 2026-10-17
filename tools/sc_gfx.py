@@ -3,7 +3,7 @@
 Cách gọi:
     python tools/sc_gfx.py [--game game]
 Ảnh lấy đúng từ hàm gfx.patch của dự án D:\\LOD (ảnh đã được người dùng duyệt cho bản PS1):
-    DRGN0/5718  sub 0: nền màn tựa + dòng ghi công (sub 3 chữ menu tựa PS1: SC không dùng, nhưng vẫn phủ nếu đổi)
+    DRGN0/5718  sub 0: nền màn tựa + dòng ghi công ở hàng CREDIT_TOP (sub 3 chữ menu tựa PS1: SC không dùng, vẫn phủ)
     DRGN0/6665  nhãn menu trong game (BPE)          DRGN0/6670..6673  thẻ tiêu đề chương 1..4
     DRGN0/5695  tên vùng bản đồ thế giới
 Cách làm: đọc mục gốc từ đĩa 1 bản Mỹ (D:\\LOD\\paths.json), chạy gfx.patch -> mục Việt; tách cả hai như trình giải nén SC
@@ -32,6 +32,7 @@ import mrg  # noqa: E402
 
 ENTRIES = [5718, 6665, 6670, 6671, 6672, 6673, 5695]
 ARCHIVE = 'SECT/DRGN0.BIN'
+CREDIT_TOP = 209   # hàng đỉnh dòng ghi công trên nền màn tựa (DRGN0/5718 sub 0), phương án B đã duyệt
 
 
 def read_entry(disc, index):
@@ -81,13 +82,13 @@ def main():
     errors, written = [], []
 
     # Dòng ghi công của bản PS1 nằm ở hàng 191 của nền màn tựa: menu tựa của SC (ảnh riêng, đặt thấp hơn) đè lên
-    # "About/Quit" -> không vẽ vào nền cho SC (vị trí riêng cho SC phải gửi ảnh xem trước để người dùng duyệt).
-    # SCVI_CREDIT_TOP=<hàng>: vẽ dòng ghi công ở hàng đó của nền (chỉ dùng khi người dùng đã duyệt vị trí cho SC)
-    if os.environ.get('SCVI_CREDIT_TOP'):
-        os.environ['LOD_CREDIT_TOP'] = os.environ['SCVI_CREDIT_TOP']
-        os.environ.pop('LOD_NOCREDIT', None)
-    else:
+    # "About/Quit" -> SC vẽ ở hàng CREDIT_TOP = 209 (dưới "Thoát", trên dòng trademark): người dùng duyệt phương án B
+    # ngày 17/10/2026 (docs/anh/26). SCVI_CREDIT_TOP=<hàng> thử vị trí khác, SCVI_NOCREDIT=1 bỏ dòng ghi công.
+    if os.environ.get('SCVI_NOCREDIT'):
         os.environ['LOD_NOCREDIT'] = '1'
+    else:
+        os.environ['LOD_CREDIT_TOP'] = os.environ.get('SCVI_CREDIT_TOP', str(CREDIT_TOP))
+        os.environ.pop('LOD_NOCREDIT', None)
     for idx in ENTRIES:
         orig = read_entry(disc, idx)
         vn = gfx.patch(ARCHIVE, idx, orig)

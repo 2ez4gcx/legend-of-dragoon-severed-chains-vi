@@ -228,7 +228,8 @@ có trong `build.py` của D:\LOD → bản PS1 có thể cũng nối tên ở 3
    và liệt kê dòng có thể tràn.
 5. **Đồ hoạ** — XONG phần ảnh PS1 (v0.2): lớp sửa `Loader` đọc `vi/files/<đường dẫn>` thay `files/` (`tools/sc_gfx.py` dựng từ
    `gfx.patch` của `D:\LOD`, kiểm từng byte với bản SC giải nén). Menu màn tựa riêng của SC: `tools/sc_title_menu.py` →
-   `gfx/ui/title_menu.vi.png` (đổi theo ngôn ngữ); dòng ghi công trên màn tựa SC: chờ bạn duyệt vị trí (`docs/anh/26`).
+   `gfx/ui/title_menu.vi.png` (đổi theo ngôn ngữ); dòng ghi công trên màn tựa SC ở hàng 209, dưới "Thoát" (phương án B,
+   người dùng duyệt 17/10/2026, `docs/anh/26`).
 6. **Font** (tuỳ câu hỏi 2): giữ font mảnh PS1, và/hoặc vẽ dấu Việt cho font Original đậm, và/hoặc bản Smooth ×4.
 7. **Chơi thử toàn bộ** bằng `-Dscvi.logMissing=true` + `tools/sc_ui.ps1` + `tools/sc_dbg.ps1 -Warp` (tra cảnh bằng `sc_cuts.py`),
    chụp ảnh các cảnh. Kiểm kiểu `text_audit.py` (ngắt bằng đúng hàm Java, dòng tràn/số dòng/hộp chọn) đã nằm trong `TagRoundTrip`

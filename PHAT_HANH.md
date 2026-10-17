@@ -35,7 +35,8 @@ Severed Chains (VN)/
   lang/dialogue.vi.tsv
   gfx/fonts/vietnamese.json, vietnamese.png
   gfx/ui/title_menu.vi.png, title_menu.vi.widths   menu màn tựa tiếng Việt (v0.2; tên riêng, không đè ảnh gốc của SC)
-  vi/files/SECT/DRGN0.BIN/…   lớp phủ đồ hoạ (v0.2): ảnh đã duyệt của bản PS1, Loader đọc thay files/ (51 file)
+  vi/files/SECT/DRGN0.BIN/…   lớp phủ đồ hoạ (v0.2): ảnh đã duyệt của bản PS1 + dòng ghi công màn tựa ở hàng 209
+                              (phương án B đã duyệt), Loader đọc thay files/ (52 file)
   vi/sc-vi.jar, vi/VERSION.txt, vi/LICENSE, vi/NGUON/…
 ```
 
