@@ -74,14 +74,14 @@ Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
 - Công cụ: menu SC chọn mục theo vị trí chuột (con trỏ nằm trên "Quit" + Enter làm game thoát) → `sc_ui.ps1` dời chuột ra
   ngoài cửa sổ trước khi bấm phím; phim intro chỉ chạy khi cửa sổ ở trên cùng → `test_cai.ps1` tự đưa cửa sổ lên.
 
-## Đã kiểm (v0.2 — bản dựng thử từ 375e2cd, chờ duyệt menu màn tựa / vị trí dòng ghi công)
+## Đã kiểm (v0.2 — gói phát hành, dựng từ adb4e65; người dùng duyệt menu màn tựa + dòng ghi công phương án B ngày 17/10)
 
 | Kiểm | Kết quả |
 |---|---|
 | Tự kiểm khi dựng (`TagRoundTrip`) | 13.276 câu, 530 câu B0xx có bản nối dòng, 10 ca riêng, 0 lỗi |
-| Dựng 2 lần | cùng SHA-256 `7a4bd19f…` |
-| Nội dung gói | 51 file `vi/files`, `gfx/ui/title_menu.vi.png/.widths`, `gfx/ui/title_menu.png` giữ nguyên bản SC, 8 lớp sửa |
-| Cài sạch `test_cai.ps1 -Choi` | lên màn tựa 107 s (gồm giải nén), classpath đúng, không lỗi trong log; menu tựa tiếng Việt, Tùy chọn, thoại mở đầu, menu "Chương 1: Chiến Sự Serdio", Vàng/Bụi Sao, vật phẩm (`docs/anh/31`) |
+| Dựng 2 lần | cùng SHA-256 `834384aa1f4f7bad4cea9dc85b47d8005b22a9932af73788394a1f1574a2c9d9` |
+| Nội dung gói | 52 file `vi/files` (gồm nền màn tựa có dòng ghi công, trùng từng byte ảnh đã duyệt), `gfx/ui/title_menu.vi.png/.widths`, `gfx/ui/title_menu.png` giữ nguyên bản SC, 8 lớp sửa |
+| Cài sạch `test_cai.ps1 -Choi` | lên màn tựa 114 s (gồm giải nén), classpath đúng, không lỗi trong log; menu tựa tiếng Việt + dòng ghi công, Tùy chọn, thoại mở đầu, menu "Chương 1: Chiến Sự Serdio", Vàng/Bụi Sao, vật phẩm (`docs/anh/31`) |
 | Trong game (thư mục `game`) | menu tựa Việt → English → Việt, vào/ra Giới thiệu (`docs/anh/28`); thẻ lưu cũ "Chương 4: Trăng & Số Mệnh" (`29`); trận + màn kết quả (`30`) |
 
 ## Đổi sang commit SC mới (khi cần)
