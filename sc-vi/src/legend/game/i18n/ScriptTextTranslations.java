@@ -42,7 +42,9 @@ import static legend.core.GameEngine.CONFIG;
  * PIXEL width of the retail box (N x 9 px) using the selected font, so the box keeps its retail size, then widens the
  * textbox's character grid so the engine does not break those lines again. Modes: {@code N} first line is the speaker
  * name (kept), the rest of each page is wrapped; {@code J} each page is wrapped; {@code L} explicit lines are kept and
- * only lines wider than the box are broken at spaces; {@code C} lines are never broken (selection boxes: the selection
+ * only lines wider than the box are broken at spaces, unless the entry has a joined variant (columns 4-5: text, mode N/J)
+ * and an explicit line other than the last of its page is wider than the box: then the variant is wrapped instead, so no
+ * word is left alone before an explicit line break; {@code C} lines are never broken (selection boxes: the selection
  * bar and the selected index follow the lines; one-line boxes), the box is widened instead when a line does not fit.
  * Numbers inserted at run time ({@code {A8xx}}) get room for 3 digits (1 per code in runs like {@code {A800}{A801}})
  * when wrapping, and 10 cells in the grid. An input action ({@code {C0LL}} + LL packed ASCII bytes of its registry id,
@@ -76,7 +78,12 @@ public final class ScriptTextTranslations {
   private static final int PAGE = 0xa3ff;
   private static final int END = 0xa0ff;
 
-  private record Entry(String text, char mode) { }
+  /**
+   * @param alt L mode only, may be null: the same translation with its lines joined (mode {@code altMode}), used when an
+   *            explicit line (not the last of its page) is wider than the box, so wrapping it would leave a word or two
+   *            alone on a line before the explicit line break
+   */
+  private record Entry(String text, char mode, String alt, char altMode) { }
 
   private record Wrapped(int[] codes, int widestLine) { }
 
@@ -205,10 +212,51 @@ public final class ScriptTextTranslations {
   private static Translated wrapFor(final LodString original, final String key, final Entry entry, final int boxChars, final Font font) {
     final IntUnaryOperator advance = c -> advance(font, c);
     final Wrapped wrapped = encoded.computeIfAbsent(key + '\u0000' + boxChars + '\u0000' + System.identityHashCode(font), k -> {
-      final int[] codes = wrap(fromTags(entry.text), entry.mode, boxChars * CELL, advance);
+      final int[] codes = wrapText(entry.text, entry.mode, entry.alt, entry.altMode, boxChars * CELL, advance);
       return new Wrapped(codes, widestLine(codes, advance));
     });
     return new Translated(original, key, entry, boxChars, font, wrapped);
+  }
+
+  /**
+   * Wraps a TSV entry for a box {@code maxWidth} wide: L mode with a joined variant ({@code alt}) uses the variant when
+   * an explicit line other than the last of its page is wider than the box
+   */
+  public static int[] wrapText(final String text, final char mode, final String alt, final char altMode, final int maxWidth, final IntUnaryOperator advance) {
+    final int[] codes = fromTags(text);
+    if(mode == 'L' && alt != null && cutBeforeBreak(codes, maxWidth, advance)) {
+      return wrap(fromTags(alt), altMode, maxWidth, advance);
+    }
+
+    return wrap(codes, mode, maxWidth, advance);
+  }
+
+  /** An explicit line that is not the last of its page is wider than {@code maxWidth} (vtext.cut_before_break of D:\LOD) */
+  public static boolean cutBeforeBreak(final int[] codes, final int maxWidth, final IntUnaryOperator advance) {
+    final IntList line = new IntArrayList();
+    for(final int c : codes) {
+      if(c == LINE || c == PAGE || c == END) {
+        if(c == LINE) {
+          int width = 0;
+          for(final int w : widths(line.toIntArray(), advance)) {
+            width += w;
+          }
+
+          if(width > maxWidth) {
+            return true;
+          }
+        }
+
+        line.clear();
+        if(c == END) {
+          break;
+        }
+      } else {
+        line.add(c);
+      }
+    }
+
+    return false;
   }
 
   /** Pixel advance of one code with the given font, as drawn by Text.renderTextboxText (glyph width + 1) */
@@ -261,7 +309,9 @@ public final class ScriptTextTranslations {
         }
 
         final char mode = cols.length > 2 && !cols[2].isEmpty() ? cols[2].charAt(0) : 'L';
-        map.put(cols[0], new Entry(Normalizer.normalize(cols[1], Normalizer.Form.NFC), mode));
+        final boolean hasAlt = mode == 'L' && cols.length > 4 && !cols[3].isEmpty() && !cols[4].isEmpty();
+        map.put(cols[0], new Entry(Normalizer.normalize(cols[1], Normalizer.Form.NFC), mode,
+          hasAlt ? Normalizer.normalize(cols[3], Normalizer.Form.NFC) : null, hasAlt ? cols[4].charAt(0) : 'L'));
       }
 
       LOGGER.info("Loaded %d script text translations from %s", map.size(), file);

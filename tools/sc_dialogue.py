@@ -15,11 +15,13 @@ addTextbox, đúng lúc chuỗi được đặt vào khung):
     N  dòng đầu là tên người nói (giữ nguyên), các dòng còn lại trong mỗi trang đã được nối lại -> Java ngắt lấp đầy
     J  mọi dòng trong trang đã được nối lại -> Java ngắt lấp đầy
     L  giữ nguyên các dòng (bảng, câu có mã B0xx như vtext.reflow của D:\\LOD);
-       Java chỉ ngắt (ở dấu cách) dòng nào dài hơn w để game không cắt giữa chữ.
+       Java chỉ ngắt (ở dấu cách) dòng nào dài hơn w để game không cắt giữa chữ. Cột 4, 5 (tuỳ chọn): bản đã nối dòng
+       + kiểu N/J của nó — Java dùng bản này khi có dòng (không phải dòng cuối trang) dài hơn khung, để không còn chữ
+       đứng lẻ trước chỗ xuống dòng cứng (build.py v1.11 của D:\\LOD: cut_before_break -> reflow force=True).
     C  không bao giờ ngắt (hộp lựa chọn — vạch chọn và lựa chọn trả về đi theo số dòng; khung 1 dòng: choices.json
        "choice" + "dong1"); dòng dài hơn khung thì Java nới khung cho vừa (như bản PS1: khung vừa dòng dài nhất).
-Quy tắc nhận tên người nói và nối dòng lấy từ build.py / vtext.reflow của D:\\LOD, thêm: dòng sau tên mở bằng số chèn
-{A8xx} hoặc ngoặc kép + chữ hoa cũng là câu (opens_sentence).
+Quy tắc nhận tên người nói và nối dòng lấy từ build.py / vtext.reflow của D:\\LOD (v1.11: speaker_line — clause_like,
+"X, the Y", tên Việt đã biết; dòng sau tên mở bằng số chèn {A8xx} hoặc ngoặc kép + chữ hoa cũng là câu).
 
 Bí danh: SC tự sửa 12 câu tiếng Anh trong script (Severed-Chains/patches/scripts/**/*.diff, dòng "-data str[...]" /
 "+data str[...]"; biến môi trường SC_ROOT để đổi chỗ, như sc_lang/sc_font), khoá tra của các câu đó đổi theo. sc_patch_pairs() đọc các cặp
@@ -68,12 +70,60 @@ def opens_sentence(line):
     return s[:1].isupper() or (s[:1] in '"(' and s[1:2].isupper()) or VAR_START.match(line) is not None
 
 
-def is_name(en, vi, spk):
+# Như build.py v1.11 của D:\LOD (speaker_line, 17/10/2026): dòng đầu (Anh) có từ chỉ gặp trong mệnh đề (đại từ, trợ động
+# từ, từ hỏi) hoặc kết thúc bằng từ nối / danh xưng đứng trước tên là câu bị ngắt dòng, KHÔNG phải tên người nói
+# ("My dream is to fill all of{n}Tiberoa…", "I heard that the rowdy Princess{n}Emille…", mảnh câu lặp lại lọt vào
+# speakers() như "I might as well take").
+CLAUSE = set("""i i'm i'll i've i'd me my mine myself you you're you've you'll your yours yourself we we're we've our ours
+us he he's his him she she's her hers it it's its they they're their them there there's here this that these those
+is isn't are aren't was wasn't were weren't am be been being has hasn't have haven't had do does did don't doesn't
+didn't can can't cannot could couldn't will won't would wouldn't should shouldn't shall may might must
+how what what's when where why who whom whose which if because not let let's please""".split())
+TAIL = set("""of the a an for to in on at by from with into onto than as and or but nor so like about called named since
+until while though although after before during through over under between all every some any such very more most
+also just even too""".split())     # viết thường: "Ghost Knight A" là tên
+TITLE = {'Miss', 'Mr', 'Mrs', 'Ms', 'Dr'}     # "The perky dance by Miss{n}Meru is very entertaining."
+APPOS = re.compile(r"[A-Z][\w' -]*, the [\w' -]+")   # "Gorgaga, the berserk warrior" (S03659–61): dấu phẩy trong tên
+
+
+def clause_like(s):
+    ws = re.findall(r"[A-Za-z][A-Za-z']*", s)
+    return bool(ws) and (any(w.lower() in CLAUSE for w in ws) or ws[-1] in TAIL or ws[-1] in TITLE)
+
+
+def vi_speakers(en, vi, spk):
+    """dòng đầu tiếng Việt của các câu có dòng tên người nói chắc chắn: nhận ra tên cả khi chuỗi Anh có tiền tố rác do
+    lệnh script trỏ lệch (", q Greham{n}You have Servi's strength…" S04096) — như build.vi_speakers của D:\\LOD v1.11."""
+    out = set()
+    for uid, txt in en.items():
+        vn = vi.get(uid)
+        if not vn or '{n}' not in txt.split('{p}')[0] or '{n}' not in vn.split('{p}')[0]:
+            continue
+        e0 = CODE.sub('', txt.split('{n}')[0]).strip()
+        v0 = CODE.sub('', unicodedata.normalize('NFC', vn).split('{n}')[0]).strip()
+        if v0 and (UNKNOWN.fullmatch(e0) or (e0 in spk and not clause_like(e0))):
+            out.add(v0)
+    return out
+
+
+def is_name(en, vi, spk, vnames):
+    """dòng đầu là tên người nói (build.speaker_line của D:\\LOD v1.11): chưa lộ diện ("???"); dòng đầu Anh hay làm tên
+    (speakers); dòng đầu Việt là tên đã biết (vi_speakers); hoặc dòng Anh ngắn không dấu câu (trừ "X, the Y") + dòng Việt
+    không dấu câu + dòng sau mở đầu như câu (opens_sentence). Trừ khi dòng Anh trông như mệnh đề (clause_like)."""
     raw = en.split('{p}')[0].split('{n}')
     ens = [CODE.sub('', x).strip() for x in raw]
+    if len(ens) < 2:
+        return False
+    if UNKNOWN.fullmatch(ens[0]):
+        return True
+    if clause_like(ens[0]):
+        return False
     v0 = CODE.sub('', vi.split('{n}')[0]).strip()
-    looks = len(ens[0]) <= 32 and not PUNCT.search(ens[0]) and v0 and not PUNCT.search(v0)
-    return len(ens) > 1 and bool(ens[0] in spk or UNKNOWN.fullmatch(ens[0]) or (looks and opens_sentence(raw[1])))
+    if ens[0] in spk or (v0 in vnames and '{n}' in vi.split('{p}')[0]):
+        return True
+    looks = (len(ens[0]) <= 32 and (not PUNCT.search(ens[0]) or APPOS.fullmatch(ens[0]))
+             and v0 and not PUNCT.search(v0))
+    return bool(looks and opens_sentence(raw[1]))
 
 
 def reflow(text, keep_first):
@@ -205,6 +255,7 @@ def main():
     choices = json.load(open(os.path.join(LOD, 'tr', 'choices.json'), encoding='utf-8'))
     keep = set(choices.get('choice', {})) | set(choices.get('dong1', []))
     spk = speakers(en)
+    vnames = vi_speakers(en, vi, spk)
     pairs = [] if only else sc_patch_pairs()
     if not only and len(pairs) != 12:
         print('LOI: patches/scripts cua SC (%s) co %d cau doi, can 12: kiem lai SC_VI_FIX' % (SC, len(pairs)))
@@ -215,7 +266,7 @@ def main():
     aliases = []
     with open(os.path.join(OUT, 'lang', 'dialogue.vi.tsv'), 'w', encoding='utf-8', newline='\n') as f:
         f.write('# Bang thoai tieng Viet cho Severed Chains (tools/sc_dialogue.py). '
-                'Cot: chu Anh dang tag | chu Viet | kieu N/J/L/C\n')
+                'Cot: chu Anh dang tag | chu Viet | kieu N/J/L/C [| ban noi dong | kieu N/J] (kieu L)\n')
         for uid, e in en.items():
             if not uid.startswith('S') or (uid not in vi and uid not in SC_VI_FIX) or (only and uid not in only):
                 continue
@@ -224,11 +275,20 @@ def main():
             if '\t' in e or '\t' in v or '\n' in v:
                 stat['bo'] += 1
                 continue
+            alt = ''
             if uid in keep:
                 mode = 'C'
             elif re.search(r'\{B0[0-9A-Fa-f]{2}\}', v):
                 mode = 'L'
-            elif is_name(e, v, spk):
+                # câu có mã {B0xx}: giữ chỗ xuống dòng của người dịch; nếu lúc chạy có dòng dài hơn khung (không phải dòng
+                # cuối trang) thì ngắt lấp đầy sẽ để chữ lẻ trước {n} cứng ("…phủ xanh / cả / Tiberoa", S12610) -> Java
+                # dùng bản nối dòng này (build.py v1.11 của D:\LOD: reflow force=True)
+                named = is_name(e, v, spk, vnames)
+                joined = reflow(v, named)
+                if joined != v:
+                    alt = '\t%s\t%s' % (joined, 'N' if named else 'J')
+                    stat['L_noi'] += 1
+            elif is_name(e, v, spk, vnames):
                 mode = 'N'
                 v = reflow(v, True)
             else:
@@ -243,14 +303,15 @@ def main():
                     aliases.append((new + e[len(old):], va, mode))
             if uid in vi:
                 stat[mode] += 1
-                f.write('%s\t%s\t%s\n' % (e, v, mode))
+                f.write('%s\t%s\t%s%s\n' % (e, v, mode, alt))
         for row in aliases:
             f.write('%s\t%s\t%s\n' % row)
     if len(aliases) != len(pairs):
         print('LOI: %d/%d cau SC doi khop duoc cau cua D:\\LOD' % (len(aliases), len(pairs)))
         sys.exit(1)
-    print('dialogue.vi.tsv: %d cau (N co ten %d, J noi dong %d, L giu dong %d, C khong ngat %d, bo %d) + %d bi danh SC' % (
-        sum(stat[k] for k in 'NJLC'), stat['N'], stat['J'], stat['L'], stat['C'], stat['bo'], len(aliases)))
+    print('dialogue.vi.tsv: %d cau (N co ten %d, J noi dong %d, L giu dong %d [co ban noi %d], C khong ngat %d, bo %d)'
+          ' + %d bi danh SC' % (sum(stat[k] for k in 'NJLC'), stat['N'], stat['J'], stat['L'], stat['L_noi'], stat['C'],
+                                stat['bo'], len(aliases)))
 
 
 if __name__ == '__main__':

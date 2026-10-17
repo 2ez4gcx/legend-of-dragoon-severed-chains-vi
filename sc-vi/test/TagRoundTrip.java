@@ -123,6 +123,8 @@ public final class TagRoundTrip {
     ScriptTextTranslations.loadTable(Path.of(args[0]));
     int n = 0;
     int widened = 0;
+    int altEntries = 0;
+    int altUsed = 0;
 
     for(final String line : lines) {
       if(line.startsWith("#")) {
@@ -147,15 +149,25 @@ public final class TagRoundTrip {
         }
       }
 
-      final char mode = cols[2].charAt(0);
+      final char tsvMode = cols[2].charAt(0);
+      final String alt = tsvMode == 'L' && cols.length > 4 && !cols[3].isEmpty() ? cols[3] : null;
+      final char altMode = alt != null ? cols[4].charAt(0) : 'L';
       final int[] vi = ScriptTextTranslations.fromTags(cols[1]);
+
+      if(alt != null) {
+        altEntries++;
+        if(!strip(ScriptTextTranslations.fromTags(alt)).equals(strip(vi)) || pages(ScriptTextTranslations.fromTags(alt)) != pages(vi) || altMode != 'N' && altMode != 'J') {
+          fail("BAN NOI DONG khac noi dung/kieu: " + cols[1] + " | " + alt + " | " + altMode);
+        }
+      }
 
       // 2. wrap
       for(int k = 0; k < 12; k++) {
         final int w = 16 + (k % 6) * 4;
         final IntUnaryOperator adv = k < 6 ? count : pixels;
         final int max = k < 6 ? w : w * 9;
-        final int[] out = ScriptTextTranslations.wrap(vi, mode, max, adv);
+        final int[] out = ScriptTextTranslations.wrapText(cols[1], tsvMode, alt, altMode, max, adv);
+        final char mode = alt != null && ScriptTextTranslations.cutBeforeBreak(vi, max, adv) ? altMode : tsvMode;
 
         if(mode == 'C' && !java.util.Arrays.equals(out, vi)) {
           fail("KIEU C bi ngat (w=" + w + "): " + cols[1]);
@@ -199,6 +211,10 @@ public final class TagRoundTrip {
       }
 
       for(final int box : new int[] {enWidth, enWidth + 4}) {
+        final char mode = alt != null && ScriptTextTranslations.cutBeforeBreak(vi, box * 9, pixels) ? altMode : tsvMode;
+        if(mode != tsvMode) {
+          altUsed++;
+        }
         final ScriptTextTranslations.Layout layout = ScriptTextTranslations.layout(tr, box, font);
         final int[] out = codes(layout.str());
         final List<int[]> ls = lines(out);
@@ -304,7 +320,34 @@ public final class TagRoundTrip {
       }
     }
 
-    System.out.println("Kiem " + n + " cau (tag 2 cot + ngat 6 be rong x 2 kieu do + layout nhu trong game 2 khung; " + widened + " lan noi khung hop chon) + 7 ca rieng, loi " + bad);
+    // Quy tắc tên người nói v1.11 của D:\LOD (clause_like / "X, the Y"): câu bị ngắt dòng không còn bị coi là tên,
+    // "Gorgaga, the berserk warrior" là tên
+    final LodString healing = ScriptTextTranslations.lookup(new LodString(ScriptTextTranslations.fromTags("{A500}The healing light is{n}somewhat mysterious.")), font);
+    if(!(healing instanceof final ScriptTextTranslations.Translated t1) || t1.mode() != 'J') {
+      fail("TEN NHAN NHAM: \"The healing light is\" phai la kieu J");
+    }
+    final LodString gorgaga = ScriptTextTranslations.lookup(new LodString(ScriptTextTranslations.fromTags("{A500}Gorgaga, the berserk warrior{n}Hee hee hee.{n}Does it hurt?")), font);
+    if(!(gorgaga instanceof final ScriptTextTranslations.Translated t2) || t2.mode() != 'N') {
+      fail("TEN: \"Gorgaga, the berserk warrior\" phai la kieu N");
+    }
+
+    // Câu {B0xx} (S12610): khung đủ rộng -> giữ dòng của người dịch; khung hẹp (dòng tràn trước {n} cứng) -> bản nối dòng,
+    // không còn chữ lẻ "cả" một dòng
+    final LodString tiberoa = new LodString(ScriptTextTranslations.fromTags("{B000}My dream is to fill all of{n}Tiberoa with green just like{n}{A705}Donau{A700}. No matter what other{n}people say, I will do it!"));
+    final LodString tiberoaVi = ScriptTextTranslations.lookup(tiberoa, font);
+    final List<int[]> wide = lines(codes(ScriptTextTranslations.layout(tiberoaVi, 29, font).str()));
+    final List<int[]> narrow = lines(codes(ScriptTextTranslations.layout(tiberoaVi, 15, font).str()));
+    if(wide.size() != 4 || !tags(wide.get(0)).endsWith("phủ xanh cả")) {
+      fail("B0xx khung rong phai giu 4 dong: " + wide.size());
+    }
+    for(int i = 0; i < narrow.size() - 1; i++) {
+      if(words(narrow.get(i)) < 2) {
+        fail("B0xx khung hep con chu le: " + tags(narrow.get(i)));
+      }
+    }
+
+    System.out.println("Kiem " + n + " cau (tag 2 cot + ngat 6 be rong x 2 kieu do + layout nhu trong game 2 khung; " + widened + " lan noi khung hop chon; "
+      + altEntries + " cau B0xx co ban noi dong, dung " + altUsed + " lan) + 10 ca rieng, loi " + bad);
     System.exit(bad == 0 ? 0 : 1);
   }
 }
