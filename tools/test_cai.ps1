@@ -13,6 +13,7 @@ Exit 0 = lên tới màn tựa, không có "Patch failed"/Exception trong debug.
 param(
   [Parameter(Mandatory = $true)][string]$Zip,
   [switch]$TaiJdk,
+  [switch]$Choi,
   [string[]]$Dia = @(1, 2, 3, 4 | ForEach-Object { "D:\LOD\Legend of Dragoon The (USA) (Disc $_)\Legend of Dragoon, The (USA) (Disc $_).bin" })
 )
 $ErrorActionPreference = 'Stop'
@@ -65,4 +66,26 @@ $bad = $log -match 'Patch failed|PatchFailedException|Exception in thread'
 $alive = [bool](Get-Process -Id $j[0].ProcessId -ErrorAction SilentlyContinue)
 Write-Output ("{0}s; classpath vi/sc-vi.jar dau: {1}; loi trong log: {2}; game con chay: {3}; anh: test_cai\man_tua.png" -f [int]((Get-Date) - $t0).TotalSeconds, $cpOk, $bad, $alive)
 if (-not $cpOk -or $bad -or -not $alive) { exit 1 }
+
+if ($Choi) {
+  # -Choi: kịch bản chơi cố định, ảnh ở test_cai\choi_*.png (xem bằng mắt):
+  #   01 màn tựa, 02 Tùy chọn→Giao diện (Ngôn ngữ/Phông chữ phải tiếng Việt), 03 lời thoại đầu,
+  #   04..07 vài hộp thoại sau, 08 menu trong game (E), 09 danh sách vật phẩm.
+  function K([string]$keys, [string]$shot = '') {
+    $a = @('-ExecutionPolicy', 'Bypass', '-File', $ui, '-Game', $g, '-Keys', $keys)
+    if ($shot) { $a += @('-Shot', (Join-Path $base $shot)) }
+    & powershell @a | Out-Null
+  }
+  K 'Return,wait:300,Return,wait:9000' 'choi_01_tua.png'                       # bỏ phim intro, chờ menu hiện hẳn
+  K 'Down,Return,wait:1800,Return,wait:1500,Down*3,Return,wait:1500' 'choi_02_tuychon.png'
+  K 'Escape,wait:1200,Escape,wait:1200,Escape,wait:9000'
+  K 'Return,wait:2000,Down*6,Return,wait:5000,Return,wait:300,Return,wait:5000,Return,wait:300,Return,wait:20000' 'choi_03_thoai_dau.png'
+  $n = 4
+  for ($i = 1; $i -le 70; $i++) {
+    if ($i -in 12, 20, 40, 60) { K 'wait:900,Return,wait:1000' ('choi_{0:D2}.png' -f $n); $n++ } else { K 'wait:900,Return,wait:1000' }
+  }
+  K 'wait:3000,E,wait:2500' 'choi_08_menu.png'                                # chờ hết hộp thoại/biểu tượng "!" rồi mới mở menu
+  K 'Down*2,Return,wait:1800' 'choi_09_vat_pham.png'
+  Write-Output 'choi: xem anh test_cai\choi_*.png'
+}
 exit 0

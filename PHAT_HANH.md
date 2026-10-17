@@ -48,14 +48,22 @@ python tools/make_release.py --version 0.1
   đóng `vi/sc-vi.jar` bằng zipfile thời gian cố định, ghi zip theo thứ tự cố định, cập nhật `release/SHA256SUMS.txt`.
 - **Xác định**: dựng 2 lần liên tiếp ra cùng SHA-256.
 
-## Đã kiểm (v0.1)
+## Đã kiểm (v0.1 — gói phát hành cuối cùng, dựng từ commit có `tools/test_cai.ps1`)
 
 | Kiểm | Kết quả |
 |---|---|
-| Dựng 2 lần | cùng SHA-256 `fb3e16668a4aef9aa5ecface64bda845ead7902898e93be8c9c9bf3cb8c9f13f` (132,4 MB) |
+| Tự kiểm khi dựng (`TagRoundTrip`) | 13.276 câu (13.264 + 12 bí danh SC), 0 lỗi |
+| Dựng 2 lần | cùng SHA-256 (giá trị trong `release/SHA256SUMS.txt` và trang Releases) |
 | `config.dcnf` tự tạo | 2 bản ghi trùng từng byte với bản ghi SC tự lưu khi chọn tiếng Việt + font Việt |
 | `launch-vi.bat` khi thiếu jar đúng commit | in thông báo tiếng Việt đúng dấu, thoát mã 1 |
-| Cài sạch từ zip (giải nén, hard link 4 đĩa gốc, chạy `launch-vi.bat`) | xem mục dưới |
+| Cài sạch từ zip: `powershell -File tools/test_cai.ps1 -Zip <zip> -Choi` | giải nén vào thư mục trống, hard link 4 đĩa gốc, chạy đúng `launch-vi.bat` của gói: giải nén tài nguyên ~35 s, vá script không lỗi, classpath `vi/sc-vi.jar` đứng đầu; Tùy chọn hiện sẵn "Ngôn ngữ = Vietnamese", "Phông chữ = Tiếng Việt (pixel)" ngay lần chạy đầu; lời thoại mở đầu, menu trong game ("Dùng đồ", "Trạng thái"…), danh sách vật phẩm tiếng Việt (ảnh `docs/anh/22–24`) |
+
+Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
+- SC gốc nạp file ngôn ngữ trước khi đọc `config.dcnf` → menu màn tựa/Tùy chọn vẫn tiếng Anh tới khi bắt đầu chiến dịch.
+  Sửa trong `sc-vi/src/legend/game/saves/ConfigStorage.java` (nạp lại ngôn ngữ sau khi đọc cấu hình chung).
+- "Dùng vật phẩm" tràn ô menu trong game → "Dùng đồ".
+- Công cụ: menu SC chọn mục theo vị trí chuột (con trỏ nằm trên "Quit" + Enter làm game thoát) → `sc_ui.ps1` dời chuột ra
+  ngoài cửa sổ trước khi bấm phím; phim intro chỉ chạy khi cửa sổ ở trên cùng → `test_cai.ps1` tự đưa cửa sổ lên.
 
 ## Đổi sang commit SC mới (khi cần)
 
@@ -66,9 +74,10 @@ python tools/make_release.py --version 0.1
 3. Cập nhật `SC_COMMIT`, `SC_ZIP_SHA` trong `tools/make_release.py` và tên jar trong `tools/build_sc_vi.ps1`.
 4. Dựng, chạy tự kiểm, chơi thử lại các cảnh mẫu, tăng phiên bản Việt hoá.
 
-## Việc còn lại trước khi phát hành công khai
+## Phát hành
 
-- Chạy thử bản cài sạch đến lời thoại đầu (đang chờ phiên kiểm thử kia rảnh màn hình).
-- Gom các sửa lỗi của phiên kiểm thử (trận đánh, hộp chọn, cửa hàng…) rồi dựng lại.
-- Hỏi người dùng: tạo repo GitHub (private, tự bật public) cho mã nguồn + đưa zip lên mục Releases (zip 132 MB vượt giới hạn
-  100 MB/file của git thường → dùng Releases), tên repo, số phiên bản, có kèm bản Linux/Mac không (gói hiện chỉ Windows).
+- Repo mã nguồn **private**: https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi (tạo 16/10/2026 theo lời người
+  dùng; người dùng tự bật public khi muốn). Gói zip (132 MB, quá 100 MB/file của git) đưa lên mục **Releases**, tag
+  `v<ver>-sc-<commit7>`, đánh dấu pre-release khi còn thử nghiệm, kèm `SHA256SUMS.txt`. Sau khi tải lên: tải lại từ GitHub và so
+  SHA-256 với bản đã kiểm.
+- Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
