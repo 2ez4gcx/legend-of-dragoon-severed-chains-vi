@@ -1,7 +1,7 @@
 # Phát hành bản tiếng Việt cho Severed Chains
 
 Người dùng chốt (16/10/2026): **tự phát hành** bản sửa kèm (jar + lang + font + launcher), mã nguồn công khai theo AGPL-3.0,
-**ghim theo commit SC**. Chưa tạo repo/chưa đưa lên mạng — chờ người dùng bảo.
+**ghim theo commit SC**. Repo private + Releases: xem mục Phát hành cuối tệp (v0.1 phát hành 17/10/2026).
 
 ## Vì sao gói phải kèm nguyên bản build SC
 
@@ -18,8 +18,9 @@ Người dùng chốt (16/10/2026): **tự phát hành** bản sửa kèm (jar +
   Giữ nguyên: `saves`, `mods`, `isos`, `files`, `jdk25`, `config.dcnf`, `launch.conf`, `updater.jar`.
 - Vì vậy jar Việt hoá đặt ở `vi/sc-vi.jar` (không bị xoá), `launch-vi.bat` không có trong bản SC nên không bị đè;
   sau khi lỡ cập nhật, `launch-vi.bat` không thấy `lod-game-affcef0….jar` → báo tiếng Việt, không chạy lớp sửa trên mã SC khác.
-- Không tắt được kiểm tra cập nhật mà không sửa thêm mã SC (chỉ bỏ qua khi `Version.TIMESTAMP == null`) → hướng dẫn dặn
-  "đừng bấm Update".
+- v0.1: hướng dẫn dặn "đừng bấm Update". Từ v0.2: ghi đè `legend.core.Updater` (`sc-vi/src/legend/core/Updater.java`,
+  `check()` trả "không có bản mới" ngay) → nút "Update Available" không bao giờ hiện. Đã kiểm mã nguồn `Updater` gốc biên
+  dịch ra trùng lớp trong jar affcef0 trước khi sửa.
 
 ## Nội dung gói `release/LoD-SC-VN-v<ver>-sc-affcef0-windows.zip`
 
@@ -30,17 +31,24 @@ Severed Chains (VN)/
                            classpath "vi/sc-vi.jar;<classpath gốc>"
   config.dcnf              2 mục: lod_core:language = vi, lod_core:retail_font = vietnamese.json (mục khác SC tự đặt)
   HUONG_DAN_VIET_HOA.txt   hướng dẫn tiếng Việt (UTF-8 BOM)
-  lang/lod.vi.lang, lang/core.vi.lang, lang/dialogue.vi.tsv
+  lang/lod.vi.lang, lang/scvi.vi.lang, lang/core.vi.lang, lang/unpacker.vi.lang, lang/turnorder.vi.lang,
+  lang/dialogue.vi.tsv
   gfx/fonts/vietnamese.json, vietnamese.png
+  gfx/ui/title_menu.vi.png, title_menu.vi.widths   menu màn tựa tiếng Việt (v0.2; tên riêng, không đè ảnh gốc của SC)
+  vi/files/SECT/DRGN0.BIN/…   lớp phủ đồ hoạ (v0.2): ảnh đã duyệt của bản PS1, Loader đọc thay files/ (51 file)
   vi/sc-vi.jar, vi/VERSION.txt, vi/LICENSE, vi/NGUON/…
 ```
+
+Lớp sửa trong `vi/sc-vi.jar` (v0.2, 8 lớp, diff `sc-vi/patches/sc-core-affcef0.diff`): `LodString`, `Text`, `SMap`,
+`ConfigStorage`, `Loader` (lớp phủ `vi/files`), `Updater` (tắt cập nhật) + lớp mới `ScriptTextTranslations`,
+`HardcodedTranslations` (bảng viết cứng, câu viết thẳng, địa danh trên thẻ lưu cũ, ảnh menu màn tựa theo ngôn ngữ).
 
 Không chứa: ảnh đĩa, BIOS, JDK, `files/`.
 
 ## Dựng gói
 
 ```bash
-python tools/make_release.py --version 0.1
+python tools/make_release.py --version 0.2
 ```
 
 - Kiểm SHA-256 zip SC, kiểm clone `Severed-Chains/` đúng commit, xuất **HEAD** của repo này bằng `git archive` (không gom thay đổi
@@ -69,8 +77,10 @@ Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
 
 1. `git -C Severed-Chains fetch && git checkout <commit>`; tải `Severed_Chains_Windows.zip` của devbuild **cùng commit** (tên jar
    trong zip phải là `lod-game-<commit>.jar`).
-2. Áp lại `sc-vi/patches/sc-core-affcef0.diff` lên `Text.java`, `SMap.java`, `LodString.java` mới (chép sang `sc-vi/src`), sửa
-   xung đột nếu có, tạo diff mới `sc-core-<commit7>.diff`.
+2. Áp lại `sc-vi/patches/sc-core-affcef0.diff` lên `Text.java`, `SMap.java`, `LodString.java`, `ConfigStorage.java`,
+   `Loader.java`, `Updater.java` mới (chép sang `sc-vi/src`), sửa xung đột nếu có, tạo diff mới `sc-core-<commit7>.diff`.
+   Kiểm lại tên trường dùng qua reflection trong `HardcodedTranslations` (`Ttle.menuTextTex/menuTextWidth`,
+   `BattleHud.targeting_800fb36c`, `Texture.deleted`) và các bảng viết cứng (`tools/sc_hardcoded.py`).
 3. Cập nhật `SC_COMMIT`, `SC_ZIP_SHA` trong `tools/make_release.py` và tên jar trong `tools/build_sc_vi.ps1`.
 4. Dựng, chạy tự kiểm, chơi thử lại các cảnh mẫu, tăng phiên bản Việt hoá.
 
