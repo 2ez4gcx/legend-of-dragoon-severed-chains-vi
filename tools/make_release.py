@@ -9,7 +9,8 @@ Gói ra: release/LoD-SC-VN-v<ver>-sc-<commit7>-windows.zip (+ release/SHA256SUMS
       bản devbuild cuốn chiếu nên phải kèm bản build để ghim; mã nguồn SC có sẵn trong lod-game-<commit>-sources.jar.
     - vi/sc-vi.jar (lớp sửa lõi), vi/NGUON/ (mã nguồn sc-vi + diff + tự kiểm + công cụ sinh dữ liệu, theo AGPL-3.0),
       vi/VERSION.txt (commit D:\\LOD-SC, D:\\LOD, SC), vi/LICENSE (AGPL-3.0 của SC).
-    - lang/lod.vi.lang, lang/core.vi.lang, lang/dialogue.vi.tsv, gfx/fonts/vietnamese.json/.png
+    - lang/lod.vi.lang, lang/scvi.vi.lang, lang/core.vi.lang, lang/unpacker.vi.lang, lang/turnorder.vi.lang,
+      lang/dialogue.vi.tsv, gfx/fonts/vietnamese.json/.png
     - config.dcnf tối giản: ngôn ngữ = vi, phông chữ = vietnamese.json (mọi mục khác để SC tự đặt mặc định)
     - launch-vi.bat (sinh từ launch.bat của bản build: tự tải JDK 25 như bản gốc, kiểm đúng jar commit, thêm vi/sc-vi.jar
       vào ĐẦU classpath), HUONG_DAN_VIET_HOA.txt.
@@ -227,11 +228,13 @@ def main():
     files.append(('vi/sc-vi.jar', jar_bytes(os.path.join(out, 'classes'))))
     for name, data in zip_dir_deterministic(os.path.join(src, 'sc-vi'), 'vi/NGUON/sc-vi/'):
         files.append((name, data))
-    for f in ('sc_lang.py', 'sc_dialogue.py', 'sc_font.py', 'sc_core_diff.py', 'build_sc_vi.ps1'):
+    for f in ('sc_lang.py', 'sc_hardcoded.py', 'sc_lang_check.py', 'sc_dialogue.py', 'sc_font.py', 'sc_core_diff.py', 'build_sc_vi.ps1'):
         files.append(('vi/NGUON/tools/' + f, open(os.path.join(src, 'tools', f), 'rb').read()))
     files.append(('lang/lod.vi.lang', open(os.path.join(out, 'lang', 'lod.vi.lang'), 'rb').read()))
     files.append(('lang/dialogue.vi.tsv', open(os.path.join(out, 'lang', 'dialogue.vi.tsv'), 'rb').read()))
-    files.append(('lang/core.vi.lang', open(os.path.join(src, 'tr_sc', 'core.vi.lang'), 'rb').read()))
+    files.append(('lang/scvi.vi.lang', open(os.path.join(out, 'lang', 'scvi.vi.lang'), 'rb').read()))
+    for f in ('core.vi.lang', 'unpacker.vi.lang', 'turnorder.vi.lang'):
+        files.append(('lang/' + f, open(os.path.join(src, 'tr_sc', f), 'rb').read()))
     files.append(('gfx/fonts/vietnamese.json', open(os.path.join(out, 'fonts', 'vietnamese.json'), 'rb').read()))
     files.append(('gfx/fonts/vietnamese.png', open(os.path.join(out, 'fonts', 'vietnamese.png'), 'rb').read()))
     files.append(('config.dcnf', config_dcnf()))

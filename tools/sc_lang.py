@@ -28,6 +28,8 @@ LOD = os.environ.get('LOD_ROOT', os.path.join(ROOT, '..', 'LOD'))
 OUT = os.path.join(ROOT, 'out')
 
 TAG = re.compile(r'\{[0-9A-F]{4}\}')
+# Cố ý giữ tiếng Anh như bản PS1 (người dùng chọn): tên trang bị, tên Liên Kích, tên nhân vật, tên game
+KEEP_EN = re.compile(r'^lod\.(equipment\.[a-z0-9_]+\.name|additions\.|character_templates\.|name$|campaign_type\.)')
 
 
 def norm(s):
@@ -89,9 +91,19 @@ def main():
         else:
             missing.append((k, v))
 
+    # Dịch tay (tr_sc/gop/lod.vi.lang) đè lên bản tự ghép; khoá phải có trong en.lang
+    manual = load_lang(os.path.join(ROOT, 'tr_sc', 'gop', 'lod.vi.lang'))
+    bad = [k for k in manual if k not in en]
+    if bad:
+        print('LOI: khoa dich tay khong co trong en.lang: %s' % bad, file=sys.stderr)
+        sys.exit(1)
+    out.update(manual)
+    n_tay = len(manual)
+    missing = [(k, v) for k, v in missing if k not in manual and not KEEP_EN.match(k)]
+
     os.makedirs(os.path.join(OUT, 'lang'), exist_ok=True)
     with open(os.path.join(OUT, 'lang', 'lod.vi.lang'), 'w', encoding='utf-8', newline='\n') as f:
-        f.write('# Ban dich tieng Viet cho Severed Chains (tao boi tools/sc_lang.py tu du an D:\\LOD)\n')
+        f.write('# Ban dich tieng Viet cho Severed Chains (tao boi tools/sc_lang.py tu du an D:\\LOD + tr_sc/gop/lod.vi.lang)\n')
         for k in en:
             if k in out:
                 f.write('%s=%s\n' % (k, out[k]))
@@ -103,7 +115,8 @@ def main():
         cats = sorted({c for c, _ in stat})
         for c in cats:
             print('%-34s khop %4d / %4d (rong %d)' % (c, stat[c, 'khop'], stat[c, 'tong'], stat[c, 'rong']))
-        print('tong: %d khoa co ban dich, %d chua ghep' % (len(out), len(missing)))
+        print('tong: %d khoa co ban dich (%d dich tay), %d con thieu (khong tinh khoa co y giu tieng Anh)' % (
+            len(out), n_tay, len(missing)))
 
 
 if __name__ == '__main__':

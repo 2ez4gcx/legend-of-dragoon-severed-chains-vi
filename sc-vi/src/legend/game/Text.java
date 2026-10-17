@@ -1832,7 +1832,9 @@ public final class Text {
   }
 
   @Method(0x80029300L)
-  public static void renderText(final Font font, final String text, final float originX, final float originY, final FontOptions options, @Nullable final QueueCallback queueCallback) {
+  public static void renderText(final Font font, final String englishText, final float originX, final float originY, final FontOptions options, @Nullable final QueueCallback queueCallback) {
+    // [sc-vi] Hard-coded English tables/literals -> current language (alignment below measures the translated text)
+    final String text = legend.game.i18n.HardcodedTranslations.onRender(englishText);
     font.init();
 
     final float height = 12.0f * options.getSize();

@@ -1,0 +1,146 @@
+# Ban dich tay cho cac khoa lod.* khong tu ghep duoc tu ban PS1 (tools/sc_lang.py gop vao out/lang/lod.vi.lang,
+# khoa o day DE len ban tu ghep). Giu tieng Anh (khong ghi o day): ten trang bi, ten Lien Kich, ten nhan vat — nhu ban PS1.
+# Giu nguyen %s %d %% va \n.
+
+# Tuy chon cua lod
+lod.config.max_level.label=Cấp tối đa
+lod.config.max_dragoon_level.label=Cấp Dragoon tối đa
+lod.config.item_stack_size.label=Số lượng mỗi ô vật phẩm
+lod.config.extended_dragoon_actions.label=Mở rộng lệnh Dragoon
+lod.config.extended_dragoon_actions.help=Khi bật, người chơi có thể phòng thủ, dùng vật phẩm và chạy trốn khi ở dạng Dragoon
+lod.config.ui_background_colour.label=Màu nền giao diện
+lod.config.ui_selection_colour.label=Màu vạch chọn giao diện
+
+# Vat pham (mo ta theo ban PS1 S_ITEM M0280–M0322)
+lod.items.depetrifier.description=Giải trạng\nthái hóa đá.
+lod.items.depetrifier.battle_description=Giải hóa đá.
+lod.items.mind_purifier.description=Giải khiếp sợ,\nmê hoặc, rối trí,\nmất tinh thần.
+lod.items.mind_purifier.battle_description=Giải Mê hoặc, Rối trí, Sợ, Nản.
+lod.items.mind_purifier.use=%s đã khỏi
+lod.items.body_purifier.description=Giải độc,\nchoáng và\nkhóa vũ khí.
+lod.items.body_purifier.battle_description=Giải Độc, Choáng, Khóa vũ khí.
+lod.items.body_purifier.use=%s đã khỏi
+lod.items.spirit_potion.description=Hồi 100\nđiểm SP.
+lod.items.enemy_healing_potion.name=Thuốc Hồi Phục Của Địch
+lod.items.psyche_bomb.description=Hệ vô, đánh\ntất cả\n(nhiều lần).
+lod.items.psyche_bomb_x.description=Hệ vô, đánh\ntất cả (nhiều lần)\n(lặp).
+
+# Do quy
+lod.goods.good_spirits.description=Rượu ngon làm\nvui lòng người\nở Bale.
+lod.goods.pass_for_valley.description=Giấy thông hành vào\nThung Lũng Hỗn Loạn.
+lod.goods.moon_mirror.description=Bảo vật gia truyền\ncủa Mille Seseau.\nFlanvel đã giấu đi.
+
+# Mo ta phep (kieu ban PS1 M0107–M0138: "Hoa 50% STR 1 dich")
+lod.spells.red_eyed_dragon.description=Hỏa 75%% STR Tất cả
+lod.spells.divine_dg_cannon.description=150%% STR 1 địch
+lod.spells.blossom_storm.description=Giảm 50%% sát thương 3 lượt
+lod.spells.divine_dg_ball.description=100%% STR Tất cả
+lod.spells.moon_light.description=Hồi sinh 50%%, hồi 100%%, giải - 1 người
+lod.spells.gates_of_heaven.description=Hồi sinh & hồi 50%%, giải - cả đội
+lod.spells.white_silver_dragon.description=Quang 75%% STR & hồi 100%% cả đội
+lod.spells.astral_drain.description=Ám 50%% STR 1 địch & HP
+lod.spells.demons_gate.description=Đẩy địch yếu xuống địa ngục
+lod.spells.dark_dragon.description=Ám 100%% STR 1 địch
+lod.spells.atomic_mind.description=Lôi 25%% STR 1 địch
+lod.spells.thunder_kid.description=Lôi 50%% STR 1 địch & Choáng
+lod.spells.rainbow_breath.description=Hồi 50%% & giải - cả đội
+lod.spells.rose_storm.description=Giảm 50%% sát thương 3 lượt
+lod.spells.grand_stream.description=Thổ 37,5%% STR Tất cả
+lod.spells.miranda_moon_light.description=Hồi sinh 50%%, hồi 100%%, giải - 1 người
+lod.spells.miranda_gates_of_heaven.description=Hồi sinh & hồi 50%%, giải - cả đội
+
+# Lenh trong tran
+lod.battle_actions.attack.name=Tấn công
+lod.battle_actions.guard.name=Phòng thủ
+lod.battle_actions.items.name=Vật phẩm
+lod.battle_actions.spells.name=Phép
+lod.battle_actions.escape.name=Chạy trốn
+lod.battle_actions.transform.name=Hóa Dragoon
+lod.battle_actions.transform.name.0=Hủy Dragoon ngay
+lod.battle_actions.transform.name.1=Hủy Dragoon sau lượt
+lod.battle_actions.special.name=Đặc biệt
+lod.battle_actions.d_attack.name=Tấn công
+lod.battle_actions.additions.name=Đổi Liên Kích
+
+# Trang thai (theo ban PS1 BTTL M1027–M1032, S_ITEM)
+lod.status.dispirit.name=Mất tinh thần
+lod.status.weapon_block.name=Khóa vũ khí
+lod.status.stun.name=Choáng
+lod.status.confuse.name=Rối trí
+lod.status.bewitch.name=Mê hoặc
+lod.status.petrify.name=Hóa đá
+
+# Phim dieu khien
+lod.input_actions.general_open_inventory.name=Chung: mở menu
+lod.input_actions.general_move_up.name=Chung: đi lên
+lod.input_actions.general_move_down.name=Chung: đi xuống
+lod.input_actions.general_move_left.name=Chung: sang trái
+lod.input_actions.general_move_right.name=Chung: sang phải
+lod.input_actions.general_run.name=Chung: chạy
+lod.input_actions.wmap_rotate_right.name=Bản đồ thế giới: xoay máy quay sang phải
+lod.input_actions.wmap_rotate_left.name=Bản đồ thế giới: xoay máy quay sang trái
+lod.input_actions.wmap_zoom_out.name=Bản đồ thế giới: thu nhỏ
+lod.input_actions.wmap_zoom_in.name=Bản đồ thế giới: phóng to
+lod.input_actions.wmap_queen_fury_coolon.name=Bản đồ thế giới: mở bản đồ Queen Fury/Coolon
+lod.input_actions.wmap_services.name=Bản đồ thế giới: xem dịch vụ
+lod.input_actions.wmap_destinations.name=Bản đồ thế giới: xem điểm đến
+lod.input_actions.smap_interact.name=Bản đồ: tương tác
+lod.input_actions.smap_toggle_indicators.name=Bản đồ: bật/tắt dấu chỉ dẫn
+lod.input_actions.smap_save.name=Bản đồ: tạo bản lưu mới
+lod.input_actions.bttl_attack.name=Trận đánh: tấn công
+lod.input_actions.bttl_counter.name=Trận đánh: phản đòn
+lod.input_actions.bttl_rotate_camera.name=Trận đánh: đổi góc quay
+lod.input_actions.bttl_additions.name=Trận đánh: đổi Liên Kích
+lod.input_actions.bttl_transform.name=Trận đánh: hóa Dragoon
+lod.input_actions.bttl_special.name=Trận đánh: đặc biệt
+lod.input_actions.bttl_escape.name=Trận đánh: chạy trốn
+lod.input_actions.bttl_guard.name=Trận đánh: phòng thủ
+lod.input_actions.bttl_items.name=Trận đánh: vật phẩm
+lod.input_actions.bttl_spells.name=Trận đánh: phép
+lod.input_actions.bttl_options.name=Trận đánh: tùy chọn
+
+# Mogul Dabas (tro choi Pocket Station)
+lod.ui.dabas.title=Mogul Dabas
+lod.ui.dabas.acquired_items=Vật phẩm thu được
+lod.ui.dabas.special_items=Vật phẩm đặc biệt
+lod.ui.dabas.acquired_gold=Vàng thu được
+lod.ui.dabas.menu_take=Nhận
+lod.ui.dabas.menu_next_dig=Đào tiếp
+lod.ui.dabas.too_many_items=Dabas có nhiều đồ\nhơn bạn mang nổi
+lod.ui.dabas.take_items_confirm=Nhận đồ từ Dabas?
+lod.ui.dabas.discard_items_confirm=Vứt đồ của Dabas?
+lod.ui.dabas.next_dig_confirm=Bắt đầu chuyến đào mới?
+lod.ui.dabas.menu_take_description=Gửi vàng và vật phẩm\nDabas tìm được\nvào game chính.
+lod.ui.dabas.menu_discard_description=Xóa vật phẩm khỏi\nPocket Station.
+lod.ui.dabas.menu_next_dig_description=Lên đường cho\nchuyến phiêu lưu mới.
+lod.ui.dabas.take_response_1=Dabas cảm ơn bạn.
+lod.ui.dabas.take_response_2=Dabas cảm ơn bạn vì\ncông sức của chính anh ta.
+lod.ui.dabas.take_response_3=Dabas tự vỗ vai\nkhen mình.
+lod.ui.dabas.take_response_4=Dabas chơi một bài vui\nbằng đàn phong cầm.
+lod.ui.dabas.take_response_5=Dabas thắc mắc sao anh ta\nlại là người trả cho bạn.
+lod.ui.dabas.take_response_6=Bạn cảm ơn Dabas dù đồ\ncòn dính đầy đất.
+lod.ui.dabas.discard_response_1=Dabas thất vọng.
+lod.ui.dabas.discard_response_2=Dabas không giận,\nchỉ thất vọng thôi.
+lod.ui.dabas.discard_response_3=Dabas không giận. Anh ta chửi thề.
+lod.ui.dabas.discard_response_4=Bạn đã vứt sạch công sức\ncủa Dabas.
+lod.ui.dabas.discard_response_5=Dabas nghĩ lại chuyện\nchọn nghề.
+lod.ui.dabas.discard_response_6=Dabas đã dùng cây cuốc\ntốt nhất để đào chỗ đó.
+lod.ui.dabas.discard_response_7=Dabas ném đồ\nxuống biển.
+lod.ui.dabas.discard_response_8=Dabas nghĩ lại chuyện\nchọn bạn mà chơi.
+lod.ui.dabas.discard_response_9=Một giọt lệ lăn dài\ntrên má Dabas.
+lod.ui.dabas.discard_response_10=Dabas chơi một bài buồn\nbằng đàn phong cầm.
+lod.ui.dabas.next_dig_response_1=Dabas chào tạm biệt bạn.
+lod.ui.dabas.next_dig_response_2=Dabas ôm Dart một cái\nthật ngượng ngùng.
+lod.ui.dabas.next_dig_response_3=Dabas ôm Dart một cái\nthật ấm áp.
+lod.ui.dabas.next_dig_response_4=Dabas ôm Dart một cái\nthật ấm áp.\nNgười anh ta dính đầy đất.
+lod.ui.dabas.next_dig_response_5=Dabas ôm Dart một cái\nthật ấm áp.\nShana ghen tị.
+lod.ui.dabas.next_dig_response_6=Dabas ôm Rose.\nCô đấm anh ta.
+lod.ui.dabas.next_dig_response_7=Dabas ôm Rose.\nĐã 1000 năm rồi.\nCô cần cái ôm đó.
+lod.ui.dabas.next_dig_response_8=Dabas cầm cuốc lên.
+lod.ui.dabas.next_dig_response_9=Dabas đội mũ bảo hộ.
+lod.ui.dabas.next_dig_response_10=Dabas nói lời từ biệt.
+lod.ui.dabas.next_dig_response_11=Dabas lôi đàn phong cầm ra\nvà tự tiễn mình.
+lod.ui.dabas.next_dig_response_12=Dabas đi về phía\nhoàng hôn.
+lod.ui.dabas.next_dig_response_13=Dabas chạy về phía\nhoàng hôn.
+lod.ui.dabas.next_dig_response_14=Dabas bỏ đi, lẩm bẩm gì đó\nvề một cây Dragoni.
+lod.ui.dabas.crashed=Mogul Dabas gặp lỗi :( xem log để biết chi tiết

@@ -1,0 +1,23 @@
+# Dich tay cho chuoi viet cung trong ma SC (tools/sc_hardcoded.py gop vao out/lang/scvi.vi.lang, de len ban PS1).
+# Ten rieng cua trum/nhan vat (Rose, Lloyd, Feyrbrand, Melbu Frahma...) giu tieng Anh nhu ban PS1 -> khong ghi o day.
+
+# Ten quai bang PS1 khong co
+scvi.monster.mantis=Bọ Ngựa
+scvi.monster.magician_faust=Pháp sư Faust
+
+# Ten chuong (menu, man luu): ban PS1 viet tat "Ch.1" vi thieu cho; SC du cho -> viet day du
+scvi.chapter.ch_1_serdian_war=Chương 1: Chiến Sự Serdio
+scvi.chapter.ch_2_platinum_shadow=Chương 2: Bóng Bạch Kim
+scvi.chapter.ch_3_fate_soul=Chương 3: Số Mệnh & Linh Hồn
+scvi.chapter.ch_4_moon_fate=Chương 4: Trăng & Số Mệnh
+
+# Dia danh / dich vu
+scvi.submap.fueno=Fueno
+scvi.submap.intro_forest=Khu Rừng
+scvi.service.save_point=Điểm Lưu
+
+# Cau viet thang trong ma (dich luc ve)
+scvi.ui.load_game=Tải trò chơi
+scvi.ui.don_t_enter=Không vào
+# Dong mo ta Lien Kich trong tran (AdditionListMenu): {0} so don, {1} sat thuong, {2} SP
+scvi.ui.hits_s_damage_s_sp_s=Số đòn: {0}, sát thương: {1}, SP: {2}

@@ -1,16 +1,209 @@
-# Ban dich tieng Viet cho giao dien Severed Chains (lod_core) — BAN THU: chi mot phan.
-# Tu ngu theo ban PS1 (D:\LOD\tr\vi menu_01.json, tr/glossary.md). Khoa thieu -> SC tu dung tieng Anh.
+# Ban dich tieng Viet cho giao dien Severed Chains (lod_core).
+# Tu ngu theo ban PS1 (D:\LOD\tr\vi menu_01.json, tr/glossary.md). Giu nguyen %s %d %.2f %% va \n (cho xuong dong).
+# Khoa thieu -> SC tu dung tieng Anh. Kiem be rong: python tools/sc_lang_check.py
 lod_core.name=Legend of Dragoon (lõi)
 
+# Nhom tuy chon
+lod_core.config.category.configure=Thiết lập
+lod_core.config.category.gameplay.label=Lối chơi
+lod_core.config.category.graphics.label=Đồ họa
+lod_core.config.category.postprocessing.label=Hậu kỳ hình ảnh
+lod_core.config.category.user_interface.label=Giao diện
+lod_core.config.category.audio.label=Âm thanh
+lod_core.config.category.controls.label=Điều khiển
+lod_core.config.category.other.label=Khác
+
+# Ten phong chu
+lod_core.font.original.name=Nguyên bản
+lod_core.font.smooth.name=Mượt
+lod_core.font.invalid.name=<KHÔNG HỢP LỆ>
+
+# Mau tuy chon
+lod_core.config_presets.severed_chains=Severed Chains
+lod_core.config_presets.modified=%s (đã sửa)
+lod_core.config_presets.custom=Tùy chỉnh riêng
+lod_core.config_presets.vanilla=Nguyên bản
+lod_core.config_presets.speedrunner=Chơi tốc độ
+
+# Giao dien chung
+lod_core.ui.hotkey=%s (%s)
 lod_core.ui.message_box.yes=Có
 lod_core.ui.message_box.no=Không
 lod_core.ui.input_box.accept=Đồng ý
 lod_core.ui.input_box.cancel=Hủy
 
+# Man tua
+lod_core.ui.title.uncategorized_saves=Có bản lưu chưa thuộc lượt chơi nào. Hãy đặt tên cho lượt chơi.
+lod_core.ui.title.campaign_name=Tên lượt chơi:
+lod_core.ui.title.campaign_name_in_use=Tên lượt chơi\nđã được dùng
+lod_core.ui.title.ps1_memcard=Tìm thấy thẻ nhớ PS1. Hãy đặt tên cho lượt chơi.
+lod_core.ui.title.ps1_memcard_delete_confirm=Xóa tệp thẻ nhớ?
+lod_core.ui.title.ps1_memcard_convert_failed=Không chuyển được thẻ nhớ
+lod_core.ui.title.launching_updater=Đang mở trình cập nhật...
+lod_core.ui.title.hotkey=(%s)
+lod_core.ui.fps=%.2f/%d FPS
+
+# Cap nhat
+lod_core.ui.updater.updater_not_found=Không thấy updater.jar. Hãy tải lại Severed Chains.
+lod_core.ui.updater.java_not_found=Không thấy Java. Không mở được trình cập nhật.
+lod_core.ui.updater.launching_updater=Đang mở trình cập nhật...
+lod_core.ui.updater.updater_launched=Đã mở trình cập nhật. Trò chơi sẽ đóng.
+lod_core.ui.updater.updater_launch_failed=Không mở được trình cập nhật.
+
+# Luot choi moi
+lod_core.ui.new_campaign.campaign_name=Tên lượt chơi
+lod_core.ui.new_campaign.campaign_name_in_use=Tên lượt chơi\nđã được dùng
+lod_core.ui.new_campaign.campaign=Trò chơi
+lod_core.ui.new_campaign.options=Sửa tùy chọn
+lod_core.ui.new_campaign.options_presets=Mẫu tùy chọn
+lod_core.ui.new_campaign.edit_presets=Sửa mẫu
+lod_core.ui.new_campaign.load_preset_confirm=Dùng mẫu này?\n%s
+lod_core.ui.new_campaign.mods=Mod
+lod_core.ui.new_campaign.start_game=Bắt đầu
+lod_core.ui.new_campaign.unlimited_saves=Severed Chains không giới hạn số bản lưu, nên mỗi lần\nlưu bạn hãy dùng một ô mới.
+
+# Chon luot choi
+lod_core.ui.campaign_selection.title=Các lượt chơi
+lod_core.ui.campaign_selection.mods=Mod
+lod_core.ui.campaign_selection.delete=Xóa
+lod_core.ui.campaign_selection.back=Quay lại
+lod_core.ui.campaign_selection.change_mods_confirm=Đổi mod có thể gây lỗi,\nvẫn tiếp tục?
+lod_core.ui.campaign_selection.delete_campaign_confirm=Bạn chắc chắn muốn\nxóa lượt chơi này?
+lod_core.ui.campaign_selection.missing_mods_confirm=Thiếu mod, vẫn tiếp tục?
+lod_core.ui.campaign_selection.installed_mods_changed=Mod đã cài có thay đổi,\nbạn có muốn bật chúng?
+lod_core.ui.campaign_selection.failed_to_delete_campaign=Không xóa được lượt chơi
+
+# Tai / luu
+lod_core.ui.load_game.loading=Đang tải...
+lod_core.ui.load_game.load_confirm=Tải bản lưu này?
+lod_core.ui.load_game.load_fail=Không tải được bản lưu này
+lod_core.ui.load_game.cannot_delete_last_save=Không thể xóa bản lưu cuối cùng
+lod_core.ui.load_game.delete_confirm=Bạn chắc chắn muốn\nxóa bản lưu này?
+lod_core.ui.load_game.delete_fail=Không xóa được bản lưu
+lod_core.ui.load_game.delete=Xóa
+lod_core.ui.load_game.back=Quay lại
+lod_core.ui.load_game.invalid_save=Bản lưu hỏng
+
+lod_core.ui.save_game.save_game=Lưu trò chơi
+lod_core.ui.save_game.loading=Đang tải...
+lod_core.ui.save_game.new_save=<bản lưu mới>
+lod_core.ui.save_game.save_name=Tên bản lưu:
+lod_core.ui.save_game.save_name_in_use=Tên bản lưu\nđã được dùng
+lod_core.ui.save_game.saved=Đã lưu
+lod_core.ui.save_game.save_failed=Không lưu được
+lod_core.ui.save_game.overwrite_confirm=Ghi đè bản lưu?
+lod_core.ui.save_game.cannot_delete_last_save=Không thể xóa bản lưu cuối cùng
+lod_core.ui.save_game.delete_confirm=Bạn chắc chắn muốn\nxóa bản lưu này?
+lod_core.ui.save_game.delete_fail=Không xóa được bản lưu
+lod_core.ui.save_game.delete=Xóa
+lod_core.ui.save_game.back=Quay lại
+
+# Mod
+lod_core.ui.mods.required=Mod bắt buộc
+lod_core.ui.mods.tooltip=?
+lod_core.ui.mods.error=Gặp lỗi: %s
+lod_core.ui.mods.wrong_version=Sai phiên bản: %s
+lod_core.ui.mods.help=Trợ giúp
+lod_core.ui.mods.back=Quay lại
+
+# Mau tuy chon
+lod_core.ui.options_presets.list=Chọn mẫu
+lod_core.ui.options_presets.edit=Sửa mẫu đã chọn
+lod_core.ui.options_presets.delete=Xóa mẫu đã chọn
+lod_core.ui.options_presets.delete_confirm=Bạn chắc chắn muốn\nxóa mẫu này?
+lod_core.ui.options_presets.delete_failed=Không xóa được mẫu tùy chọn
+lod_core.ui.options_presets.add=Tạo mẫu mới
+lod_core.ui.options_presets.add_name=Tên mẫu:
+lod_core.ui.options_presets.add_exists=Tên này\nđã được dùng
+lod_core.ui.options_presets.edit_global=Sửa
+lod_core.ui_options_presets.global_options=Tùy chọn chung
+lod_core.ui.options_presets.failed_to_save_preset=Không lưu được mẫu tùy chọn
+lod_core.ui.options_presets.failed_to_load_preset=Không tải được mẫu tùy chọn
+lod_core.ui.options_presets.failed_to_load_presets=Không tải được các mẫu tùy chọn
+lod_core.ui.options_presets.save_changes=Bạn có muốn\nlưu thay đổi?
+lod_core.ui.options_presets.invalid_preset=Mẫu này\nkhông hợp lệ
+lod_core.ui.options_presets.back=Quay lại
+lod_core.ui.options_presets.skipped_settings=Đã bỏ qua %d mục trong mẫu không hợp lệ hoặc không dùng được; xem log để biết chi tiết
+
+# Tuy chon
+lod_core.ui.options.advanced=Nâng cao
+lod_core.ui.options.help=Trợ giúp
+lod_core.ui.options.back=Quay lại
+lod_core.ui.options.error=Lỗi
+lod_core.ui.options.locked=Đã khóa
+lod_core.ui.options.locked_by=Bị khóa bởi %s
+lod_core.ui.options.tooltip=?
+lod_core.ui.options.colour_random=Ngẫu nhiên
+lod_core.ui.options.colour_preview=Xem trước màu giao diện
+lod_core.ui.options.colour_preview_first=Lựa chọn thứ nhất
+lod_core.ui.options.colour_preview_second=Lựa chọn thứ hai
+lod_core.ui.options_category.back=Quay lại
+lod_core.ui.options_category.some_options_not_available=Lưu ý: nhiều tùy chọn chỉ hiện\ntrong mẫu tùy chọn hoặc khi đang chơi
+
+# Gioi thieu
+lod_core.ui.about.click_on_any_link_to_open=Bấm vào liên kết để mở
+lod_core.ui.about.view_link=Xem liên kết
+lod_core.ui.about.open_link=Mở liên kết
+lod_core.ui.about.back=Quay lại
+lod_core.ui.about.tooltip=?
+lod_core.ui.about.discord=Cộng đồng Discord Legend of Dragoon & Severed Chains
+lod_core.ui.about.youtube=Kênh YouTube Legend of Dragoon & Severed Chains
+lod_core.ui.about.fandom=Trang người hâm mộ Legend of Dragoon toàn cầu
+lod_core.ui.about.wiki=Wiki Legend of Dragoon
+lod_core.ui.about.project=Trang dự án Severed Chains
+lod_core.ui.about.github=Trang GitHub Severed Chains
+lod_core.ui.about.issue=Báo lỗi
+lod_core.ui.about.lod_credits=Đội ngũ The Legend of Dragoon
+lod_core.ui.about.sc_credits=Đội ngũ Severed Chains
+lod_core.ui.about.sc_credits_creator=Người sáng lập
+lod_core.ui.about.sc_credits_lead_developer=Lập trình chính
+lod_core.ui.about.sc_credits_developer=Lập trình viên
+lod_core.ui.about.sc_credits_contributor=Người đóng góp
+lod_core.ui.about.sc_credits_community=Quản lý cộng đồng
+lod_core.ui.about.sc_credits_tester=Người thử nghiệm tiêu biểu
+lod_core.ui.about.sc_credits_helpers=Người hỗ trợ cộng đồng
+lod_core.ui.about.sc_credits_canadians=Người Canada
+lod_core.ui.about.sc_credits_honourary_canadians=Người Canada danh dự
+lod_core.ui.about.sc_credits_thanks=Lời cảm ơn đặc biệt
+lod_core.ui.about.sc_credits_thirdparty=Tài nguyên bên thứ ba
+
+# Tui day
+lod_core.ui.too_many_items.too_many_items_confirm=Túi đồ đã đầy. Bạn có\nmuốn đổi đồ?
+lod_core.ui.too_many_items.discard_items_confirm=Vứt bỏ những vật phẩm này?
+lod_core.ui.too_many_items.cannot_be_discarded=Không thể vứt\nvật phẩm này
+lod_core.ui.too_many_items.overflow=Dư ra
+lod_core.ui.too_many_items.items=Vật phẩm
+lod_core.ui.too_many_items.equipment=Trang bị
+lod_core.ui.too_many_items.sort=Sắp xếp
+
+# Cua hang
+lod_core.ui.shop.category_buy=Mua
+lod_core.ui.shop.category_sell=Bán
+lod_core.ui.shop.category_carried=Đang giữ
+lod_core.ui.shop.category_leave=Rời đi
+lod_core.ui.shop.items=Vật phẩm
+lod_core.ui.shop.equipment=Trang bị
+lod_core.ui.shop.goods=Đồ quý
+lod_core.ui.shop.gold=Vàng
+lod_core.ui.shop.not_enough_gold=Không đủ tiền
+lod_core.ui.shop.carrying=Đang giữ: %d
+lod_core.ui.shop.buy=Mua %s?
+lod_core.ui.shop.equip=Trang bị %s?
+lod_core.ui.shop.sell=Bán %s?
+lod_core.ui.shop.inventory_full=Túi đồ đã đầy
+lod_core.ui.shop.cannot_equip=Không thể trang bị
+lod_core.ui.shop.failed_to_equip=Không trang bị được\n%s
+lod_core.ui.shop.already_have_good=Bạn đã có\n%s
+lod_core.ui.shop.shop_empty=Tiệm này không có\ngì để mua
+lod_core.ui.shop.what_do_you_want_to_sell=Bạn muốn\nbán gì?
+lod_core.ui.shop.you_have_nothing_to_sell=Bạn không có\ngì để bán
+
+# Menu trong game
 lod_core.ui.ingame_menu.use_item=Dùng đồ
 lod_core.ui.ingame_menu.equipment=Trang bị
 lod_core.ui.ingame_menu.inventory=Vật phẩm
 lod_core.ui.ingame_menu.goods=Đồ quý
+lod_core.ui.ingame_menu.mogul_dabas=Đào bới
 lod_core.ui.ingame_menu.quit=Thoát
 lod_core.ui.ingame_menu.quit_confirm=Về màn hình chính?
 lod_core.ui.ingame_menu.status=Trạng thái
@@ -31,16 +224,227 @@ lod_core.ui.item_list.sort=Sắp xếp
 lod_core.ui.item_list.discard=Vứt bỏ
 lod_core.ui.item_list.back=Quay lại
 lod_core.ui.item_list.discard_confirm=Vứt bỏ?
+
 lod_core.ui.goods.goods=Đồ quý
 
-lod_core.ui.load_game.loading=Đang tải...
-lod_core.ui.load_game.load_confirm=Tải bản lưu này?
-lod_core.ui.load_game.delete=Xóa
-lod_core.ui.load_game.back=Quay lại
-lod_core.ui.save_game.save_game=Lưu trò chơi
-lod_core.ui.save_game.loading=Đang tải...
-lod_core.ui.save_game.new_save=<bản lưu mới>
+# Vat pham loi
+lod_core.items.nothing.name=Không có
+lod_core.items.nothing.description=Không có
+lod_core.items.nothing.battle_description=Không có
 
+# Tuy chon chung
+lod_core.config.controller_keybinds.label=Điều khiển
+lod_core.config.controller_keybinds.configure=Thiết lập...
+lod_core.config.menu_inner_deadzone.label=Vùng chết menu (trong)
+lod_core.config.menu_outer_deadzone.label=Vùng chết menu (ngoài)
+lod_core.config.movement_inner_deadzone.label=Vùng chết di chuyển (trong)
+lod_core.config.movement_outer_deadzone.label=Vùng chết di chuyển (ngoài)
+lod_core.config.disable_mouse_input.label=Tắt chuột
+lod_core.config.receive_input_on_inactive_window.label=Nhận phím khi cửa sổ không được chọn
+lod_core.config.rumble.label=Rung
+lod_core.config.rumble_intensity.label=Độ rung
+lod_core.config.allow_widescreen.label=Màn hình rộng 3D
+lod_core.config.allow_widescreen.help=Dùng màn hình rộng ở cảnh 3D (bản đồ thế giới, trận đánh)
+lod_core.config.submap_widescreen_mode.label=Màn hình rộng 2D
+lod_core.config.submap_widescreen_mode.help=Màn hình rộng ở cảnh 2D (thị trấn, hang động...)\nMở rộng cho thấy nhiều hơn nhưng có thể thấy hình lạ ở sát mép màn hình.
+lod_core.config.submap_widescreen_mode.EXPANDED=Mở rộng
+lod_core.config.submap_widescreen_mode.FORCED_4_3=Giữ 4:3
+lod_core.config.submap_widescreen_mode.STRETCHED=Kéo giãn
+lod_core.config.fullscreen.label=Toàn màn hình
+lod_core.config.resolution.label=Độ phân giải
+lod_core.config.resolution.help=Nên dùng Theo cửa sổ: hình vẽ đúng bằng kích thước cửa sổ game.\nĐộ phân giải lớn hơn cửa sổ có thể làm hình mịn hơn nhờ khử răng cưa (SSAA).
+lod_core.config.resolution.ORIGINAL=240p (nguyên bản)
+lod_core.config.resolution._480=480p
+lod_core.config.resolution._720=720p
+lod_core.config.resolution._1080=1080p
+lod_core.config.resolution._1440=1440p
+lod_core.config.resolution._4K=4K
+lod_core.config.resolution._8K=8K
+lod_core.config.resolution.NATIVE=Theo cửa sổ
+lod_core.config.monitor.label=Màn hình
+lod_core.config.reduce_motion_flashing.label=Giảm chuyển động/chớp sáng
+lod_core.config.reduce_motion_flashing.help=Giảm bớt một số chuyển động nhanh và chớp sáng. Có thể giúp người\nnhạy cảm với chuyển động nhanh hoặc ánh sáng/màu nhấp nháy.\n\nCẢNH BÁO: tự chịu rủi ro khi dùng. Chúng tôi không thể bảo đảm\ntính năng này giúp trò chơi an toàn với tất cả mọi người.
+lod_core.config.frame_skip.label=Bỏ khung hình
+lod_core.config.frame_skip.help=Bỏ bớt khung hình cho mượt hơn khi tốc độ game cao hơn 1x.
+lod_core.config.audio_device.label=Thiết bị âm thanh
+lod_core.config.master_volume.label=Âm lượng - Tất cả
+lod_core.config.music_volume.label=Âm lượng - Nhạc
+lod_core.config.sfx_volume.label=Âm lượng - Hiệu ứng
+lod_core.config.fmv_volume.label=Âm lượng - Phim
+lod_core.config.music_interpolation_precision.label=Độ chính xác nội suy
+lod_core.config.music_interpolation_precision.Quarter=1/4
+lod_core.config.music_interpolation_precision.Half=1/2
+lod_core.config.music_interpolation_precision.Retail=Nguyên bản
+lod_core.config.music_interpolation_precision.Double=Gấp đôi
+lod_core.config.music_interpolation_precision.Quadruple=Gấp 4
+lod_core.config.music_pitch_resolution.label=Độ phân giải cao độ
+lod_core.config.music_pitch_resolution.Quarter=1/4
+lod_core.config.music_pitch_resolution.Half=1/2
+lod_core.config.music_pitch_resolution.Retail=Nguyên bản
+lod_core.config.music_pitch_resolution.Double=Gấp đôi
+lod_core.config.music_pitch_resolution.Quadruple=Gấp 4
+lod_core.config.music_pitch_resolution.Octuple=Gấp 8
+lod_core.config.music_effects_over_time_granularity.label=Độ mịn hiệu ứng nhạc
+lod_core.config.music_effects_over_time_granularity.Retail=Nguyên bản
+lod_core.config.music_effects_over_time_granularity.Double=Gấp đôi
+lod_core.config.music_effects_over_time_granularity.Quadruple=Gấp 4
+lod_core.config.music_effects_over_time_granularity.Octuple=Gấp 8
+lod_core.config.music_effects_over_time_granularity.Sexdecuple=Gấp 16
+lod_core.config.music_effects_over_time_granularity.Duotrigintuple=Gấp 32
+lod_core.config.create_crash_save.label=Tự lưu khi lỗi
+lod_core.config.create_crash_save.help=Nếu trò chơi gặp lỗi, thử tự lưu game\n(không ghi đè bản lưu có sẵn)
+lod_core.config.ignore_steam_input_mode.label=Sửa lỗi Steam Input
+lod_core.config.ignore_steam_input_mode.help=Sửa lỗi nhận phím hai lần khi Steam đang chạy và Steam Input đang bật.\nChỉ đổi mục này khi bàn phím không dùng được.\n\nBỏ qua khi dùng tay cầm - bỏ qua bàn phím khi bấm nút trên tay cầm\nTắt - cho phép phím trùng từ Steam Input
+lod_core.config.ignore_steam_input_mode.VIRTUAL_KEYBOARD_ID=Bỏ qua bàn phím ảo (nên dùng)
+lod_core.config.ignore_steam_input_mode.IGNORE_WHEN_GAMEPAD_USED=Bỏ qua khi dùng tay cầm
+lod_core.config.ignore_steam_input_mode.NONE=Tắt (cho phép Steam Input)
 lod_core.config.retail_font.label=Phông chữ
 lod_core.config.language.label=Ngôn ngữ
-lod_core.config.language.help=Bản tiếng Việt (thử nghiệm): menu, vật phẩm và lời thoại
+lod_core.config.language.help=Bản tiếng Việt: lời thoại, vật phẩm, phép và giao diện
+lod_core.config.show_fps.label=Hiện FPS
+
+# Hieu ung CRT
+lod_core.config.shader_enable_crt.label=Bật CRT
+lod_core.config.shader_scanlines_opacity.label=CRT: Độ đậm đường quét
+lod_core.config.shader_grille_opacity.label=CRT: Độ đậm lưới
+lod_core.config.shader_pixelate.label=CRT: Vỡ hạt
+lod_core.config.shader_pixelate.NONE=Không
+lod_core.config.shader_pixelate.P240=240p (nguyên bản)
+lod_core.config.shader_pixelate.P480=480p
+lod_core.config.shader_pixelate.P720=720p
+lod_core.config.shader_pixelate.NATIVE_1_4=1/4 theo cửa sổ
+lod_core.config.shader_pixelate.NATIVE_1_3=1/3 theo cửa sổ
+lod_core.config.shader_pixelate.NATIVE_1_2=1/2 theo cửa sổ
+lod_core.config.shader_roll.label=CRT: Sọc trôi
+lod_core.config.shader_roll_speed.label=CRT: Tốc độ sọc trôi
+lod_core.config.shader_roll_size.label=CRT: Cỡ sọc trôi
+lod_core.config.shader_roll_variation.label=CRT: Độ biến đổi sọc trôi
+lod_core.config.shader_roll_intensity.label=CRT: Cường độ sọc trôi
+lod_core.config.shader_noise_opacity.label=CRT: Độ đậm nhiễu
+lod_core.config.shader_noise_speed.label=CRT: Tốc độ nhiễu
+lod_core.config.shader_static_intensity.label=CRT: Cường độ nhiễu tĩnh
+lod_core.config.shader_aberration.label=CRT: Lệch màu
+lod_core.config.shader_brightness.label=CRT: Độ sáng
+lod_core.config.shader_discolour.label=CRT: Phai màu
+lod_core.config.shader_edge_warp.label=CRT: Độ cong mép
+lod_core.config.shader_vignette_intensity.label=CRT: Cường độ tối viền
+lod_core.config.shader_vignette_opacity.label=CRT: Độ đậm tối viền
+lod_core.config.shader_bloom_intensity.label=CRT: Cường độ tỏa sáng
+lod_core.config.shader_bloom_threshold.label=CRT: Ngưỡng tỏa sáng
+lod_core.config.shader_bloom_radius.label=CRT: Bán kính tỏa sáng
+
+# Phim
+lod_core.config.fmv.skip_keyboard=Bấm %s để bỏ qua
+lod_core.config.fmv.skip_controller=Bấm %s để bỏ qua
+lod_core.config.fmv.skip_mouse=Bấm chuột lần nữa để bỏ qua
+
+# Tuy chon luot choi
+lod_core.config.indicator_mode.label=Dấu chỉ dẫn
+lod_core.config.indicator_mode.help=Dấu chỉ dẫn trên bản đồ như cửa ra vào. Thoáng hiện: hiện một lúc rồi ẩn.
+lod_core.config.indicator_mode.OFF=Tắt
+lod_core.config.indicator_mode.MOMENTARY=Thoáng hiện
+lod_core.config.indicator_mode.ON=Bật
+lod_core.config.inventory_size.label=Sức chứa túi đồ
+lod_core.config.encounter_rate.label=Tần suất gặp địch
+lod_core.config.encounter_rate.help=Nguyên bản: như game gốc (có lỗi). Ít hơn dự định 75%% khi đi theo 2/4 hướng.\nDự định: đúng ý nhà làm game. Gặp địch rất nhiều.\nTrung bình: nên dùng. Số lần gặp như bản gốc nhưng chia đều mọi hướng.
+lod_core.config.encounter_rate.RETAIL=Nguyên bản
+lod_core.config.encounter_rate.AVERAGE=Trung bình
+lod_core.config.encounter_rate.INTENDED=Dự định
+lod_core.config.encounter_rate.NONE=Không gặp
+lod_core.config.addition_mode.label=Chế độ Liên Kích
+lod_core.config.addition_mode.NORMAL=Thường
+lod_core.config.addition_mode.AUTOMATIC=Tự động
+lod_core.config.auto_dragoon_addition.label=Tự động Liên Kích Dragoon
+lod_core.config.addition_overlay_mode.label=Hiển thị Liên Kích
+lod_core.config.addition_overlay_mode.help=Không tâm ngắm: chỉ hiện ô vuông giữa\nKhông HUD: bỏ hẳn phần hiển thị Liên Kích
+lod_core.config.addition_overlay_mode.FULL=Thường
+lod_core.config.addition_overlay_mode.PARTIAL=Không tâm ngắm
+lod_core.config.addition_overlay_mode.OFF=Không HUD
+lod_core.config.addition_overlay_size.label=Cỡ khung Liên Kích
+lod_core.config.addition_overlay_size.help=Đổi cỡ tâm ngắm khi bấm nút Liên Kích.\nLưu ý: tâm ngắm lớn hơn thường làm Liên Kích dễ hơn.
+lod_core.config.addition_timing_window.label=Thời gian bấm Liên Kích
+lod_core.config.addition_timing_window.help=Đổi khoảng thời gian được tính là bấm đúng khi Liên Kích.\n100%% = độ khó gốc, 200%% = gấp đôi thời gian (dễ hơn), v.v.
+lod_core.config.transformation_mode.label=Cảnh hóa Dragoon
+lod_core.config.transformation_mode.NORMAL=Thường
+lod_core.config.transformation_mode.SHORT=Rút gọn
+lod_core.config.quick_text.label=Chữ nhanh
+lod_core.config.quick_text.help=Đổi tốc độ hiện chữ trong hộp thoại.\nGiữ nút: giữ nút xác nhận để chữ chạy nhanh\nLuôn luôn: chữ luôn chạy nhanh\nTức thì: hộp thoại và chữ hiện ngay lập tức
+lod_core.config.quick_text.HOLD=Giữ nút
+lod_core.config.quick_text.ALWAYS=Luôn luôn
+lod_core.config.quick_text.INSTANT=Tức thì
+lod_core.config.auto_text.label=Tự sang hộp thoại kế
+lod_core.config.auto_text_delay.label=Thời gian chờ tự sang (giây)
+lod_core.config.save_anywhere.label=Lưu mọi nơi
+lod_core.config.save_anywhere.help=CẢNH BÁO: không lưu giữa sự kiện cốt truyện, khi đang nhảy qua đá kê chân, v.v.
+lod_core.config.auto_save_after_battle.label=Lưu mọi nơi: tự lưu sau trận
+lod_core.config.auto_save_after_battle.help=Tự tạo bản lưu mới khi từ trận đánh trở về bản đồ cho phép lưu.
+lod_core.config.disable_status_effects.label=Tắt hiệu ứng trạng thái
+lod_core.config.enemy_hp_bars.label=Thanh HP của địch
+lod_core.config.mash_mode.label=Chế độ bấm liên tục
+lod_core.config.mash_mode.MASH=Bấm liên tục
+lod_core.config.mash_mode.HOLD=Giữ nút
+lod_core.config.mash_mode.AUTO=Tự động
+lod_core.config.secondary_character_xp_multiplier.label=EXP cho người ngoài đội
+lod_core.config.secondary_character_xp_multiplier.help=Phần trăm EXP mà nhân vật không có trong đội đang chiến đấu được nhận
+lod_core.config.battle_transition_mode.label=Chuyển cảnh vào trận
+lod_core.config.battle_transition_mode.NORMAL=Thường
+lod_core.config.battle_transition_mode.FAST=Nhanh
+lod_core.config.battle_transition_mode.INSTANT=Tức thì
+lod_core.config.unlock_party.label=Mở khóa đội hình
+lod_core.config.unlock_party.help=Cho phép đưa Dart ra khỏi đội và chơi chỉ với 1 hoặc 2 nhân vật
+lod_core.config.icon_set.label=Bộ biểu tượng
+lod_core.config.icon_set.help=Bổ sung: đổi biểu tượng của một số vật phẩm và trang bị sang biểu tượng bị cắt khỏi game gốc
+lod_core.config.icon_set.ENHANCED=Bổ sung
+lod_core.config.icon_set.RETAIL=Nguyên bản
+lod_core.config.run_by_default.label=Mặc định chạy
+lod_core.config.run_by_default.help=Khi bật, nhân vật chạy theo mặc định và đi bộ khi giữ nút chạy
+lod_core.config.item_group_sort_mode.label=Sắp xếp trong nhóm đồ
+lod_core.config.item_group_sort_mode.help=Cách sắp xếp trong từng nhóm vật phẩm (ví dụ thuốc, đồ phép)
+lod_core.config.item_group_sort_mode.ALPHABETICAL=Theo chữ cái
+lod_core.config.item_group_sort_mode.RETAIL=Nguyên bản
+lod_core.config.element_icon_config.label=Biểu tượng hệ
+lod_core.config.element_icon_config.help=Hiện biểu tượng cạnh số sát thương cho biết hệ của đòn đánh.
+lod_core.config.equip_effects_in_dragoon.label=Hiệu ứng trang bị khi hóa Dragoon
+lod_core.config.equip_effects_in_dragoon.help=Bật hiệu ứng hồi phục và hiệu ứng khi đánh trúng của trang bị trong dạng Dragoon
+
+# Phim dieu khien
+lod_core.input_actions.menu_up.name=Menu: lên
+lod_core.input_actions.menu_down.name=Menu: xuống
+lod_core.input_actions.menu_left.name=Menu: trái
+lod_core.input_actions.menu_right.name=Menu: phải
+lod_core.input_actions.menu_top.name=Menu: đầu
+lod_core.input_actions.menu_bottom.name=Menu: cuối
+lod_core.input_actions.menu_home.name=Menu: về đầu
+lod_core.input_actions.menu_end.name=Menu: về cuối
+lod_core.input_actions.menu_page_up.name=Menu: lên trang
+lod_core.input_actions.menu_page_down.name=Menu: xuống trang
+lod_core.input_actions.menu_confirm.name=Menu: xác nhận
+lod_core.input_actions.menu_back.name=Menu: quay lại
+lod_core.input_actions.menu_delete.name=Menu: xóa
+lod_core.input_actions.menu_advanced.name=Menu: nâng cao
+lod_core.input_actions.menu_sort.name=Menu: sắp xếp
+lod_core.input_actions.menu_help.name=Menu: trợ giúp
+lod_core.input_actions.menu_mods.name=Menu: mod
+lod_core.input_actions.menu_textbox_confirm.name=Menu: xác nhận ô nhập
+lod_core.input_actions.menu_unequip.name=Menu: tháo trang bị
+lod_core.input_actions.title_update.name=Màn tựa: tải bản cập nhật
+lod_core.input_actions.title_convert_memcard.name=Màn tựa: chuyển thẻ nhớ
+lod_core.input_actions.fmv_skip.name=Phim: bỏ qua
+lod_core.input_actions.general_toggle_fullscreen.name=Chung: bật/tắt toàn màn hình
+lod_core.input_actions.general_speed_up.name=Chung: tăng tốc
+lod_core.input_actions.general_slow_down.name=Chung: giảm tốc
+lod_core.input_actions.general_toggle_speed.name=Chung: đổi tốc độ
+lod_core.input_actions.general_turbo.name=Chung: siêu tốc
+lod_core.input_actions.freecam_toggle.name=Máy quay tự do: bật/tắt
+lod_core.input_actions.freecam_forward.name=Máy quay tự do: tiến
+lod_core.input_actions.freecam_backward.name=Máy quay tự do: lùi
+lod_core.input_actions.freecam_left.name=Máy quay tự do: trái
+lod_core.input_actions.freecam_right.name=Máy quay tự do: phải
+lod_core.input_actions.freecam_up.name=Máy quay tự do: lên
+lod_core.input_actions.freecam_down.name=Máy quay tự do: xuống
+lod_core.input_actions.debug_open_debugger.name=Gỡ lỗi: mở trình gỡ lỗi
+lod_core.input_actions.debug_pause.name=Gỡ lỗi: tạm dừng
+lod_core.input_actions.debug_frame_advance.name=Gỡ lỗi: tiến 1 khung
+lod_core.input_actions.debug_frame_advance_hold.name=Gỡ lỗi: tiến khung (giữ)
+lod_core.input_actions.debug_toggle_wireframe.name=Gỡ lỗi: bật/tắt khung dây
+lod_core.input_actions.debug_reload_shaders.name=Gỡ lỗi: nạp lại shader
