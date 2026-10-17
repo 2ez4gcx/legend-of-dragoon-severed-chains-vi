@@ -38,7 +38,7 @@ TABLES = [
     ('menustatus', 'legend/game/SItem.java', 'menuStatus_800fba7c', 'trang thai (menu)'),
 ]
 # Câu viết thẳng trong mã, dịch lúc vẽ (Text.renderText). Phải khớp nguyên văn.
-UI_LITERALS = ['Load Game', 'Move?', 'No', 'Yes', 'Enter', "Don't enter", 'No facilities',
+UI_LITERALS = ['Load Game', 'Move?', 'No', 'Yes', 'Enter', "Don't enter", 'No facilities', 'Unknown location',
                'Hits: %s, damage: %s, SP: %s']   # dòng cuối: mẫu, bản dịch dùng {0} {1} {2}
 # Tên riêng (trùm, nhân vật, rồng) giữ tiếng Anh như bản PS1: không báo thiếu
 KEEP_EN = {'rose', 'fruegel', 'rodriguez', 'guftas', 'kongol', 'lloyd', 'feyrbrand', 'regole', 'greham', 'shirley', 'shana',

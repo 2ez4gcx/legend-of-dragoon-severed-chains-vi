@@ -19,5 +19,7 @@ scvi.service.save_point=Điểm Lưu
 # Cau viet thang trong ma (dich luc ve)
 scvi.ui.load_game=Tải trò chơi
 scvi.ui.don_t_enter=Không vào
+# The luu: LodMod.getLocationName khi so dia diem vuot bang
+scvi.ui.unknown_location=Địa điểm không rõ
 # Dong mo ta Lien Kich trong tran (AdditionListMenu): {0} so don, {1} sat thuong, {2} SP
 scvi.ui.hits_s_damage_s_sp_s=Số đòn: {0}, sát thương: {1}, SP: {2}

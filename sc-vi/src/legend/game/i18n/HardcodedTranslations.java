@@ -37,10 +37,11 @@ public final class HardcodedTranslations {
 
   private static final Logger LOGGER = LogManager.getFormatterLogger(HardcodedTranslations.class);
 
-  private static final Set<String> UI_LITERALS = Set.of("Load Game", "Move?", "No", "Yes", "Enter", "Don't enter", "No facilities");
+  private static final Set<String> UI_LITERALS = Set.of("Load Game", "Move?", "No", "Yes", "Enter", "Don't enter", "No facilities", "Unknown location");
   private static final Pattern HITS = Pattern.compile("Hits: (\\d+), damage: (\\d+), SP: (\\d+)");
 
   private static final Map<Object, Object> originals = new IdentityHashMap<>();
+  private static final Map<String, String> PLACE_NAMES = new java.util.HashMap<>();
   private static Locale appliedLocale;
   private static boolean failed;
 
@@ -154,6 +155,13 @@ public final class HardcodedTranslations {
       return lookup("ui", text);
     }
 
+    // Saves store the location name as text when written: saves made (or converted from memory cards) in English
+    // still show e.g. "Ch.4 Moon & Fate" on the save card -> translate known place/chapter names when drawn
+    final String place = PLACE_NAMES.get(text);
+    if(place != null) {
+      return place;
+    }
+
     if(text.startsWith("Hits: ")) {
       final Matcher m = HITS.matcher(text);
       if(m.matches()) {
@@ -169,10 +177,14 @@ public final class HardcodedTranslations {
 
   public static synchronized void apply() {
     try {
+      PLACE_NAMES.clear();
       strings(Monsters.monsterNames_80112068, "monster");
       strings(SItem.chapterNames_80114248, "chapter");
       strings(SItem.submapNames_8011c108, "submap");
       strings(SItem.worldMapNames_8011c1ec, "worldmap");
+      placeNames(SItem.chapterNames_80114248);
+      placeNames(SItem.submapNames_8011c108);
+      placeNames(SItem.worldMapNames_8011c1ec);
       strings(BattleHud.ailments_800fb3a0, "ailment");
       strings(privateStrings(BattleHud.class, "targeting_800fb36c"), "target");
       strings(WmapStatics.services_800f01cc, "service");
@@ -196,6 +208,16 @@ public final class HardcodedTranslations {
     final String[] original = (String[])originals.computeIfAbsent(array, a -> array.clone());
     for(int i = 0; i < array.length; i++) {
       array[i] = lookup(table, original[i]);
+    }
+  }
+
+  /** English name -> translated name for every entry of an already translated location table (only entries that differ) */
+  private static void placeNames(final String[] array) {
+    final String[] original = (String[])originals.get(array);
+    for(int i = 0; i < array.length; i++) {
+      if(original[i] != null && !original[i].isEmpty() && !original[i].equals(array[i])) {
+        PLACE_NAMES.putIfAbsent(original[i], array[i]);
+      }
     }
   }
 
