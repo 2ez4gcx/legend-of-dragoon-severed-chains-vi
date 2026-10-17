@@ -4,10 +4,13 @@ run_sc.ps1 — chạy Severed Chains (thư mục game) có/không có bản vá 
 Cách gọi:
   powershell -File tools/run_sc.ps1 [-Game game] [-NoVi] [-Install]
     -Game     thư mục game SC (tương đối theo D:\LOD-SC hoặc tuyệt đối), mặc định "game"
-    -Install  chép out/lang/*.lang + dialogue.vi.tsv, tr_sc/*.lang, out/fonts/vietnamese.* và out/sc-vi.jar vào game
+    -Install  chép out/lang/*.lang + dialogue.vi.tsv, tr_sc/*.lang, out/fonts/vietnamese.*, out/sc-vi.jar và out/vi_files
+              (lớp phủ đồ hoạ -> <game>/vi/files) vào game
     -NoVi     chạy SC gốc (không thêm sc-vi.jar vào classpath)
 Classpath lấy từ launch.bat của bản build (dòng gọi java), thêm sc-vi.jar lên đầu để lớp sửa đè lớp gốc.
 Ghi PID vào <game>\sc.pid. Log của SC: <game>\logs\.
+CHÚ Ý: gọi thành lệnh độc lập, KHÔNG bắt đầu ra (| Out-Null, $x = ..., Start-Job): java thừa hưởng handle của pipe nên
+lệnh gọi treo đến khi game thoát.
 #>
 param(
   [string]$Game = 'game',
@@ -24,6 +27,10 @@ if ($Install) {
   Copy-Item (Join-Path $root 'tr_sc\*.lang') (Join-Path $Game 'lang') -Force
   Copy-Item (Join-Path $root 'out\fonts\vietnamese.*') (Join-Path $Game 'gfx\fonts') -Force
   Copy-Item (Join-Path $root 'out\sc-vi.jar') $Game -Force
+  $vf = Join-Path $Game 'vi/files'
+  if (Test-Path $vf) { Remove-Item $vf -Recurse -Force }
+  New-Item -ItemType Directory -Force (Join-Path $Game 'vi') | Out-Null
+  Copy-Item (Join-Path $root 'out/vi_files') $vf -Recurse -Force
   Write-Output "Da cai lang/font/sc-vi.jar vao $Game"
 }
 

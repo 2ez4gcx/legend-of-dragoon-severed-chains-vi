@@ -167,9 +167,26 @@
          textboxText._1a = textboxText.y_16 - textboxText.lines_1e * 6.0f;
          return;
        }
+--- a/src/main/java/legend/core/Updater.java
++++ b/src/main/java/legend/core/Updater.java
+@@ -35,6 +35,14 @@
+   }
+ 
+   public void check(final Consumer<Release> onComplete) {
++    // [sc-vi] The Vietnamese package is pinned to one Severed Chains commit; updating would replace the game jar
++    // and drop the translation, so the "Update Available" prompt is never offered.
++    if(onComplete != null) {
++      LOGGER.info("Update check disabled (Vietnamese translation pinned to this Severed Chains build)");
++      onComplete.accept(null);
++      return;
++    }
++
+     synchronized(this) {
+       if(this.client == null) {
+         try {
 --- /dev/null
 +++ b/src/main/java/legend/game/i18n/HardcodedTranslations.java
-@@ -0,0 +1,150 @@
+@@ -0,0 +1,193 @@
 +package legend.game.i18n;
 +
 +import legend.game.SItem;
@@ -216,8 +233,51 @@
 +  private static Locale appliedLocale;
 +  private static boolean failed;
 +
++  private static Object titlePatched;
++  private static int[] titleWidths;
++  private static boolean titleWidthsRead;
++
++  /**
++   * The title menu image (gfx/ui/title_menu.png) is centred with hard-coded English text widths (Ttle.menuTextWidth).
++   * When a translated image ships with gfx/ui/title_menu.widths ("w0,w1,w2,w3,w4"), copy those widths into the title
++   * screen instance so the translated items stay centred.
++   */
++  private static void titleMenu() {
++    final Object state = legend.game.EngineStates.currentEngineState_8004dd04;
++    if(!(state instanceof legend.game.title.Ttle) || state == titlePatched) {
++      return;
++    }
++
++    titlePatched = state;
++
++    try {
++      if(!titleWidthsRead) {
++        titleWidthsRead = true;
++        final java.nio.file.Path file = java.nio.file.Path.of("gfx", "ui", "title_menu.widths");
++        if(java.nio.file.Files.isRegularFile(file)) {
++          final String[] parts = java.nio.file.Files.readString(file).trim().split(",");
++          titleWidths = new int[parts.length];
++          for(int i = 0; i < parts.length; i++) {
++            titleWidths[i] = Integer.parseInt(parts[i].trim());
++          }
++        }
++      }
++
++      if(titleWidths != null) {
++        final Field field = legend.game.title.Ttle.class.getDeclaredField("menuTextWidth");
++        field.setAccessible(true);
++        final int[] widths = (int[])field.get(state);
++        System.arraycopy(titleWidths, 0, widths, 0, Math.min(widths.length, titleWidths.length));
++      }
++    } catch(final Throwable t) {
++      LOGGER.warn("Failed to apply title menu widths", t);
++    }
++  }
++
 +  /** Called at the start of Text.renderText: applies the tables once per language and translates UI literals */
 +  public static String onRender(final String text) {
++    titleMenu();
++
 +    if(!failed) {
 +      try {
 +        final Locale locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
@@ -890,3 +950,58 @@
    }
  
    public static void saveConfig(final ConfigCollection configs, final ConfigStorageLocation storageLocation, final FileData data, final IntRef offset) {
+--- a/src/main/java/legend/game/unpacker/Loader.java
++++ b/src/main/java/legend/game/unpacker/Loader.java
+@@ -29,6 +29,25 @@
+ 
+   private static final AtomicInteger LOADING_COUNT = new AtomicInteger();
+ 
++  /** [sc-vi] Overlay: files under vi/files/<path relative to files/> replace the unpacked ones (translated textures) */
++  private static final Path OVERLAY = Path.of("vi", "files").toAbsolutePath().normalize();
++
++  private static byte[] readAll(final Path file) throws IOException {
++    final Path root = Unpacker.ROOT.toAbsolutePath().normalize();
++    final Path abs = file.toAbsolutePath().normalize();
++
++    if(abs.startsWith(root)) {
++      final Path overlay = OVERLAY.resolve(root.relativize(abs));
++
++      if(Files.isRegularFile(overlay)) {
++        LOGGER.info("Loading overlay %s", overlay);
++        return Files.readAllBytes(overlay);
++      }
++    }
++
++    return Files.readAllBytes(file);
++  }
++
+   public static Path resolve(final String name) {
+     return Unpacker.ROOT.resolve(fixPath(name));
+   }
+@@ -41,7 +60,7 @@
+     LOGGER.info("Loading file %s", path);
+ 
+     try {
+-      return new FileData(Files.readAllBytes(path));
++      return new FileData(readAll(path));
+     } catch(final IOException e) {
+       throw new RuntimeException("Failed to load file " + path, e);
+     }
+@@ -208,7 +227,7 @@
+             final Path file = dir.resolve(String.valueOf(real));
+             if(Files.isRegularFile(file)) {
+               if(virtual == real) {
+-                files.add(new FileData(Files.readAllBytes(file)));
++                files.add(new FileData(readAll(file)));
+               } else {
+                 files.add(null);
+               }
+@@ -264,7 +283,7 @@
+         })
+         .forEach(child -> {
+           try {
+-            files.add(new FileData(Files.readAllBytes(child)));
++            files.add(new FileData(readAll(child)));
+           } catch(final IOException e) {
+             throw new RuntimeException("Failed to load directory " + dir, e);
+           }

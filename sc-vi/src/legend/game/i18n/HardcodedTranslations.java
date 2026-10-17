@@ -44,8 +44,51 @@ public final class HardcodedTranslations {
   private static Locale appliedLocale;
   private static boolean failed;
 
+  private static Object titlePatched;
+  private static int[] titleWidths;
+  private static boolean titleWidthsRead;
+
+  /**
+   * The title menu image (gfx/ui/title_menu.png) is centred with hard-coded English text widths (Ttle.menuTextWidth).
+   * When a translated image ships with gfx/ui/title_menu.widths ("w0,w1,w2,w3,w4"), copy those widths into the title
+   * screen instance so the translated items stay centred.
+   */
+  private static void titleMenu() {
+    final Object state = legend.game.EngineStates.currentEngineState_8004dd04;
+    if(!(state instanceof legend.game.title.Ttle) || state == titlePatched) {
+      return;
+    }
+
+    titlePatched = state;
+
+    try {
+      if(!titleWidthsRead) {
+        titleWidthsRead = true;
+        final java.nio.file.Path file = java.nio.file.Path.of("gfx", "ui", "title_menu.widths");
+        if(java.nio.file.Files.isRegularFile(file)) {
+          final String[] parts = java.nio.file.Files.readString(file).trim().split(",");
+          titleWidths = new int[parts.length];
+          for(int i = 0; i < parts.length; i++) {
+            titleWidths[i] = Integer.parseInt(parts[i].trim());
+          }
+        }
+      }
+
+      if(titleWidths != null) {
+        final Field field = legend.game.title.Ttle.class.getDeclaredField("menuTextWidth");
+        field.setAccessible(true);
+        final int[] widths = (int[])field.get(state);
+        System.arraycopy(titleWidths, 0, widths, 0, Math.min(widths.length, titleWidths.length));
+      }
+    } catch(final Throwable t) {
+      LOGGER.warn("Failed to apply title menu widths", t);
+    }
+  }
+
   /** Called at the start of Text.renderText: applies the tables once per language and translates UI literals */
   public static String onRender(final String text) {
+    titleMenu();
+
     if(!failed) {
       try {
         final Locale locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
