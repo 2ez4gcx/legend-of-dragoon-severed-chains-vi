@@ -36,7 +36,8 @@ Severed Chains (VN)/
   gfx/fonts/vietnamese.json, vietnamese.png
   gfx/ui/title_menu.vi.png, title_menu.vi.widths   menu màn tựa tiếng Việt (v0.2; tên riêng, không đè ảnh gốc của SC)
   vi/files/SECT/DRGN0.BIN/…   lớp phủ đồ hoạ (v0.2): ảnh đã duyệt của bản PS1 + dòng ghi công màn tựa ở hàng 209
-                              (phương án B đã duyệt), Loader đọc thay files/ (52 file)
+                              (phương án B đã duyệt), Loader đọc thay files/ (52 file; từ v0.3: 54 file, thêm 4113/0 +
+                              6666 = nhãn "Vàng"/"Vật phẩm" màn kết quả trận)
   vi/sc-vi.jar, vi/VERSION.txt, vi/LICENSE, vi/NGUON/…
 ```
 
@@ -49,7 +50,7 @@ Không chứa: ảnh đĩa, BIOS, JDK, `files/`.
 ## Dựng gói
 
 ```bash
-python tools/make_release.py --version 0.2
+python tools/make_release.py --version 0.3
 ```
 
 - Kiểm SHA-256 zip SC, kiểm clone `Severed-Chains/` đúng commit, xuất **HEAD** của repo này bằng `git archive` (không gom thay đổi
@@ -84,6 +85,28 @@ Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
 | Cài sạch `test_cai.ps1 -Choi` | lên màn tựa 114 s (gồm giải nén), classpath đúng, không lỗi trong log; menu tựa tiếng Việt + dòng ghi công, Tùy chọn, thoại mở đầu, menu "Chương 1: Chiến Sự Serdio", Vàng/Bụi Sao, vật phẩm (`docs/anh/31`) |
 | Trong game (thư mục `game`) | menu tựa Việt → English → Việt, vào/ra Giới thiệu (`docs/anh/28`); thẻ lưu cũ "Chương 4: Trăng & Số Mệnh" (`29`); trận + màn kết quả (`30`) |
 
+## Đã kiểm (v0.3 — gói THỬ, dựng 17/10/2026 từ HEAD 60bc3ff + D:\LOD main 40e91b8 = PS1 v1.12; CHƯA tải lên GitHub)
+
+Thay đổi so với v0.2 chỉ ở dữ liệu: `sc_dialogue.py` đã theo quy tắc `build.py` v1.11 từ 34abba5 (trước v0.2: `speaker_line`,
+`clause_like`, `APPOS`, `vi_speakers`, bản nối dòng cho câu `{B0xx}` ≈ `reflow(force=True)`), nên dựng lại từ D:\LOD main mới chỉ
+đổi **10 câu** trong `dialogue.vi.tsv` — đúng 10 câu sửa dịch của v1.11 (S02241 "Lối tắt", Gorgaga S03659–61 + S03664–66 "Chiến sĩ
+cuồng nộ", S04523, S13479, S13651); `lod.vi.lang`/`scvi.vi.lang` trùng từng byte bản v0.2. Lớp phủ đồ hoạ thêm 4113/0 + 6666
+(màn kết quả trận, b4d2f6c). Khác biệt cố ý còn lại với `vtext.reflow`: SC chỉ giữ dòng tên ở trang đầu (`not pages`), PS1 giữ dòng 1
+của mọi trang khi câu có tên. S04096 (", q Greham…", tiền tố rác do lệnh trỏ lệch trong dump PS1) không bao giờ là khoá trong SC:
+script SC đọc đúng "Greham{n}…" = khoá S04080 (vốn kiểu N).
+
+| Kiểm | Kết quả |
+|---|---|
+| `build_sc_vi.ps1` + `TagRoundTrip` | 13.264 câu (N 7.166, J 2.399, L 3.317 [530 có bản nối dòng], C 382) + 12 bí danh SC = 13.276 câu, 10 ca riêng, 0 lỗi |
+| Dựng 2 lần | cùng SHA-256 `135fbb473aff4c0c1b12b1f696302b278e51ba4395e61c4ceb53632c59273466` (132.837.512 byte) |
+| Nội dung gói | `vi/VERSION.txt`: lod_commit 40e91b8, lod_sc_commit 60bc3ff; 54 file `vi/files` (gồm `4113/0`, `6666`); `lang/dialogue.vi.tsv` SHA `e03ae079…` (trùng bản dựng thường) |
+| Trong game (thư mục `game`, save chương 4 LV31 + Debugger F12) | Donau cảnh 201: S12610 (NPC sobj 5, giai đoạn 2 = flags2 62, 66 bật / 6d tắt, flags1 c9 = 1) "Ước mơ của tôi là phủ xanh cả / Tiberoa giống như Donau. Người / ta có nói gì đi nữa, tôi cũng / sẽ làm được!" — hết chữ lẻ; S12641 (sobj 5, giai đoạn 6 = 62…8d bật / b5 tắt, c9 = 0) "Nghe nói nàng Công chúa Emille ngỗ ngược kia là / đồ giả mạo." — không còn bị coi là dòng tên; biển cảnh 133 (điểm 180,10,29 bán kính 30): S02241 "Trái: Lối tắt tới vùng Bale!"; trận 0 → màn kết quả "Vàng / EXP. / Vật phẩm" (`docs/anh/33`) |
+| Chưa kiểm | Cài sạch `test_cai.ps1 -Choi` từ zip v0.3; trong game: Gorgaga (cảnh 638, chuỗi sự kiện Đại hội Lohan — warp vào chỉ thấy đấu trường trống), S04523 (trận), S13479/S13651 (cảnh cắt đĩa 3–4) |
+
+Bẫy khi chạy từ xa: lúc người dùng nối Chrome Remote Desktop, cửa sổ ẩn của `remoting_desktop.exe` giữ quyền trên cùng, SC không lên
+được (cả bấm chuột giả lập) → `sc_ui.ps1` huỷ đúng như thiết kế. SC bỏ phím khi không có keyboard focus (`SdlPlatformManager`:
+sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng không dùng được; chuột thì SC vẫn nhận. Chờ phiên từ xa ngắt là chạy lại được.
+
 ## Đổi sang commit SC mới (khi cần)
 
 1. `git -C Severed-Chains fetch && git checkout <commit>`; tải `Severed_Chains_Windows.zip` của devbuild **cùng commit** (tên jar
@@ -103,4 +126,7 @@ Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
   SHA-256 với bản đã kiểm.
 - Đã phát hành (pre-release): v0.1-sc-affcef0 (tag → 243d150, zip SHA `3eccc6c3…`), v0.2-sc-affcef0 (17/10/2026, tag → adb4e65,
   zip 132.807.079 byte, SHA `834384aa…`; tải lại từ GitHub khớp).
+- v0.3-sc-affcef0: gói thử đã dựng (`release/`, SHA `135fbb47…`, ghi chú nháp `release_notes/v0.3-sc-affcef0.md`), **chưa phát hành**
+  — chờ người dùng bảo. Khi phát hành: chạy cài sạch trước, gắn tag vào commit đã dựng gói (60bc3ff; dựng lại từ commit khác thì
+  `lod_sc_commit` trong `vi/VERSION.txt` đổi → SHA đổi).
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.

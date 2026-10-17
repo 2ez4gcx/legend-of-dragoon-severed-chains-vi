@@ -1,7 +1,7 @@
 # Nghiên cứu: bản tiếng Việt The Legend of Dragoon cho Severed Chains
 
 Ngày 16/10/2026. Nguồn: Severed Chains (SC) commit `affcef0` (14/10/2026, bản devbuild `3.0.0-1816`), mod-loader 4.3.5,
-script-recompiler 0.7.11. Dữ liệu dịch: dự án `D:\LOD` (bản vá PS1 v1.9).
+script-recompiler 0.7.11. Dữ liệu dịch: dự án `D:\LOD` (bản vá PS1 v1.9; từ gói v0.3 dựng từ PS1 v1.12, main 40e91b8).
 
 ## Kết luận nhanh
 
@@ -129,7 +129,7 @@ Nếu không: phải tự giữ bản sửa theo từng commit SC (rủi ro mụ
 |---|---|---|
 | Menu/vật phẩm | `tools/sc_lang.py` → `out/lang/lod.vi.lang` | 384 khoá ghép tự động theo chữ Anh với `tr/en/menu.tsv` (vật phẩm 53/54, mô tả trận 50/54, đồ quý 37/37, phép 35/35, mô tả trang bị 105/148). Tên trang bị (148) và tên Liên Kích (35) để tiếng Anh như bản PS1. 321 khoá chưa ghép: `out/lang_missing.tsv`. |
 | Giao diện SC | `tr_sc/core.vi.lang` | Dịch tay ~45 khoá thử (menu trong game, Có/Không, Phông chữ, Ngôn ngữ…). |
-| Lời thoại | `tools/sc_dialogue.py` → `out/lang/dialogue.vi.tsv` | 13.264 câu: `chữ Anh dạng tag ⇥ chữ Việt ⇥ kiểu`. Kiểu N (dòng đầu là tên, 7.192), J (nối dòng, 2.373), L (giữ dòng: bảng, câu có B0xx, 3.317), C (không bao giờ ngắt: hộp chọn + khung 1 dòng theo `tr/choices.json`, 382). Dòng sau tên mở bằng số chèn `{A8xx}` hoặc ngoặc kép + chữ hoa cũng là câu (`opens_sentence`, sửa 3 câu tên dài bị nối, mục 4.3 (h)). **+12 bí danh** cho câu tiếng Anh SC tự sửa (đọc thẳng `Severed-Chains/patches/scripts/**/*.diff`, thiếu/thừa thì dừng). |
+| Lời thoại | `tools/sc_dialogue.py` → `out/lang/dialogue.vi.tsv` | 13.264 câu: `chữ Anh dạng tag ⇥ chữ Việt ⇥ kiểu`. Kiểu N (dòng đầu là tên, 7.166), J (nối dòng, 2.399), L (giữ dòng: bảng, câu có B0xx, 3.317; 530 câu kèm bản nối dòng dùng khi có dòng dài hơn khung), C (không bao giờ ngắt: hộp chọn + khung 1 dòng theo `tr/choices.json`, 382). Dòng sau tên mở bằng số chèn `{A8xx}` hoặc ngoặc kép + chữ hoa cũng là câu (`opens_sentence`, sửa 3 câu tên dài bị nối, mục 4.3 (h)). **+12 bí danh** cho câu tiếng Anh SC tự sửa (đọc thẳng `Severed-Chains/patches/scripts/**/*.diff`, thiếu/thừa thì dừng). |
 | Font | `tools/sc_font.py` → `out/fonts/vietnamese.json/.png` | 315 glyph, 212 lấy từ font vẽ tay D:\LOD (đặt ở hàng 1–12 của ô 16 px), ký hiệu/biểu tượng nút lấy từ font Original. Xem trước: `docs/anh/10_font_xem_truoc.png`. |
 | Sửa lõi SC | `sc-vi/src/…` → `out/sc-vi.jar` | Diff gọn `sc-vi/patches/sc-core-affcef0.diff`, tạo lại tự động bằng `tools/sc_core_diff.py` (`--check` để so). |
 | Tự kiểm | `sc-vi/test/TagRoundTrip.java` | 13.276 câu × (khoá tag 2 cột + ngắt dòng 6 bề rộng × 2 kiểu đo + **bố cục như trong game** qua `lookup`/`layout` với 2 khung, kiểu N giữ nguyên dòng tên) + 7 ca riêng (Funds, hộp "DÙNG CỬA HÀNG?", bí danh Lisa/S08018/S10558/S02777 đúng khoá thấy trong game, `<action>`, hộp chọn số "Hủy" khung 6, dòng tên Quầy Diệt Quái/Lapto 5 đứng riêng): **0 lỗi**. Thử ngược: đổi C→L thì báo lỗi hộp cửa hàng; bảng cũ (Quầy Diệt Quái kiểu J) báo "DONG TEN bi noi". |
@@ -196,8 +196,21 @@ lẻ mã được **đệm `0x00`** — câu Lisa (DRGN22/1137, "Vally" → "Val
 | (i) Hộp chọn số 1–5 "Hủy" | khoá số Đền Shirley cảnh 157 (S02777, khung 6 × 8) | Cả cảnh Lavitz/Dart tiếng Việt; hộp "1 2 3 4 5 Hủy" (bí danh của câu SC sửa "?" → "Cancel"), khung giữ 6 ô; vạch chọn đúng dòng ở "1" và "Hủy"; chọn "Hủy" chạy đúng nhánh của bản gốc ("Dart / Chắc sai rồi.") | `21` |
 
 Sau các phiên trên, `dialogue_missing.vi.txt` chỉ còn: `{B001}...?` và `...` (giống bản gốc), `{B000}{A800}…{A805}` (ô điểm Quầy
-Diệt Quái, chỉ có số), `dummy_C071_0_21` (chữ giữ chỗ trong script quán trọ cảnh 71 khi vào bằng Warp). Cùng quy tắc nhận tên
-có trong `build.py` của D:\LOD → bản PS1 có thể cũng nối tên ở 3 câu (h) (chưa kiểm trên PS1).
+Diệt Quái, chỉ có số), `dummy_C071_0_21` (chữ giữ chỗ trong script quán trọ cảnh 71 khi vào bằng Warp). Bản PS1 cũng nối tên ở
+3 câu (h) — đã sửa cùng quy tắc ở PS1 v1.10 (D:\LOD 01db894).
+
+**Phiên kiểm v0.3 (17/10/2026)** — dựng lại từ D:\LOD main 40e91b8 (PS1 v1.12); save chương 4 LV31 ("Unknown location 1") + Debugger F12:
+
+| Kiểu | Cảnh | Kết quả | Ảnh |
+|---|---|---|---|
+| (j) Câu {B0xx} khung hẹp (v1.11) | Donau cảnh 201, NPC sobj 5 | Bảng thoại Donau: 12 sobj × 10 giai đoạn (giai đoạn = số cờ flags2 liên tiếp đã bật trong 62, 66, 6d, 77, 82, 8d, b5, bf, 11c; NPC thoại là sobj 5–8). S12610 (giai đoạn 2, flags1 c9 = 1): "Ước mơ của tôi là phủ xanh cả / Tiberoa giống như Donau. Người / ta có nói gì đi nữa, tôi cũng / sẽ làm được!" — không còn chữ lẻ "cả" một dòng | `33` |
+| (k) Dòng đầu là mệnh đề (v1.11 `clause_like`) | Donau cảnh 201, sobj 5, giai đoạn 6, c9 = 0 | S12641 "Nghe nói nàng Công chúa Emille ngỗ ngược kia là / đồ giả mạo." (trước: "Nghe nói nàng Công chúa" bị giữ làm dòng tên) | `33` |
+| (l) Sửa dịch v1.11 | biển chỉ đường cảnh 133 (điểm tương tác 180,10,29 bán kính 30 trong `DRGN21/405/1`; `-SobjPos "0:180,10,69"`, quay xuống, Space) | S02241 "Trái: Lối tắt tới vùng Bale! / Phải: Tổ Rồng! Coi chừng! Dốc trượt" | `33` |
+| (m) Màn kết quả trận | trận 0 ở Donau | "Vàng 3G / EXP. 3 / Vật phẩm" (lớp phủ 4113/0 + 6666) | `33` |
+
+Không chụp được: Gorgaga "Chiến sĩ cuồng nộ Gorgaga" (cảnh 638 là đấu trường Lohan, câu chạy trong chuỗi sự kiện Đại hội — warp
+vào chỉ thấy sân trống), S04523 (thoại trận), S13479/S13651 (cảnh cắt đĩa 3–4). S04096 ", q Greham…" không phải khoá trong SC
+(script SC đọc đúng "Greham{n}…" = S04080).
 
 **Bẫy khi tới cảnh** (ghi lại để kiểm tiếp):
 - Script cảnh đọc cờ cốt truyện: flags2 = `scriptReadGlobalFlag2` (ô "Script Flags 1" của GameState Editor — SC đặt tên ngược),
@@ -212,7 +225,11 @@ có trong `build.py` của D:\LOD → bản PS1 có thể cũng nối tên ở 3
   lên ô lối ra dẫn sang 157 (bảng `collisionAndTransitions` của `NEWROOT.RDT`: ô 6 → cảnh 157; vùng ô tính từ tệp va chạm
   `DRGN21/466/1`), rồi `-SobjPos` vào ô khoá (ô va chạm 0x34, tệp `DRGN21/475/1`).
 - Cảnh có bản "cuối game" (`lateGameFile` trong NEWROOT, ví dụ khu đền đĩa 1 ↔ DRGN22): SC chọn theo chương và đĩa hiện tại, save
-  chương 4 vào bản cuối (không có khoá số) → `sc_dbg.ps1 -Chapter 0` trước khi Warp (không lưu game sau đó).
+  chương 4 vào bản cuối (không có khoá số) → `sc_dbg.ps1 -Chapter 0` trước khi Warp (không lưu game sau đó). Quy tắc
+  (`NewRootStruct.getDrgnFile`): dùng bản đầu khi đang ở đúng đĩa của nó hoặc đĩa bản cuối > chương hiện tại (Donau 201 ↔
+  `DRGN24/0006`: `-Chapter 1`; cảnh 133 ↔ `DRGN22/0405`: `-Chapter 0`).
+- Số NPC trong bảng thoại = số sobj thật của cảnh (xem danh sách Submap Debugger), không phải số tệp script có `incr …8` — kiểm
+  bằng cách in bảng thành hàng (Donau: hàng 12 cột thẳng cột, hàng 10 cột lệch).
 
 ## 5. Kế hoạch đề xuất
 
