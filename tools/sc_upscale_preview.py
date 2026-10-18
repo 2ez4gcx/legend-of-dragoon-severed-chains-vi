@@ -4,7 +4,9 @@ Cách gọi:
   python tools/sc_upscale_preview.py <thư mục goc> <thư mục ai> <ảnh ra.png> DRGN21_25:200,190 DRGN21_37:250,230
     mỗi tham số = <cảnh>:<x>,<y> là tâm vùng phóng to (toạ độ ảnh gốc)
 Đầu vào: <goc>/<cảnh>_rgb.png (tools/sc_bgdump), <ai>/<cảnh>_<mô hình>.png (Real-ESRGAN ncnn-vulkan, x4).
-Hàng 1: cả cảnh, SC hiện nay (phóng mịn bilinear) | Real-ESRGAN x4plus. Hàng 2: vùng phóng to 4x của gốc và 3 mô hình.
+Hàng 1: cả cảnh, SC hiện nay (phóng to kiểu nearest, giữ ô điểm ảnh) | Real-ESRGAN x4plus. Hàng 2: vùng phóng to 4x của gốc
+và 3 mô hình. (SC affcef0 dựng texture nền bằng Texture.create không bật minFilter/magFilter = GL_NEAREST; đã đối chiếu ảnh
+chụp trong game 18/10.)
 Ảnh suy ra từ đĩa gốc: chỉ để xem trên máy, không commit, không phát hành.
 """
 import os
@@ -29,12 +31,12 @@ def panel(img, text):
 def scene(goc_dir, ai_dir, name, cx, cy):
     orig = Image.open(os.path.join(goc_dir, name + '_rgb.png')).convert('RGB')
     w, h = orig.size
-    smooth = orig.resize((w * 4, h * 4), Image.BILINEAR)   # SC: ảnh gốc phóng to + lọc mịn
+    smooth = orig.resize((w * 4, h * 4), Image.NEAREST)   # SC: texture nền GL_NEAREST (ô điểm ảnh to)
     ai = {m: Image.open(os.path.join(ai_dir, '%s_%s.png' % (name, m))).convert('RGB') for m, _ in MODELS}
 
     full_w = 760
     full_h = round(h * 4 * full_w / (w * 4))
-    row1 = [panel(smooth.resize((full_w, full_h), Image.LANCZOS), 'Hiện nay (ảnh gốc phóng mịn)'),
+    row1 = [panel(smooth.resize((full_w, full_h), Image.LANCZOS), 'Hiện nay (ảnh gốc, ô điểm ảnh)'),
             panel(ai['realesrgan-x4plus'].resize((full_w, full_h), Image.LANCZOS), MODELS[0][1])]
 
     x0 = max(0, min(w * 4 - CROP, cx * 4 - CROP // 2))
