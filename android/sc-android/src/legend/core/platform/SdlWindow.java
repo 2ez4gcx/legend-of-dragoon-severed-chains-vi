@@ -106,8 +106,13 @@ public class SdlWindow extends Window {
 
   /** [sc-android] running on Android (set by the native launcher, libsclauncher.so) */
   private static final boolean ANDROID = Boolean.getBoolean("scvi.android");
-  /** [sc-android] create GL contexts without SDL_GL_CONTEXT_DEBUG_FLAG */
-  private boolean noDebugContext;
+  /**
+   * [sc-android] create GL contexts without SDL_GL_CONTEXT_DEBUG_FLAG. Off by default on Android: phone drivers (Adreno/Mali)
+   * report harmless things such as "unable to generate a triangle primitive because there are less than 3 vertices" at HIGH
+   * severity, which GlesApi shows on screen as "GL ERROR ..." and logs with a stack trace from a synchronous callback (slow).
+   * -Dscvi.gldebug=true (game/android-jvm.txt on a debuggable build) turns it back on.
+   */
+  private boolean noDebugContext = ANDROID && !Boolean.getBoolean("scvi.gldebug");
 
   public SdlWindow(final SdlPlatformManager manager, final String title, final int width, final int height) {
     this.manager = manager;
@@ -169,7 +174,7 @@ public class SdlWindow extends Window {
     LOGGER.info("Initializing OpenGLES 3.2...");
     this.createGlWindow(title, width, height, SDL_GL_CONTEXT_PROFILE_ES, 3, 2, windowRef, contextRef);
 
-    if(windowRef[0] == NULL) {
+    if(windowRef[0] == NULL && !this.noDebugContext) {
       // [sc-android] some mobile EGL drivers refuse debug contexts: retry without SDL_GL_CONTEXT_DEBUG_FLAG
       LOGGER.warn("Retrying OpenGLES 3.2 without the debug flag");
       this.noDebugContext = true;

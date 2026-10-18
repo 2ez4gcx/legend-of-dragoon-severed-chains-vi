@@ -20,7 +20,7 @@ Lớp đè chỉ dùng cho Android (`sc-android/`, đứng đầu classpath, mã
 
 | Lớp | Sửa |
 |---|---|
-| `legend.core.platform.SdlWindow` | Android không có OpenGL desktop: vào thẳng ES 3.2; driver từ chối ngữ cảnh debug thì thử lại không có cờ debug |
+| `legend.core.platform.SdlWindow` | Android không có OpenGL desktop: vào thẳng ES 3.2; **không** xin ngữ cảnh debug (driver điện thoại báo cảnh báo vô hại mức HIGH, ví dụ "unable to generate a triangle primitive because there are less than 3 vertices", `GlesApi` hiện lên màn hình thành "GL ERROR …" và ghi log kèm stack trace mỗi lần — chậm); bật lại bằng `-Dscvi.gldebug=true` |
 | `legend.core.renderer.ShaderManager` | Dùng shader GLSL ES dịch sẵn `gfx/shaders_es` (sinh trên PC bằng `ShaderCacheTool`, shaderc + SPIRV-Cross) — không mang shaderc/SPIRV-Cross lên máy |
 | `legend.core.renderer.opengles.GlesTexture` | Texture độ sâu dùng `GL_DEPTH_COMPONENT32F` (ES 3 không nhận `GL_DEPTH_COMPONENT` + `GL_FLOAT`: "Render buffer is not complete!") |
 | `legend.game.unpacker.IsoReader` | Đọc đĩa từ fd đã mở sẵn (mở lại `/proc/self/fd/N` bị kiểm quyền chủ tệp `media_rw`) |
