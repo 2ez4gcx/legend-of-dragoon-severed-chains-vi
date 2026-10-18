@@ -4,6 +4,7 @@ Cách gọi:
   python tools/sc_shot_pair.py <ảnh ra.png> "<tiêu đề>|<gốc.png>|<hd.png>|x,y,w,h" ["<tiêu đề 2>|..."]
     x,y,w,h = vùng cắt (toạ độ ảnh chụp), hiện ở tỉ lệ 1:1 (không co giãn) bên dưới hai ảnh toàn màn hình (thu 50%).
   Nhiều bản: "<tiêu đề>|<nhãn 1>=<ảnh 1>|<nhãn 2>=<ảnh 2>|...|x,y,w,h" (ảnh đầu là gốc).
+  Khung "x,y,w,h@2" = vùng cắt phóng 2x kiểu nearest (nhân vật nhỏ).
 Ảnh chụp từ tools/sc_ui.ps1 -Shot (cửa sổ 1280x960). Ảnh có nền suy ra từ đĩa gốc: chỉ xem trên máy, không commit.
 """
 import os
@@ -27,11 +28,12 @@ def labelled(img, text):
 def block(title, shots, box):
     """shots = [(nhãn, đường dẫn), ...] — ảnh đầu là gốc."""
     imgs = [(label, Image.open(path).convert('RGB')) for label, path in shots]
-    x, y, w, h = box
+    x, y, w, h, zoom = box
     half = (imgs[0][1].width // 2, imgs[0][1].height // 2)
     row1 = [labelled(img.resize(half, Image.LANCZOS), label) for label, img in imgs]
     crop = (x, y, x + w, y + h)
-    row2 = [labelled(img.crop(crop), label + ' — khung đỏ, 1:1') for label, img in imgs]
+    tag = ' — khung đỏ, 1:1' if zoom == 1 else ' — khung đỏ, phóng %dx' % zoom
+    row2 = [labelled(img.crop(crop).resize((w * zoom, h * zoom), Image.NEAREST), label + tag) for label, img in imgs]
     width = max(sum(p.width for p in row1), sum(p.width for p in row2)) + PAD
     out = Image.new('RGB', (width + PAD * 2, TITLE + row1[0].height + row2[0].height + PAD * 3), BG)
     d = ImageDraw.Draw(out)
@@ -51,7 +53,9 @@ def main():
     blocks = []
     for spec in sys.argv[2:]:
         parts = spec.split('|')
-        title, box = parts[0], tuple(int(v) for v in parts[-1].split(','))
+        title, spec_box = parts[0], parts[-1]
+        zoom = int(spec_box.split('@')[1]) if '@' in spec_box else 1
+        box = tuple(int(v) for v in spec_box.split('@')[0].split(',')) + (zoom,)
         if len(parts) == 4 and '=' not in parts[1]:   # dạng cũ: tiêu đề|gốc|hd|khung
             shots = [('Gốc (SC hiện nay)', parts[1]), ('Nền HD (AI x4plus)', parts[2])]
         else:                                          # dạng mới: tiêu đề|nhãn=ảnh|nhãn=ảnh|...|khung

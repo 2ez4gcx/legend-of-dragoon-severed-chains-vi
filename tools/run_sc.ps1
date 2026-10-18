@@ -9,6 +9,12 @@ Cách gọi:
     -NoVi     chạy SC gốc (không thêm sc-vi.jar vào classpath)
     -Gles     thử đường OpenGL ES của bản Android (out/android/sc-android.jar + shader ES, ES 3.2 qua WGL, heap 1,5 GB)
     -HdBg     thử ảnh nền HD: thêm out/sc-hdbg.jar (tools/sc_hdbg/build.ps1) và -Dscvi.hdbg=<thư mục PNG của tools/sc_hd_layers.py>
+    -Pn n     thử làm mịn mô hình nhân vật (PN-triangles): thêm out/sc-charfx.jar (tools/sc_charfx/java/build.ps1, TmdObjLoader
+              ghi bit PN theo góc vào cờ đỉnh; thiếu jar thì báo lỗi) LÊN ĐẦU classpath và -Dscvi.pn=n (0 = tắt, 1..4 -> mức 2..4).
+              Mặc định -1 = không dùng jar. Script này KHÔNG tráo shader: shader PN do bộ thử ngoài (sc_fx.ps1) chép vào
+              <game>\gfx\shaders; với shader gốc các bit thêm bị bỏ qua.
+    -CharFx   thêm out/sc-charfx.jar như -Pn nhưng để PN tắt (-Dscvi.pn=0, trừ khi có -Pn): kiểm bản ghi đè không đổi gì
+    -PnStrength8 s   độ phồng PN theo phần tám 1..8 (-Dscvi.pnStrength8=s; mặc định của jar = 8); chỉ dùng kèm -Pn/-CharFx
 Classpath lấy từ launch.bat của bản build (dòng gọi java), thêm sc-vi.jar lên đầu để lớp sửa đè lớp gốc.
 Ghi PID vào <game>\sc.pid. Log của SC: <game>\debug.log (ghi đè mỗi lần chạy, ghi trễ — đóng cửa sổ bằng CloseMainWindow
 trước khi đọc); trong lúc chạy đọc <game>\stdout.txt.
@@ -20,7 +26,10 @@ param(
   [switch]$NoVi,
   [switch]$Install,
   [switch]$Gles,
-  [string]$HdBg = ''
+  [string]$HdBg = '',
+  [int]$Pn = -1,
+  [switch]$CharFx,
+  [int]$PnStrength8 = 0
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -69,10 +78,22 @@ if ($HdBg) {
   if ($v -match '(\\+)$') { $v += $Matches[1] }
   $extra += "`"$v`""
 }
+if ($CharFx -or $Pn -ge 0) {
+  # Jar thử TmdObjLoader ghi bit PN (tools/sc_charfx/java); đứng đầu classpath để đè lớp gốc
+  $fxJar = Join-Path $root 'out\sc-charfx.jar'
+  if (-not (Test-Path -LiteralPath $fxJar)) { throw "chua dung $fxJar (tools/sc_charfx/java/build.ps1)" }
+  $cp = $fxJar + ';' + $cp
+  $extra += "-Dscvi.pn=$([Math]::Max($Pn, 0))"
+  if ($PnStrength8 -gt 0) { $extra += "-Dscvi.pnStrength8=$PnStrength8" }
+} elseif ($PnStrength8 -gt 0) {
+  throw '-PnStrength8 chi dung kem -Pn hoac -CharFx'
+}
 $javaArgs = @('-Djoml.fastmath', '-Djoml.sinLookup', '-Djoml.useMathFma', '-Dscvi.logMissing=true',
   '--add-opens', 'java.base/java.util=ALL-UNNAMED', '--add-exports', 'java.base/jdk.internal.misc=ALL-UNNAMED',
   '--enable-native-access=ALL-UNNAMED') + $extra + @('-ea', '-cp', "`"$cp`"", 'legend.game.MainWindows')
 $p = Start-Process -FilePath (Join-Path $Game 'jdk25\bin\java.exe') -ArgumentList $javaArgs -WorkingDirectory $Game -PassThru `
   -RedirectStandardOutput (Join-Path $Game 'stdout.txt') -RedirectStandardError (Join-Path $Game 'stderr.txt')
 Set-Content (Join-Path $Game 'sc.pid') $p.Id
-Write-Output "SC PID $($p.Id) (vi=$(-not $NoVi))"
+$pnInfo = ''
+if ($CharFx -or $Pn -ge 0) { $pnInfo = ', pn=' + [Math]::Max($Pn, 0) }
+Write-Output "SC PID $($p.Id) (vi=$(-not $NoVi)$pnInfo)"
