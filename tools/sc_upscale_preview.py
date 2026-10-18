@@ -3,6 +3,8 @@
 Cách gọi:
   python tools/sc_upscale_preview.py <thư mục goc> <thư mục ai> <ảnh ra.png> DRGN21_25:200,190 DRGN21_37:250,230
     mỗi tham số = <cảnh>:<x>,<y> là tâm vùng phóng to (toạ độ ảnh gốc)
+  [--models=realesrgan-x4plus:Nhãn,seedvr2:Nhãn,...]   mô hình ở hàng 2 (mặc định 3 mô hình Real-ESRGAN), tên = <ai>/<cảnh>_<tên>.png
+  [--full=seedvr2]                                     mô hình hiện cả cảnh ở hàng 1 (mặc định mô hình đầu)
 Đầu vào: <goc>/<cảnh>_rgb.png (tools/sc_bgdump), <ai>/<cảnh>_<mô hình>.png (Real-ESRGAN ncnn-vulkan, x4).
 Hàng 1: cả cảnh, SC hiện nay (phóng to kiểu nearest, giữ ô điểm ảnh) | Real-ESRGAN x4plus. Hàng 2: vùng phóng to 4x của gốc
 và 3 mô hình. (SC affcef0 dựng texture nền bằng Texture.create không bật minFilter/magFilter = GL_NEAREST; đã đối chiếu ảnh
@@ -28,21 +30,23 @@ def panel(img, text):
     return p
 
 
-def scene(goc_dir, ai_dir, name, cx, cy):
+def scene(goc_dir, ai_dir, name, cx, cy, models=MODELS, full=None):
     orig = Image.open(os.path.join(goc_dir, name + '_rgb.png')).convert('RGB')
     w, h = orig.size
     smooth = orig.resize((w * 4, h * 4), Image.NEAREST)   # SC: texture nền GL_NEAREST (ô điểm ảnh to)
-    ai = {m: Image.open(os.path.join(ai_dir, '%s_%s.png' % (name, m))).convert('RGB') for m, _ in MODELS}
+    ai = {m: Image.open(os.path.join(ai_dir, '%s_%s.png' % (name, m))).convert('RGB') for m, _ in models}
+    full = full or models[0][0]
+    labels = dict(models)
 
     full_w = 760
     full_h = round(h * 4 * full_w / (w * 4))
     row1 = [panel(smooth.resize((full_w, full_h), Image.LANCZOS), 'Hiện nay (ảnh gốc, ô điểm ảnh)'),
-            panel(ai['realesrgan-x4plus'].resize((full_w, full_h), Image.LANCZOS), MODELS[0][1])]
+            panel(ai[full].resize((full_w, full_h), Image.LANCZOS), labels[full])]
 
     x0 = max(0, min(w * 4 - CROP, cx * 4 - CROP // 2))
     y0 = max(0, min(h * 4 - CROP, cy * 4 - CROP // 2))
     box = (x0, y0, x0 + CROP, y0 + CROP)
-    row2 = [panel(smooth.crop(box), 'Phóng to 4x: hiện nay')] + [panel(ai[m].crop(box), t) for m, t in MODELS]
+    row2 = [panel(smooth.crop(box), 'Phóng to 4x: hiện nay')] + [panel(ai[m].crop(box), t) for m, t in models]
 
     width = max(sum(p.width for p in row1) + PAD * (len(row1) - 1), sum(p.width for p in row2) + PAD * (len(row2) - 1))
     title_h = 40
@@ -67,12 +71,17 @@ def scene(goc_dir, ai_dir, name, cx, cy):
 
 
 def main():
-    goc_dir, ai_dir, out_path = sys.argv[1:4]
+    opts = {a.split('=', 1)[0]: a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--')}
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    goc_dir, ai_dir, out_path = args[:3]
+    models = MODELS
+    if '--models' in opts:
+        models = [tuple(m.split(':', 1)) if ':' in m else (m, 'AI: ' + m) for m in opts['--models'].split(',')]
     sheets = []
-    for arg in sys.argv[4:]:
+    for arg in args[3:]:
         name, xy = arg.split(':')
         cx, cy = (int(v) for v in xy.split(','))
-        sheets.append(scene(goc_dir, ai_dir, name, cx, cy))
+        sheets.append(scene(goc_dir, ai_dir, name, cx, cy, models, opts.get('--full')))
     width = max(s.width for s in sheets)
     out = Image.new('RGB', (width, sum(s.height for s in sheets)), (40, 40, 40))
     y = 0

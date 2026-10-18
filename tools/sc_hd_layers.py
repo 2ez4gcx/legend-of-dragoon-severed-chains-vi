@@ -1,11 +1,13 @@
 """sc_hd_layers.py — dựng ảnh nền HD + các lớp tiền cảnh HD cho cảnh (submap) Severed Chains từ ảnh ghép đã upscale x4.
 
 Cách gọi:
-  python tools/sc_hd_layers.py DRGN21_25 DRGN21_37 [--goc work/upscale/goc] [--ai work/upscale/ai] [--out work/upscale/hd]
-Đầu vào mỗi cảnh (tools/sc_bgdump + Real-ESRGAN):
+  python tools/sc_hd_layers.py DRGN21_25 DRGN21_37 [--model realesrgan-x4plus] [--goc work/upscale/goc] [--ai work/upscale/ai]
+         [--out work/upscale/hd]
+Đầu vào mỗi cảnh (tools/sc_bgdump + Real-ESRGAN, hoặc ảnh khuếch tán đã khoá bằng tools/sc_hd_lock.py):
   goc/<cảnh>_bg.png         nền gốc RGBA (alpha 0 = màu 0 trong suốt; dưới mỗi tiền cảnh là màu khoá xanh, KHÔNG upscale riêng)
   goc/<cảnh>_fg<k>.png      tiền cảnh gốc RGBA, alpha 0/255, cùng kích thước nền
-  ai/<cảnh>_realesrgan-x4plus.png   x4 của ảnh ghép goc/<cảnh>_rgb.png (nền + mọi tiền cảnh)
+  ai/<cảnh>_<model>.png     x4 của ảnh ghép goc/<cảnh>_rgb.png (nền + mọi tiền cảnh); --model mặc định realesrgan-x4plus,
+                            ví dụ --model seedvr2 đọc ai/<cảnh>_seedvr2.png do sc_hd_lock.py ghi
 Ra (đúng tên mà tools/sc_hdbg/HdBackgrounds.java nạp):
   out/<cảnh>.png            nền HD = ảnh ghép AI, alpha 255 (chỗ nền gốc trong suốt -> (0,0,0,0))
   out/<cảnh>_fg<k>.png      tiền cảnh HD = ảnh ghép AI trong mặt nạ (alpha gốc phóng 4x kiểu nearest), ngoài mặt nạ (0,0,0,0)
@@ -30,9 +32,13 @@ def up4(mask):
     return np.repeat(np.repeat(mask, 4, 0), 4, 1)
 
 
-def build(scene, goc, ai_dir, out):
+def build(scene, goc, ai_dir, out, model='realesrgan-x4plus'):
     ok = True
-    comp = np.asarray(Image.open(os.path.join(ai_dir, scene + '_realesrgan-x4plus.png')).convert('RGB'))
+    src = os.path.join(ai_dir, '%s_%s.png' % (scene, model))
+    if not os.path.isfile(src):
+        print('LOI %s: khong thay anh AI %s (kiem tra --model)' % (scene, src))
+        return False
+    comp = np.asarray(Image.open(src).convert('RGB'))
     bg0 = np.asarray(Image.open(os.path.join(goc, scene + '_bg.png')).convert('RGBA'))
     h, w = bg0.shape[:2]
     if comp.shape[:2] != (h * 4, w * 4):
@@ -81,12 +87,13 @@ def build(scene, goc, ai_dir, out):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('scenes', nargs='+')
+    ap.add_argument('--model', default='realesrgan-x4plus', help='doc ai/<canh>_<model>.png')
     ap.add_argument('--goc', default=os.path.join(ROOT, 'work', 'upscale', 'goc'))
     ap.add_argument('--ai', default=os.path.join(ROOT, 'work', 'upscale', 'ai'))
     ap.add_argument('--out', default=os.path.join(ROOT, 'work', 'upscale', 'hd'))
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
-    ok = all([build(s, a.goc, a.ai, a.out) for s in a.scenes])
+    ok = all([build(s, a.goc, a.ai, a.out, a.model) for s in a.scenes])
     print('DAT' if ok else 'LOI')
     sys.exit(0 if ok else 1)
 
