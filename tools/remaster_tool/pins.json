@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "note": "Phiên bản ghim của công cụ ngoài cho 'Tạo mô hình HD'. Chỉ tải sau khi người chơi đồng ý; kiểm size + sha256 của zip, sha256 từng file trong file_sha256. Kiểm lại với nguồn chính thức bằng tools/remaster_tool/pincheck.py trước mỗi bản phát hành.",
+  "tools": [
+    {
+      "id": "blender",
+      "name": "Blender",
+      "version": "5.2.2",
+      "url": "https://download.blender.org/release/Blender5.2/blender-5.2.2-windows-x64.zip",
+      "file": "blender-5.2.2-windows-x64.zip",
+      "size": 404453484,
+      "sha256": "3849d17a682cba006075aaa3f3597ecb5c9c30ec31035b2e092c53e40679b535",
+      "sha256_source": "https://download.blender.org/release/Blender5.2/blender-5.2.2.sha256",
+      "root": "blender-5.2.2-windows-x64",
+      "dir": "blender-5.2.2-windows-x64",
+      "extract": null,
+      "file_sha256": {},
+      "exe": "blender.exe",
+      "python": "5.2/python/bin/python.exe",
+      "verify": ["-b", "--factory-startup", "--version"],
+      "expect": "Blender 5.2.2",
+      "installed_size": 957348953,
+      "required": true,
+      "license": "GNU GPL v3",
+      "home": "https://www.blender.org/download/",
+      "host_label": "download.blender.org"
+    },
+    {
+      "id": "realesrgan",
+      "name": "Real-ESRGAN",
+      "version": "v0.2.5.0 (ncnn-vulkan 20220424)",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip",
+      "file": "realesrgan-ncnn-vulkan-20220424-windows.zip",
+      "size": 45474481,
+      "sha256": "abc02804e17982a3be33675e4d471e91ea374e65b70167abc09e31acb412802d",
+      "sha256_source": "GitHub không công bố digest cho asset này (API trả digest null): SHA-256 tự tính trên bản có đúng kích thước asset chính thức",
+      "github_api": "https://api.github.com/repos/xinntao/Real-ESRGAN/releases/tags/v0.2.5.0",
+      "root": "",
+      "dir": "realesrgan",
+      "extract": [
+        "realesrgan-ncnn-vulkan.exe",
+        "vcomp140.dll",
+        "models/realesrgan-x4plus-anime.bin",
+        "models/realesrgan-x4plus-anime.param",
+        "models/realesrgan-x4plus.bin",
+        "models/realesrgan-x4plus.param"
+      ],
+      "file_sha256": {
+        "realesrgan-ncnn-vulkan.exe": "07e49f7cbb4ede01ae4dd4c399d3a7e5846e3d2085c3128eff881e55cb7b1a0c",
+        "vcomp140.dll": "8f72ef2e483465444b2059fc6744d6cb22cd8d8a27f6fa56befd2a42dcd0f78b",
+        "models/realesrgan-x4plus-anime.bin": "fe01c269cfd10cdef8e018ab66ebe750cf79c7af4d1f9c16c737e1295229bacc",
+        "models/realesrgan-x4plus-anime.param": "2b8fb6e0ae4d2d85704ca08c119a2f5ea40add4f2ecd512eb7f4cd44b6127ed4",
+        "models/realesrgan-x4plus.bin": "713ee713b0353afaa27976f0563a64a5043bd70b9bd8936c2e26e25ebcdbcddf",
+        "models/realesrgan-x4plus.param": "35330ececcea33b6c397a72548e788d5d53becee4734c50b7fada36e89f10a86"
+      },
+      "exe": "realesrgan-ncnn-vulkan.exe",
+      "selftest_model": "realesrgan-x4plus-anime",
+      "installed_size": 48858451,
+      "required": false,
+      "license": "BSD-3-Clause",
+      "home": "https://github.com/xinntao/Real-ESRGAN",
+      "host_label": "github.com"
+    }
+  ]
+}

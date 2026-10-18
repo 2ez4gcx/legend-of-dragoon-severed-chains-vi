@@ -1067,6 +1067,26 @@
    }
  
    public static void saveConfig(final ConfigCollection configs, final ConfigStorageLocation storageLocation, final FileData data, final IntRef offset) {
+--- a/src/main/java/legend/game/tmd/TmdObjLoader.java
++++ b/src/main/java/legend/game/tmd/TmdObjLoader.java
+@@ -60,14 +60,16 @@
+   }
+ 
+   public static void fromModel(final String name, final Model124 model, final int textureWidth, final int textureHeight) {
++    final legend.scvi.remaster.RemasterModels.RemasterModel r = legend.scvi.remaster.RemasterModels.find(name, model, textureWidth, textureHeight); // scvi-remaster: [sc-vi] remastered character models (tools/sc_remaster/SPEC.md), null = retail path
+     for(int i = 0; i < model.modelParts_00.length; i++) {
+       final ModelPart10 part = model.modelParts_00[i];
++      final Obj o = r != null ? r.buildPart(i, part.tmd_08) : null; // scvi-remaster: null = retail fromObjTable below
+ 
+       if(part.tmd_08.obj != null) {
+         part.tmd_08.obj.delete();
+       }
+ 
+-      part.tmd_08.obj = TmdObjLoader.fromObjTable(name + " part " + i, part.tmd_08, 0, textureWidth, textureHeight);
++      part.tmd_08.obj = o != null ? o : TmdObjLoader.fromObjTable(name + " part " + i, part.tmd_08, 0, textureWidth, textureHeight); // scvi-remaster
+     }
+   }
+ 
 --- a/src/main/java/legend/game/unpacker/Loader.java
 +++ b/src/main/java/legend/game/unpacker/Loader.java
 @@ -29,6 +29,25 @@
@@ -1122,3 +1142,3157 @@
            } catch(final IOException e) {
              throw new RuntimeException("Failed to load directory " + dir, e);
            }
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/AtlasCache.java
+@@ -0,0 +1,327 @@
++package legend.scvi.remaster;
++
++import legend.core.renderer.Texture;
++import legend.core.renderer.TextureDataFormat;
++import legend.core.renderer.TextureDataType;
++import legend.core.renderer.TextureInternalFormat;
++import org.lwjgl.stb.STBImage;
++import org.lwjgl.system.MemoryStack;
++import org.lwjgl.system.MemoryUtil;
++
++import java.nio.ByteBuffer;
++import java.nio.IntBuffer;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.IdentityHashMap;
++import java.util.Iterator;
++import java.util.Map;
++import java.util.Set;
++
++/**
++ * [sc-vi] Texture atlas HD của mô hình remaster (LRM spec 1 §3.6, §4.2): remaster/textures/&lt;SHA-1 của file&gt;.png.
++ *
++ * Nạp: SHA-1 của byte file = tên, stbi_load_from_memory -&gt; RGBA8, cỡ = w × h của biến thể; đổi alpha theo quy ước file
++ * (A &lt; 64 trong suốt, 64..191 STP = 1, &gt;= 192 STP = 0) sang dạng shader cần (trong suốt (0,0,0,0); STP 0 (R,G,B,0), đen
++ * đổi thành (1,1,1); STP 1 (R,G,B,255)); chuỗi mip trên CPU tới 1×1 (khối 2×2: 2t &gt;= n -&gt; trong suốt; RGB =
++ * floor((Σ + floor(o/2)) / o) trên o texel đục; STP = đa số, hoà -&gt; 1); mức 0 qua Texture.create (RGBA_8,
++ * TextureBuilder.data, NEAREST, CLAMP), mức 1.. qua AtlasUpload. persistent = true (không bị Texture.clearTextureList(false)
++ * xoá khi chuyển cảnh).
++ * Đếm tham chiếu theo chủ sở hữu (trạng thái chung của một lần nạp mô hình): giải phóng khi mọi chủ sở hữu đã xoá
++ * (performDelete của mọi phần), hoặc khi quét lúc đọc lại cấu hình (engine state đổi) thấy chủ sở hữu đã bị xoá / rò.
++ * PNG hỏng / thiếu / sai SHA-1 / sai cỡ -&gt; null (biến thể đó không có bộ ATLAS; lỗi nhớ theo PNG đến lần đọc lại cấu hình).
++ */
++final class AtlasCache {
++  private AtlasCache() { }
++
++  private static final long MAX_PNG = 64L << 20;
++  static final Path DIR = RemasterIndex.DIR.resolve("textures");
++
++  private static final class Entry {
++    final Texture texture;
++    final Set<RemasterMeshObj.ModelState> owners = Collections.newSetFromMap(new IdentityHashMap<>());
++
++    Entry(final Texture texture) {
++      this.texture = texture;
++    }
++  }
++
++  private static final Map<String, Entry> ENTRIES = new HashMap<>();
++  private static final Map<String, String> FAILED = new HashMap<>();
++
++  /** Texture của PNG (nạp nếu chưa có) và ghi nhận chủ sở hữu. Lỗi -&gt; LrmFile.Invalid với lý do. */
++  static synchronized Texture acquire(final byte[] pngSha1, final int w, final int h, final RemasterMeshObj.ModelState owner) throws LrmFile.Invalid {
++    final String hex = RemasterLog.hex(pngSha1);
++    Entry entry = ENTRIES.get(hex);
++    if(entry == null) {
++      final String failed = FAILED.get(hex);
++      if(failed != null) {
++        throw new LrmFile.Invalid(failed);
++      }
++
++      try {
++        entry = new Entry(load(hex, pngSha1, w, h));
++      } catch(final LrmFile.Invalid e) {
++        FAILED.put(hex, e.getMessage());
++        throw e;
++      } catch(final Throwable t) {
++        final String reason = "png " + hex.substring(0, 8) + ": " + RemasterLog.reason(t);
++        FAILED.put(hex, reason);
++        throw new LrmFile.Invalid(reason);
++      }
++
++      ENTRIES.put(hex, entry);
++    } else if(entry.texture.width != w || entry.texture.height != h) {
++      throw new LrmFile.Invalid("png " + hex.substring(0, 8) + " size " + entry.texture.width + 'x' + entry.texture.height + " != " + w + 'x' + h);
++    }
++
++    entry.owners.add(owner);
++    return entry.texture;
++  }
++
++  /** Bỏ mọi tham chiếu của chủ sở hữu; texture không còn ai giữ thì delete(). */
++  static synchronized void release(final RemasterMeshObj.ModelState owner) {
++    for(final Iterator<Entry> it = ENTRIES.values().iterator(); it.hasNext(); ) {
++      final Entry e = it.next();
++      if(e.owners.remove(owner) && e.owners.isEmpty()) {
++        e.texture.delete();
++        it.remove();
++      }
++    }
++  }
++
++  /** Quét chủ sở hữu đã bị xoá / rò (gọi khi đọc lại cấu hình), rồi xoá lỗi đã nhớ. */
++  static synchronized void sweep() {
++    for(final Iterator<Entry> it = ENTRIES.values().iterator(); it.hasNext(); ) {
++      final Entry e = it.next();
++      e.owners.removeIf(owner -> {
++        if(owner.isGone()) {
++          owner.markReleased();
++          return true;
++        }
++        return false;
++      });
++      if(e.owners.isEmpty()) {
++        e.texture.delete();
++        it.remove();
++      }
++    }
++
++    FAILED.clear();
++  }
++
++  static synchronized int size() {
++    return ENTRIES.size();
++  }
++
++  private static Texture load(final String hex, final byte[] sha1, final int w, final int h) throws Exception {
++    final String tag = "png " + hex.substring(0, 8);
++    final Path path = DIR.resolve(hex + ".png");
++    if(!Files.isRegularFile(path)) {
++      throw new LrmFile.Invalid(tag + " missing");
++    }
++
++    if(Files.size(path) > MAX_PNG) {
++      throw new LrmFile.Invalid(tag + " too large");
++    }
++
++    final byte[] bytes = Files.readAllBytes(path);
++    if(!Arrays.equals(GeometryKey.sha1(bytes, 0, bytes.length), sha1)) {
++      throw new LrmFile.Invalid(tag + " sha1 mismatch");
++    }
++
++    final byte[] rgba = decodePng(bytes, w, h, tag);
++    final int[] ws = new int[levelCount(w, h)];
++    final int[] hs = new int[ws.length];
++    final byte[][] mips = runtimeMips(rgba, w, h, ws, hs);
++
++    final ByteBuffer level0 = MemoryUtil.memAlloc(mips[0].length);
++    final Texture texture;
++    try {
++      level0.put(mips[0]).flip();
++      texture = Texture.create("Remaster atlas " + hex.substring(0, 8), builder -> {
++        builder.data(level0, w, h);
++        builder.internalFormat(TextureInternalFormat.RGBA_8);
++        builder.dataFormat(TextureDataFormat.RGBA);
++        builder.dataType(TextureDataType.UBYTE);
++        builder.minFilter(false);
++        builder.magFilter(false);
++        builder.wrapS(false);
++        builder.wrapT(false);
++      });
++    } finally {
++      MemoryUtil.memFree(level0);
++    }
++
++    try {
++      AtlasUpload.forCurrentApi().upload(texture, mips, ws, hs);
++    } catch(final Throwable t) {
++      texture.delete();
++      throw t;
++    }
++
++    texture.persistent = true;
++    return texture;
++  }
++
++  /** PNG -&gt; RGBA8 (stb_image, 4 kênh), kiểm cỡ. */
++  static byte[] decodePng(final byte[] bytes, final int w, final int h, final String tag) throws LrmFile.Invalid {
++    final ByteBuffer src = MemoryUtil.memAlloc(bytes.length);
++    try(final MemoryStack stack = MemoryStack.stackPush()) {
++      src.put(bytes).flip();
++      final IntBuffer x = stack.mallocInt(1);
++      final IntBuffer y = stack.mallocInt(1);
++      final IntBuffer comp = stack.mallocInt(1);
++      final ByteBuffer img = STBImage.stbi_load_from_memory(src, x, y, comp, 4);
++      if(img == null) {
++        throw new LrmFile.Invalid(tag + " decode failed");
++      }
++
++      try {
++        if(x.get(0) != w || y.get(0) != h) {
++          throw new LrmFile.Invalid(tag + " size " + x.get(0) + 'x' + y.get(0) + " != " + w + 'x' + h);
++        }
++
++        final byte[] rgba = new byte[w * h * 4];
++        img.get(0, rgba);
++        return rgba;
++      } finally {
++        STBImage.stbi_image_free(img);
++      }
++    } finally {
++      MemoryUtil.memFree(src);
++    }
++  }
++
++  /** floor(log2(max(w, h))) + 1 mức (tới 1×1). */
++  static int levelCount(final int w, final int h) {
++    return 32 - Integer.numberOfLeadingZeros(Math.max(1, Math.max(w, h)));
++  }
++
++  /**
++   * Chuỗi mip §3.6.3 ở dạng runtime §3.6.2 (RGBA8, hàng đầu = v 0). ws/hs (độ dài = levelCount) nhận cỡ từng mức.
++   * Công khai trong gói để bộ thử so với sample_cube.json (atlas[v].runtimeMips[k].sha1).
++   */
++  static byte[][] runtimeMips(final byte[] rgbaFile, final int w0, final int h0, final int[] ws, final int[] hs) {
++    final int levels = ws.length;
++    final byte[][] out = new byte[levels][];
++
++    // mức 0 theo quy ước file: lớp 0 trong suốt, 1 STP = 0, 2 STP = 1; RGB của texel trong suốt = 0
++    int w = w0;
++    int h = h0;
++    byte[] cls = new byte[w * h];
++    byte[] rgb = new byte[w * h * 3];
++    for(int i = 0; i < w * h; i++) {
++      final int a = rgbaFile[i * 4 + 3] & 0xff;
++      final byte c = (byte)(a < 64 ? 0 : a < 192 ? 2 : 1);
++      cls[i] = c;
++      if(c != 0) {
++        rgb[i * 3] = rgbaFile[i * 4];
++        rgb[i * 3 + 1] = rgbaFile[i * 4 + 1];
++        rgb[i * 3 + 2] = rgbaFile[i * 4 + 2];
++      }
++    }
++
++    for(int level = 0; level < levels; level++) {
++      ws[level] = w;
++      hs[level] = h;
++      out[level] = toRuntime(cls, rgb, w * h);
++
++      if(level == levels - 1) {
++        break;
++      }
++
++      final int w2 = Math.max(1, w / 2);
++      final int h2 = Math.max(1, h / 2);
++      final byte[] cls2 = new byte[w2 * h2];
++      final byte[] rgb2 = new byte[w2 * h2 * 3];
++
++      for(int y = 0; y < h2; y++) {
++        for(int x = 0; x < w2; x++) {
++          int n = 0;
++          int t = 0;
++          int stp1 = 0;
++          int sr = 0;
++          int sg = 0;
++          int sb = 0;
++
++          for(int j = 0; j < 2; j++) {
++            final int yy = 2 * y + j;
++            if(yy >= h) {
++              continue;
++            }
++
++            for(int i = 0; i < 2; i++) {
++              final int xx = 2 * x + i;
++              if(xx >= w) {
++                continue;
++              }
++
++              final int p = yy * w + xx;
++              n++;
++              if(cls[p] == 0) {
++                t++;
++              } else {
++                sr += rgb[p * 3] & 0xff;
++                sg += rgb[p * 3 + 1] & 0xff;
++                sb += rgb[p * 3 + 2] & 0xff;
++                if(cls[p] == 2) {
++                  stp1++;
++                }
++              }
++            }
++          }
++
++          final int q = y * w2 + x;
++          if(2 * t >= n) {
++            continue; // trong suốt (cls 0, RGB 0)
++          }
++
++          final int o = n - t;
++          rgb2[q * 3] = (byte)((sr + o / 2) / o);
++          rgb2[q * 3 + 1] = (byte)((sg + o / 2) / o);
++          rgb2[q * 3 + 2] = (byte)((sb + o / 2) / o);
++          cls2[q] = (byte)(stp1 >= o - stp1 ? 2 : 1);
++        }
++      }
++
++      w = w2;
++      h = h2;
++      cls = cls2;
++      rgb = rgb2;
++    }
++
++    return out;
++  }
++
++  private static byte[] toRuntime(final byte[] cls, final byte[] rgb, final int n) {
++    final byte[] out = new byte[n * 4];
++    for(int i = 0; i < n; i++) {
++      final int c = cls[i];
++      if(c == 0) {
++        continue;
++      }
++
++      byte r = rgb[i * 3];
++      byte g = rgb[i * 3 + 1];
++      byte b = rgb[i * 3 + 2];
++      if(c == 1) {
++        if(r == 0 && g == 0 && b == 0) {
++          r = 1;
++          g = 1;
++          b = 1;
++        }
++        out[i * 4 + 3] = 0;
++      } else {
++        out[i * 4 + 3] = (byte)255;
++      }
++
++      out[i * 4] = r;
++      out[i * 4 + 1] = g;
++      out[i * 4 + 2] = b;
++    }
++    return out;
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/AtlasUpload.java
+@@ -0,0 +1,54 @@
++package legend.scvi.remaster;
++
++import legend.core.renderer.Texture;
++
++import java.lang.reflect.Field;
++
++import static legend.core.GameEngine.RENDERER;
++
++/**
++ * [sc-vi] Tải mức mip 1..n-1 của atlas lên GPU sau khi Texture.create đã tải mức 0 (LRM spec 1 §3.6.4): ngay sau create
++ * gọi glActiveTexture(GL_TEXTURE0) (texture vừa tạo đang gắn ở đơn vị 0), glTexImage2D từng mức, BASE/MAX_LEVEL,
++ * MIN_FILTER = NEAREST_MIPMAP_NEAREST, MAG_FILTER = NEAREST, WRAP = CLAMP_TO_EDGE.
++ *
++ * Bản cài chọn theo lớp của RENDERER.api(): GlesApi -&gt; AtlasUploadGles (GLES30), GlApi -&gt; AtlasUploadGl (GL11C/12C/13C);
++ * nạp bằng tên lớp (phản chiếu) để lớp của binding không dùng không bao giờ được nạp. API khác (NoopApi trong bộ thử
++ * không GL) -&gt; NONE: chỉ có mức 0, bộ lọc NEAREST mặc định của Texture.
++ */
++interface AtlasUpload {
++  /** levels[k] = RGBA8 hàng đầu = v 0, cỡ w[k] × h[k]; levels[0] đã được tải bởi Texture.create. */
++  void upload(Texture texture, byte[][] levels, int[] w, int[] h);
++
++  AtlasUpload NONE = (texture, levels, w, h) -> { };
++
++  static AtlasUpload forCurrentApi() {
++    for(Class<?> c = RENDERER.api().getClass(); c != null; c = c.getSuperclass()) {
++      final String impl = switch(c.getName()) {
++        case "legend.core.renderer.opengles.GlesApi" -> "legend.scvi.remaster.AtlasUploadGles";
++        case "legend.core.renderer.opengl.GlApi" -> "legend.scvi.remaster.AtlasUploadGl";
++        default -> null;
++      };
++
++      if(impl != null) {
++        try {
++          return (AtlasUpload)Class.forName(impl).getDeclaredConstructor().newInstance();
++        } catch(final ReflectiveOperationException e) {
++          throw new IllegalStateException("cannot load " + impl, e);
++        }
++      }
++    }
++
++    return NONE;
++  }
++
++  /** Tên GL của GlTexture/GlesTexture (trường gói "id"), -1 nếu không đọc được. */
++  static int textureId(final Texture texture) {
++    try {
++      final Field f = texture.getClass().getDeclaredField("id");
++      f.setAccessible(true);
++      return f.getInt(texture);
++    } catch(final Throwable t) {
++      return -1;
++    }
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/AtlasUploadGl.java
+@@ -0,0 +1,62 @@
++package legend.scvi.remaster;
++
++import legend.core.renderer.Texture;
++import org.lwjgl.system.MemoryUtil;
++
++import java.nio.ByteBuffer;
++
++import static org.lwjgl.opengl.GL11C.GL_NEAREST;
++import static org.lwjgl.opengl.GL11C.GL_NEAREST_MIPMAP_NEAREST;
++import static org.lwjgl.opengl.GL11C.GL_RGBA;
++import static org.lwjgl.opengl.GL11C.GL_RGBA8;
++import static org.lwjgl.opengl.GL11C.GL_TEXTURE_2D;
++import static org.lwjgl.opengl.GL11C.GL_TEXTURE_BINDING_2D;
++import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MAG_FILTER;
++import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MIN_FILTER;
++import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
++import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_T;
++import static org.lwjgl.opengl.GL11C.GL_UNSIGNED_BYTE;
++import static org.lwjgl.opengl.GL11C.glBindTexture;
++import static org.lwjgl.opengl.GL11C.glGetInteger;
++import static org.lwjgl.opengl.GL11C.glTexImage2D;
++import static org.lwjgl.opengl.GL11C.glTexParameteri;
++import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
++import static org.lwjgl.opengl.GL12C.GL_TEXTURE_BASE_LEVEL;
++import static org.lwjgl.opengl.GL12C.GL_TEXTURE_MAX_LEVEL;
++import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
++import static org.lwjgl.opengl.GL13C.glActiveTexture;
++
++/**
++ * [sc-vi] AtlasUpload cho OpenGL (PC). Chỉ được nạp (bằng tên lớp) khi RENDERER.api() là GlApi. Xem AtlasUpload.
++ */
++final class AtlasUploadGl implements AtlasUpload {
++  @Override
++  public void upload(final Texture texture, final byte[][] levels, final int[] w, final int[] h) {
++    glActiveTexture(GL_TEXTURE0);
++
++    // Texture.create vừa gắn texture ở đơn vị 0 (bộ nhớ đệm gắn của SC cũng ghi như vậy); gắn lại tường minh cho chắc
++    final int id = AtlasUpload.textureId(texture);
++    if(id > 0) {
++      glBindTexture(GL_TEXTURE_2D, id);
++    } else if(glGetInteger(GL_TEXTURE_BINDING_2D) == 0) {
++      throw new IllegalStateException("atlas texture is not bound on unit 0");
++    }
++
++    for(int k = 1; k < levels.length; k++) {
++      final ByteBuffer buf = MemoryUtil.memAlloc(levels[k].length);
++      try {
++        buf.put(levels[k]).flip();
++        glTexImage2D(GL_TEXTURE_2D, k, GL_RGBA8, w[k], h[k], 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
++      } finally {
++        MemoryUtil.memFree(buf);
++      }
++    }
++
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels.length - 1);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/AtlasUploadGles.java
+@@ -0,0 +1,62 @@
++package legend.scvi.remaster;
++
++import legend.core.renderer.Texture;
++import org.lwjgl.system.MemoryUtil;
++
++import java.nio.ByteBuffer;
++
++import static org.lwjgl.opengles.GLES20.GL_CLAMP_TO_EDGE;
++import static org.lwjgl.opengles.GLES20.GL_NEAREST;
++import static org.lwjgl.opengles.GLES20.GL_NEAREST_MIPMAP_NEAREST;
++import static org.lwjgl.opengles.GLES20.GL_RGBA;
++import static org.lwjgl.opengles.GLES20.GL_TEXTURE0;
++import static org.lwjgl.opengles.GLES20.GL_TEXTURE_2D;
++import static org.lwjgl.opengles.GLES20.GL_TEXTURE_BINDING_2D;
++import static org.lwjgl.opengles.GLES20.GL_TEXTURE_MAG_FILTER;
++import static org.lwjgl.opengles.GLES20.GL_TEXTURE_MIN_FILTER;
++import static org.lwjgl.opengles.GLES20.GL_TEXTURE_WRAP_S;
++import static org.lwjgl.opengles.GLES20.GL_TEXTURE_WRAP_T;
++import static org.lwjgl.opengles.GLES20.GL_UNSIGNED_BYTE;
++import static org.lwjgl.opengles.GLES20.glActiveTexture;
++import static org.lwjgl.opengles.GLES20.glBindTexture;
++import static org.lwjgl.opengles.GLES20.glGetInteger;
++import static org.lwjgl.opengles.GLES20.glTexImage2D;
++import static org.lwjgl.opengles.GLES20.glTexParameteri;
++import static org.lwjgl.opengles.GLES30.GL_RGBA8;
++import static org.lwjgl.opengles.GLES30.GL_TEXTURE_BASE_LEVEL;
++import static org.lwjgl.opengles.GLES30.GL_TEXTURE_MAX_LEVEL;
++
++/**
++ * [sc-vi] AtlasUpload cho OpenGL ES 3 (Android, và run_sc.ps1 -Gles trên PC). Chỉ được nạp (bằng tên lớp) khi
++ * RENDERER.api() là GlesApi. Xem AtlasUpload.
++ */
++final class AtlasUploadGles implements AtlasUpload {
++  @Override
++  public void upload(final Texture texture, final byte[][] levels, final int[] w, final int[] h) {
++    glActiveTexture(GL_TEXTURE0);
++
++    final int id = AtlasUpload.textureId(texture);
++    if(id > 0) {
++      glBindTexture(GL_TEXTURE_2D, id);
++    } else if(glGetInteger(GL_TEXTURE_BINDING_2D) == 0) {
++      throw new IllegalStateException("atlas texture is not bound on unit 0");
++    }
++
++    for(int k = 1; k < levels.length; k++) {
++      final ByteBuffer buf = MemoryUtil.memAlloc(levels[k].length);
++      try {
++        buf.put(levels[k]).flip();
++        glTexImage2D(GL_TEXTURE_2D, k, GL_RGBA8, w[k], h[k], 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
++      } finally {
++        MemoryUtil.memFree(buf);
++      }
++    }
++
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels.length - 1);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/FaceVerify.java
+@@ -0,0 +1,203 @@
++package legend.scvi.remaster;
++
++import legend.game.tmd.UvAdjustmentMetrics14;
++import legend.game.types.Model124;
++
++import java.nio.ByteBuffer;
++import java.nio.ByteOrder;
++
++import static legend.core.GameEngine.GPU;
++
++/**
++ * [sc-vi] FaceHash (LRM spec 1 §3.3) và tập mặt LIVE theo mô hình (§3.4 a-c) của mọi mặt có texture, đánh số theo
++ * "textured face index" toàn cục (phần theo thứ tự, rồi gói có texture theo thứ tự đã làm phẳng; kể cả phần mode 0).
++ *
++ * FaceHash: hộp bao uv live (umin..umax × vmin..vmax, gồm hai đầu), vòng ngoài v, vòng trong u; bpp 0: chỉ số 4 bit trong
++ * word V[tpY+v][tpX+(u&gt;&gt;2)], px = V[cy][cx+idx]; bpp 1: 8 bit; bpp 2: px = V[tpY+v][tpX+u]; mọi lần đọc bọc
++ * (x &amp; 1023, y &amp; 511); px = 16 bit gồm STP (Gpu.getPixel15). FNV-1a 32: h = 0x811C9DC5; mỗi px: h ^= px &amp; 0xff;
++ * h *= 0x01000193; h ^= px &gt;&gt;&gt; 8; h *= 0x01000193; kết quả 0 đổi thành 1. Mặt bpp 3 không băm (trả 0).
++ * tpage/clut/uv lấy lúc fromModel (giá trị live mà lưới đang vẽ dùng).
++ */
++final class FaceVerify {
++  /** Nguồn VRAM 1024×512 u16 (toạ độ đã bọc). */
++  interface Vram {
++    int pixel15(int x, int y);
++  }
++
++  static final Vram GPU_VRAM = (x, y) -> GPU.getPixel15(x, y);
++
++  final int count;
++  final int[] tpage;
++  final int[] clut;
++  final int[] umin;
++  final int[] umax;
++  final int[] vmin;
++  final int[] vmax;
++
++  FaceVerify(final SrcFaces[] parts) {
++    int n = 0;
++    for(final SrcFaces p : parts) {
++      n += p.texturedCount;
++    }
++
++    this.count = n;
++    this.tpage = new int[n];
++    this.clut = new int[n];
++    this.umin = new int[n];
++    this.umax = new int[n];
++    this.vmin = new int[n];
++    this.vmax = new int[n];
++
++    int g = 0;
++    for(final SrcFaces p : parts) {
++      for(int f = 0; f < p.count; f++) {
++        if(!p.textured[f]) {
++          continue;
++        }
++
++        this.tpage[g] = p.tpage[f];
++        this.clut[g] = p.clut[f];
++        int u0 = 255;
++        int u1 = 0;
++        int v0 = 255;
++        int v1 = 0;
++        for(int k = 0; k < p.vc[f]; k++) {
++          u0 = Math.min(u0, p.u[f * 4 + k]);
++          u1 = Math.max(u1, p.u[f * 4 + k]);
++          v0 = Math.min(v0, p.v[f * 4 + k]);
++          v1 = Math.max(v1, p.v[f * 4 + k]);
++        }
++        this.umin[g] = u0;
++        this.umax[g] = u1;
++        this.vmin[g] = v0;
++        this.vmax[g] = v1;
++        g++;
++      }
++    }
++  }
++
++  int bpp(final int g) {
++    return this.tpage[g] >>> 7 & 3;
++  }
++
++  /** FaceHash §3.3.4 của mặt g; 0 nếu bpp 3. */
++  int hash(final int g, final Vram vram) {
++    final int bpp = this.bpp(g);
++    if(bpp == 3) {
++      return 0;
++    }
++
++    final int tp = this.tpage[g];
++    final int tpX = (tp & 0xf) * 64;
++    final int tpY = (tp & 0x10) != 0 ? 256 : 0;
++    final int cx = (this.clut[g] & 0x3f) * 16;
++    final int cy = this.clut[g] >>> 6;
++    int h = 0x811c9dc5;
++
++    for(int v = this.vmin[g]; v <= this.vmax[g]; v++) {
++      final int y = tpY + v & 511;
++      for(int u = this.umin[g]; u <= this.umax[g]; u++) {
++        final int px;
++        if(bpp == 0) {
++          final int idx = vram.pixel15(tpX + (u >> 2) & 1023, y) >> ((u & 3) * 4) & 0xf;
++          px = vram.pixel15(cx + idx & 1023, cy & 511) & 0xffff;
++        } else if(bpp == 1) {
++          final int idx = vram.pixel15(tpX + (u >> 1) & 1023, y) >> ((u & 1) * 8) & 0xff;
++          px = vram.pixel15(cx + idx & 1023, cy & 511) & 0xffff;
++        } else {
++          px = vram.pixel15(tpX + u & 1023, y) & 0xffff;
++        }
++
++        h ^= px & 0xff;
++        h *= 0x01000193;
++        h ^= px >>> 8;
++        h *= 0x01000193;
++      }
++    }
++
++    return h != 0 ? h : 1;
++  }
++
++  /** Véc-tơ FaceHash thô của mọi mặt (bpp 3 = 0), §3.3.6. */
++  int[] vector(final Vram vram) {
++    final int[] out = new int[this.count];
++    for(int g = 0; g < this.count; g++) {
++      out[g] = this.hash(g, vram);
++    }
++    return out;
++  }
++
++  /** SHA-1 của u32 LE nối tiếp (§3.3.6), 40 hex thường. */
++  static String vectorSha1(final int[] hashes) {
++    final ByteBuffer buf = ByteBuffer.allocate(hashes.length * 4).order(ByteOrder.LITTLE_ENDIAN);
++    for(final int h : hashes) {
++      buf.putInt(h);
++    }
++    return RemasterLog.hex(GeometryKey.sha1(buf.array(), 0, buf.position()));
++  }
++
++  /**
++   * LIVE theo mô hình (§3.4): a) clutAnimations_a4 != null =&gt; mọi mặt; b) uvAdjustments_9d != NONE và rect đích của
++   * animationMetrics_d0[i] (i &lt; 7, length &gt;= 5: x = m1 + tpageX, y = m2 + tpageY, w = m3 / 4, h = m4; rỗng khi w &lt;= 0 hoặc
++   * h &lt;= 0) giao dấu chân word VRAM của mặt; c) bpp live = 3.
++   */
++  boolean[] liveModel(final Model124 model) {
++    final boolean[] live = new boolean[this.count];
++    if(model.clutAnimations_a4 != null) {
++      java.util.Arrays.fill(live, true);
++      return live;
++    }
++
++    final int[][] rects = animRects(model);
++    for(int g = 0; g < this.count; g++) {
++      final int bpp = this.bpp(g);
++      if(bpp == 3) {
++        live[g] = true;
++        continue;
++      }
++
++      final int sh = bpp == 0 ? 2 : bpp == 1 ? 1 : 0;
++      final int tpX = (this.tpage[g] & 0xf) * 64;
++      final int tpY = (this.tpage[g] & 0x10) != 0 ? 256 : 0;
++      final int fx0 = tpX + (this.umin[g] >> sh);
++      final int fx1 = tpX + (this.umax[g] >> sh);
++      final int fy0 = tpY + this.vmin[g];
++      final int fy1 = tpY + this.vmax[g];
++
++      for(final int[] r : rects) {
++        if(fx0 < r[0] + r[2] && r[0] <= fx1 && fy0 < r[1] + r[3] && r[1] <= fy1) {
++          live[g] = true;
++          break;
++        }
++      }
++    }
++
++    return live;
++  }
++
++  /** Rect đích hoạt cảnh texture (§3.4 b), chỉ rect không rỗng. */
++  static int[][] animRects(final Model124 model) {
++    final UvAdjustmentMetrics14 uv = model.uvAdjustments_9d;
++    if(uv == null || uv == UvAdjustmentMetrics14.NONE) {
++      return new int[0][];
++    }
++
++    final java.util.List<int[]> out = new java.util.ArrayList<>();
++    for(int i = 0; i < 7 && i < model.animationMetrics_d0.length; i++) {
++      final short[] m = model.animationMetrics_d0[i];
++      if(m == null || m.length < 5) {
++        continue;
++      }
++
++      final int x = m[1] + uv.tpageX;
++      final int y = m[2] + uv.tpageY;
++      final int w = m[3] / 4;
++      final int h = m[4];
++      if(w > 0 && h > 0) {
++        out.add(new int[] {x, y, w, h});
++      }
++    }
++
++    return out.toArray(int[][]::new);
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/GeometryKey.java
+@@ -0,0 +1,155 @@
++package legend.scvi.remaster;
++
++import legend.game.tmd.TmdObjTable1c;
++import org.joml.Vector3f;
++
++import java.nio.ByteBuffer;
++import java.nio.ByteOrder;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++
++/**
++ * [sc-vi] Khoá hình học LRMK1 (LRM spec 1 §3.1), tính từ TmdObjTable1c trong bộ nhớ lúc fromModel (sau
++ * Models.updateTmdPacketIlen và UvAdjustmentMetrics14 — các byte bị ghi đè đều bị loại khỏi khoá).
++ *
++ * partKey_i = SHA-1( 'P' ‖ u32 n_vert ‖ (s16 x, y, z)[n_vert] ‖ u32 n_normal ‖ (s16 x, y, z)[n_normal] ‖ u32 nPackets ‖
++ *                    mỗi gói đã làm phẳng: u32 (header run &amp; 0xffff0000) ‖ [có texture: u8 abr = (u16 data[6] &gt;&gt;&gt; 5) &amp; 3 ‖
++ *                    data[4*vc ..]] | [không texture: data[0 ..]] )
++ *   đỉnh: (short)Math.round(vert_top_00[k].x) …; pháp tuyến: (short)Math.round(normal_top_08[k].x * 4096f) …
++ * modelKey = SHA-1( "LRMK1" ‖ u16 partCount ‖ partKey_0 ‖ … ). Mọi số nguyên little-endian.
++ * Chỉ đọc, không bao giờ sửa dữ liệu của TmdObjTable1c.
++ */
++public final class GeometryKey {
++  private GeometryKey() { }
++
++  private static MessageDigest sha1() {
++    try {
++      return MessageDigest.getInstance("SHA-1");
++    } catch(final NoSuchAlgorithmException e) {
++      throw new IllegalStateException(e);
++    }
++  }
++
++  /** Số gói đã làm phẳng của phần (= srcFaceCount). */
++  public static int packetCount(final TmdObjTable1c table) {
++    int n = 0;
++    for(final TmdObjTable1c.Primitive run : table.primitives_10) {
++      n += run.data().length;
++    }
++    return n;
++  }
++
++  /** Số gói có texture (bit 0x04 của id) của phần. */
++  public static int texturedCount(final TmdObjTable1c table) {
++    int n = 0;
++    for(final TmdObjTable1c.Primitive run : table.primitives_10) {
++      if((run.header() >>> 24 & 0x4) != 0) {
++        n += run.data().length;
++      }
++    }
++    return n;
++  }
++
++  /** [g] = mặt có texture thứ g (chỉ số toàn cục: phần theo thứ tự, rồi gói đã làm phẳng) là tứ giác (bit 0x08 của id). */
++  static boolean[] texturedQuads(final TmdObjTable1c[] tables, final int texturedCount) {
++    final boolean[] out = new boolean[texturedCount];
++    int g = 0;
++    for(final TmdObjTable1c table : tables) {
++      for(final TmdObjTable1c.Primitive run : table.primitives_10) {
++        final int id = run.header() >>> 24;
++        if((id & 0x4) != 0) {
++          for(int k = 0; k < run.data().length; k++) {
++            out[g++] = (id & 0x8) != 0;
++          }
++        }
++      }
++    }
++    return out;
++  }
++
++  public static byte[] partKey(final TmdObjTable1c table) {
++    final Vector3f[] verts = table.vert_top_00;
++    final Vector3f[] normals = table.normal_top_08;
++
++    long size = 1 + 4 + 6L * verts.length + 4 + 6L * normals.length + 4;
++    for(final TmdObjTable1c.Primitive run : table.primitives_10) {
++      final int header = run.header() & 0xffff_0000;
++      final int id = header >>> 24;
++      final boolean textured = (id & 0x4) != 0;
++      final int vc = (id & 0x8) != 0 ? 4 : 3;
++
++      for(final byte[] data : run.data()) {
++        size += 4;
++        if(textured) {
++          if(data.length < Math.max(8, 4 * vc)) {
++            throw new IllegalStateException("textured packet too short");
++          }
++          size += 1 + data.length - 4L * vc;
++        } else {
++          size += data.length;
++        }
++      }
++    }
++
++    if(size > Integer.MAX_VALUE - 16) {
++      throw new IllegalStateException("part too large for key");
++    }
++
++    final ByteBuffer buf = ByteBuffer.allocate((int)size).order(ByteOrder.LITTLE_ENDIAN);
++    buf.put((byte)'P');
++    buf.putInt(verts.length);
++    for(final Vector3f v : verts) {
++      buf.putShort((short)Math.round(v.x));
++      buf.putShort((short)Math.round(v.y));
++      buf.putShort((short)Math.round(v.z));
++    }
++
++    buf.putInt(normals.length);
++    for(final Vector3f n : normals) {
++      buf.putShort((short)Math.round(n.x * 4096.0f));
++      buf.putShort((short)Math.round(n.y * 4096.0f));
++      buf.putShort((short)Math.round(n.z * 4096.0f));
++    }
++
++    buf.putInt(packetCount(table));
++    for(final TmdObjTable1c.Primitive run : table.primitives_10) {
++      final int header = run.header() & 0xffff_0000;
++      final int id = header >>> 24;
++      final boolean textured = (id & 0x4) != 0;
++      final int vc = (id & 0x8) != 0 ? 4 : 3;
++
++      for(final byte[] data : run.data()) {
++        buf.putInt(header);
++        if(textured) {
++          final int tpage = data[6] & 0xff | (data[7] & 0xff) << 8;
++          buf.put((byte)(tpage >>> 5 & 3));
++          buf.put(data, 4 * vc, data.length - 4 * vc);
++        } else {
++          buf.put(data);
++        }
++      }
++    }
++
++    final MessageDigest md = sha1();
++    md.update(buf.array(), 0, buf.position());
++    return md.digest();
++  }
++
++  public static byte[] modelKey(final byte[][] partKeys) {
++    final MessageDigest md = sha1();
++    md.update("LRMK1".getBytes(StandardCharsets.US_ASCII));
++    md.update((byte)(partKeys.length & 0xff));
++    md.update((byte)(partKeys.length >>> 8 & 0xff));
++    for(final byte[] k : partKeys) {
++      md.update(k);
++    }
++    return md.digest();
++  }
++
++  static byte[] sha1(final byte[] data, final int off, final int len) {
++    final MessageDigest md = sha1();
++    md.update(data, off, len);
++    return md.digest();
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/LrmFile.java
+@@ -0,0 +1,560 @@
++package legend.scvi.remaster;
++
++import java.io.IOException;
++import java.lang.ref.SoftReference;
++import java.nio.ByteBuffer;
++import java.nio.ByteOrder;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.Arrays;
++import java.util.HashMap;
++import java.util.Map;
++import java.util.zip.DataFormatException;
++import java.util.zip.Inflater;
++
++/**
++ * [sc-vi] Bộ đọc file LRM1 remaster/models/&lt;modelKey&gt;.lrm (LRM spec 1 §3.5) với mọi kiểm tra bắt buộc của §3.5.4.
++ *
++ * Header 0x40 byte (LE): 'LRM1', u16 version 1, u16 flags (bit 0 = thân zlib), u8[20] modelKey, u16 partCount (1..64),
++ * u16 variantCount (0..4), u32 bodySize (&lt;= 256 MiB, sau giải nén), u8 level (0..2), u8[3] 0, char[24] generator (ASCII
++ * 0x20..0x7e, đệm 0). Thân: part[partCount] (28 byte mode 0; mode 1: + u32 P, C, T + f32 pos[P][3] + corner[C] 32 byte +
++ * u32 tri[T][3]) rồi variant[variantCount] (u8[20] pngSha1, u16 w, u16 h, u32 n, u32 faceHash[n], f32 atlasUv[n][4][2]).
++ *
++ * Kiểm: header; thân đúng bodySize (nén: luồng kết thúc đúng cuối file, giải đúng bodySize byte); thân bị cắt / thừa byte
++ * (kiểm cắt TRƯỚC khi cấp phát theo số đếm trong file); SHA-1('LRMK1' ‖ partCount ‖ partKeys) = modelKey = khoá runtime,
++ * partKey từng phần = runtime; partCount = số phần runtime (kiểm trước khi đánh chỉ số theo phần); srcFaceCount = runtime;
++ * mode; giới hạn P/C/T; float hữu hạn; chỉ số corner.pos/srcFace/tri; role; byte 0 / dự trữ; nearestTmdVertex &lt; n_vert;
++ * ba corner một tam giác cùng srcFace; tam giác xếp theo srcFace tăng dần; w/h luỹ thừa 2 &lt;= 2048; texturedFaceCount
++ * = runtime và như nhau ở mọi biến thể; atlasUv hữu hạn trong [0, 1] (trừ góc thứ 4 của mặt tam giác: §3.5.4 không kiểm, cần
++ * Runtime.texturedQuad; không có thì kiểm cả góc đó).
++ * Sai một điều => Invalid (cả mô hình đi đường gốc). Kết quả đọc được giữ trong cache SoftReference theo khoá; lỗi được nhớ
++ * theo khoá đến lần đọc lại cấu hình kế tiếp.
++ */
++public final class LrmFile {
++  public static final int HEADER_SIZE = 0x40;
++  public static final int MAX_PARTS = 64;
++  public static final int MAX_VARIANTS = 4;
++  public static final int MAX_PCT = 200_000;
++  public static final int MAX_BODY = 0x1000_0000;
++  public static final int MAX_TEX = 2048;
++  /** Cỡ file tối đa chấp nhận (thân không nén tối đa + dư cho luồng zlib). */
++  private static final long MAX_FILE = HEADER_SIZE + (long)MAX_BODY + (1L << 20);
++
++  /** File / chỉ mục không hợp lệ: thông điệp là lý do ngắn (ASCII). */
++  public static final class Invalid extends Exception {
++    public Invalid(final String message) {
++      super(message);
++    }
++  }
++
++  /** Số liệu runtime của mô hình đang nạp để đối chiếu. */
++  public static final class Runtime {
++    final byte[] modelKey;
++    final byte[][] partKeys;
++    final int[] srcFaceCounts;
++    final int[] nVerts;
++    final int texturedFaceCount;
++    /** [g] = mặt có texture g là tứ giác; null = không biết (khi đó kiểm cả góc thứ 4 của mọi mặt). */
++    final boolean[] texturedQuad;
++
++    public Runtime(final byte[] modelKey, final byte[][] partKeys, final int[] srcFaceCounts, final int[] nVerts, final int texturedFaceCount) {
++      this(modelKey, partKeys, srcFaceCounts, nVerts, texturedFaceCount, null);
++    }
++
++    public Runtime(final byte[] modelKey, final byte[][] partKeys, final int[] srcFaceCounts, final int[] nVerts, final int texturedFaceCount, final boolean[] texturedQuad) {
++      this.modelKey = modelKey;
++      this.partKeys = partKeys;
++      this.srcFaceCounts = srcFaceCounts;
++      this.nVerts = nVerts;
++      this.texturedFaceCount = texturedFaceCount;
++      this.texturedQuad = texturedQuad != null && texturedQuad.length == texturedFaceCount ? texturedQuad : null;
++    }
++  }
++
++  public static final class Part {
++    public final byte[] key;
++    public final int srcFaceCount;
++    public final int mode;
++    public final int pCount;
++    public final int cCount;
++    public final int tCount;
++    /** f32[P][3] */
++    public final float[] pos;
++    public final int[] cornerPos;
++    /** f32[C][3] */
++    public final float[] cornerNormal;
++    public final int[] cornerSrc;
++    public final int[] cornerS;
++    public final int[] cornerT;
++    public final int[] cornerNear;
++    public final byte[] cornerRole;
++    /** u32[T][3] */
++    public final int[] tri;
++
++    Part(final byte[] key, final int srcFaceCount, final int mode, final int p, final int c, final int t, final float[] pos, final int[] cornerPos, final float[] cornerNormal, final int[] cornerSrc, final int[] cornerS, final int[] cornerT, final int[] cornerNear, final byte[] cornerRole, final int[] tri) {
++      this.key = key;
++      this.srcFaceCount = srcFaceCount;
++      this.mode = mode;
++      this.pCount = p;
++      this.cCount = c;
++      this.tCount = t;
++      this.pos = pos;
++      this.cornerPos = cornerPos;
++      this.cornerNormal = cornerNormal;
++      this.cornerSrc = cornerSrc;
++      this.cornerS = cornerS;
++      this.cornerT = cornerT;
++      this.cornerNear = cornerNear;
++      this.cornerRole = cornerRole;
++      this.tri = tri;
++    }
++  }
++
++  public static final class Variant {
++    public final byte[] pngSha1;
++    public final int w;
++    public final int h;
++    public final int[] faceHash;
++    /** f32[n][4][2] */
++    public final float[] atlasUv;
++
++    Variant(final byte[] pngSha1, final int w, final int h, final int[] faceHash, final float[] atlasUv) {
++      this.pngSha1 = pngSha1;
++      this.w = w;
++      this.h = h;
++      this.faceHash = faceHash;
++      this.atlasUv = atlasUv;
++    }
++  }
++
++  public final byte[] modelKey;
++  public final int level;
++  public final String generator;
++  public final boolean deflated;
++  public final Part[] parts;
++  public final Variant[] variants;
++
++  private LrmFile(final byte[] modelKey, final int level, final String generator, final boolean deflated, final Part[] parts, final Variant[] variants) {
++    this.modelKey = modelKey;
++    this.level = level;
++    this.generator = generator;
++    this.deflated = deflated;
++    this.parts = parts;
++    this.variants = variants;
++  }
++
++  // ---------------------------------------------------------------- cache
++
++  private static final Map<String, SoftReference<LrmFile>> CACHE = new HashMap<>();
++  private static final Map<String, String> FAILED = new HashMap<>();
++
++  static synchronized void clearCache() {
++    CACHE.clear();
++    FAILED.clear();
++  }
++
++  /** Đọc + kiểm file của khoá (cache theo khoá). Lỗi => Invalid (lý do được nhớ đến lần đọc lại cấu hình). */
++  static LrmFile load(final String keyHex, final Runtime runtime) throws Invalid {
++    synchronized(LrmFile.class) {
++      final String failed = FAILED.get(keyHex);
++      if(failed != null) {
++        throw new Invalid(failed);
++      }
++
++      final SoftReference<LrmFile> ref = CACHE.get(keyHex);
++      final LrmFile cached = ref != null ? ref.get() : null;
++      if(cached != null) {
++        try {
++          cached.checkRuntime(runtime);
++          return cached;
++        } catch(final Invalid e) {
++          FAILED.put(keyHex, e.getMessage());
++          throw e;
++        }
++      }
++    }
++
++    final LrmFile file;
++    try {
++      file = read(RemasterIndex.modelPath(keyHex), runtime);
++    } catch(final Invalid e) {
++      synchronized(LrmFile.class) {
++        FAILED.put(keyHex, e.getMessage());
++      }
++      throw e;
++    } catch(final IOException | RuntimeException | OutOfMemoryError e) {
++      final String reason = RemasterLog.reason(e);
++      synchronized(LrmFile.class) {
++        FAILED.put(keyHex, reason);
++      }
++      throw new Invalid(reason);
++    }
++
++    synchronized(LrmFile.class) {
++      CACHE.put(keyHex, new SoftReference<>(file));
++    }
++    return file;
++  }
++
++  static LrmFile read(final Path path, final Runtime runtime) throws IOException, Invalid {
++    if(!Files.isRegularFile(path)) {
++      throw new Invalid("lrm file missing");
++    }
++
++    if(Files.size(path) > MAX_FILE) {
++      throw new Invalid("lrm file too large");
++    }
++
++    return parse(Files.readAllBytes(path), runtime);
++  }
++
++  /** Kiểm số liệu runtime (gọi cả khi lấy từ cache; rẻ). */
++  void checkRuntime(final Runtime rt) throws Invalid {
++    if(!Arrays.equals(this.modelKey, rt.modelKey)) {
++      throw new Invalid("modelKey != runtime key");
++    }
++
++    if(this.parts.length != rt.partKeys.length || this.parts.length != rt.srcFaceCounts.length || this.parts.length != rt.nVerts.length) {
++      throw new Invalid("partCount " + this.parts.length + " != runtime " + rt.partKeys.length);
++    }
++
++    for(int i = 0; i < this.parts.length; i++) {
++      final Part p = this.parts[i];
++      if(!Arrays.equals(p.key, rt.partKeys[i])) {
++        throw new Invalid("partKey " + i + " != runtime");
++      }
++
++      if(p.srcFaceCount != rt.srcFaceCounts[i]) {
++        throw new Invalid("part " + i + " srcFaceCount " + Integer.toUnsignedString(p.srcFaceCount) + " != runtime " + rt.srcFaceCounts[i]);
++      }
++
++      if(p.mode == 1) {
++        for(int c = 0; c < p.cCount; c++) {
++          if(p.cornerNear[c] >= rt.nVerts[i]) {
++            throw new Invalid("part " + i + " nearestTmdVertex >= n_vert");
++          }
++        }
++      }
++    }
++
++    for(final Variant v : this.variants) {
++      if(v.faceHash.length != rt.texturedFaceCount) {
++        throw new Invalid("texturedFaceCount " + v.faceHash.length + " != runtime " + rt.texturedFaceCount);
++      }
++    }
++  }
++
++  // ---------------------------------------------------------------- đọc
++
++  /** Đọc + kiểm toàn bộ §3.5.4 với số liệu runtime. */
++  public static LrmFile parse(final byte[] file, final Runtime runtime) throws Invalid {
++    if(file.length < HEADER_SIZE) {
++      throw new Invalid("file shorter than header");
++    }
++
++    final ByteBuffer head = ByteBuffer.wrap(file, 0, HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN);
++    if(file[0] != 'L' || file[1] != 'R' || file[2] != 'M' || file[3] != '1') {
++      throw new Invalid("bad magic");
++    }
++
++    final int version = head.getShort(4) & 0xffff;
++    final int flags = head.getShort(6) & 0xffff;
++    if(version != 1) {
++      throw new Invalid("version " + version + " != 1");
++    }
++
++    if((flags & ~1) != 0) {
++      throw new Invalid("unknown flags");
++    }
++
++    final byte[] modelKey = Arrays.copyOfRange(file, 0x08, 0x1c);
++    final int partCount = head.getShort(0x1c) & 0xffff;
++    final int variantCount = head.getShort(0x1e) & 0xffff;
++    final long bodySize = head.getInt(0x20) & 0xffff_ffffL;
++    final int level = file[0x24] & 0xff;
++    if(file[0x25] != 0 || file[0x26] != 0 || file[0x27] != 0) {
++      throw new Invalid("header reserved bytes != 0");
++    }
++
++    int genLen = 24;
++    while(genLen > 0 && file[0x28 + genLen - 1] == 0) {
++      genLen--;
++    }
++    for(int i = 0; i < genLen; i++) {
++      final int c = file[0x28 + i] & 0xff;
++      if(c < 0x20 || c > 0x7e) {
++        throw new Invalid("generator is not zero-padded ASCII");
++      }
++    }
++    final String generator = new String(file, 0x28, genLen, StandardCharsets.US_ASCII);
++
++    if(partCount < 1 || partCount > MAX_PARTS) {
++      throw new Invalid("partCount " + partCount + " outside 1..64");
++    }
++
++    if(variantCount > MAX_VARIANTS) {
++      throw new Invalid("variantCount " + variantCount + " > 4");
++    }
++
++    if(level > 2) {
++      throw new Invalid("level " + level + " > 2");
++    }
++
++    if(bodySize > MAX_BODY) {
++      throw new Invalid("bodySize > 256 MiB");
++    }
++
++    if(runtime != null) {
++      if(!Arrays.equals(modelKey, runtime.modelKey)) {
++        throw new Invalid("modelKey != runtime key");
++      }
++
++      if(partCount != runtime.partKeys.length || partCount != runtime.srcFaceCounts.length || partCount != runtime.nVerts.length) {
++        throw new Invalid("partCount " + partCount + " != runtime " + runtime.partKeys.length);
++      }
++    }
++
++    final boolean deflated = (flags & 1) != 0;
++    final ByteBuffer body;
++    if(deflated) {
++      body = ByteBuffer.wrap(inflate(file, (int)bodySize)).order(ByteOrder.LITTLE_ENDIAN);
++    } else {
++      if(file.length - HEADER_SIZE != bodySize) {
++        throw new Invalid("bodySize " + bodySize + " != " + (file.length - HEADER_SIZE) + " remaining bytes");
++      }
++      body = ByteBuffer.wrap(file, HEADER_SIZE, file.length - HEADER_SIZE).slice().order(ByteOrder.LITTLE_ENDIAN);
++    }
++
++    final Part[] parts = new Part[partCount];
++    final byte[][] partKeys = new byte[partCount][];
++    for(int pi = 0; pi < partCount; pi++) {
++      need(body, 28, "part " + pi);
++      final byte[] key = new byte[20];
++      body.get(key);
++      partKeys[pi] = key;
++      final int sfc = body.getInt();
++      final int mode = body.get() & 0xff;
++      if(body.get() != 0 || body.get() != 0 || body.get() != 0) {
++        throw new Invalid("part " + pi + " reserved bytes != 0");
++      }
++
++      if(mode != 0 && mode != 1) {
++        throw new Invalid("part " + pi + " mode " + mode);
++      }
++
++      if(runtime != null && sfc != runtime.srcFaceCounts[pi]) {
++        throw new Invalid("part " + pi + " srcFaceCount " + Integer.toUnsignedString(sfc) + " != runtime " + runtime.srcFaceCounts[pi]);
++      }
++
++      if(mode == 0) {
++        parts[pi] = new Part(key, sfc, 0, 0, 0, 0, null, null, null, null, null, null, null, null, null);
++        continue;
++      }
++
++      need(body, 12, "part " + pi + " counts");
++      final long p = body.getInt() & 0xffff_ffffL;
++      final long c = body.getInt() & 0xffff_ffffL;
++      final long t = body.getInt() & 0xffff_ffffL;
++      if(p > MAX_PCT || c > MAX_PCT || t > MAX_PCT) {
++        throw new Invalid("part " + pi + " P/C/T > 200000");
++      }
++
++      if(p < 1 || c < 3 || t < 1) {
++        throw new Invalid("part " + pi + " mode 1 with empty P/C/T");
++      }
++
++      final int P = (int)p;
++      final int C = (int)c;
++      final int T = (int)t;
++      need(body, 12L * P + 32L * C + 12L * T, "part " + pi + " arrays");
++
++      final float[] pos = new float[P * 3];
++      for(int i = 0; i < pos.length; i++) {
++        pos[i] = body.getFloat();
++        if(!Float.isFinite(pos[i])) {
++          throw new Invalid("part " + pi + " pos not finite");
++        }
++      }
++
++      final int[] cPos = new int[C];
++      final float[] cN = new float[C * 3];
++      final int[] cSrc = new int[C];
++      final int[] cS = new int[C];
++      final int[] cT = new int[C];
++      final int[] cNear = new int[C];
++      final byte[] cRole = new byte[C];
++      final long unsignedSfc = sfc & 0xffff_ffffL;
++      for(int i = 0; i < C; i++) {
++        cPos[i] = body.getInt();
++        cN[i * 3] = body.getFloat();
++        cN[i * 3 + 1] = body.getFloat();
++        cN[i * 3 + 2] = body.getFloat();
++        cSrc[i] = body.getInt();
++        cS[i] = body.getShort() & 0xffff;
++        cT[i] = body.getShort() & 0xffff;
++        cNear[i] = body.getShort() & 0xffff;
++        cRole[i] = body.get();
++        final byte zero = body.get();
++        final int reserved = body.getInt();
++
++        if(Integer.compareUnsigned(cPos[i], P) >= 0) {
++          throw new Invalid("part " + pi + " corner.pos out of range");
++        }
++
++        if(!Float.isFinite(cN[i * 3]) || !Float.isFinite(cN[i * 3 + 1]) || !Float.isFinite(cN[i * 3 + 2])) {
++          throw new Invalid("part " + pi + " normal not finite");
++        }
++
++        if((cSrc[i] & 0xffff_ffffL) >= unsignedSfc) {
++          throw new Invalid("part " + pi + " corner.srcFace out of range");
++        }
++
++        if((cRole[i] & 0xff) > 2 || zero != 0 || reserved != 0) {
++          throw new Invalid("part " + pi + " corner role/reserved bytes");
++        }
++
++        if(runtime != null && cNear[i] >= runtime.nVerts[pi]) {
++          throw new Invalid("part " + pi + " nearestTmdVertex >= n_vert");
++        }
++      }
++
++      final int[] tri = new int[T * 3];
++      int lastSrc = 0;
++      for(int i = 0; i < T; i++) {
++        final int a = body.getInt();
++        final int b = body.getInt();
++        final int d = body.getInt();
++        if(Integer.compareUnsigned(a, C) >= 0 || Integer.compareUnsigned(b, C) >= 0 || Integer.compareUnsigned(d, C) >= 0) {
++          throw new Invalid("part " + pi + " tri index out of range");
++        }
++
++        final int src = cSrc[a];
++        if(cSrc[b] != src || cSrc[d] != src) {
++          throw new Invalid("part " + pi + " triangle corners have different srcFace");
++        }
++
++        if(Integer.compareUnsigned(src, lastSrc) < 0) {
++          throw new Invalid("part " + pi + " triangles not sorted by srcFace");
++        }
++
++        lastSrc = src;
++        tri[i * 3] = a;
++        tri[i * 3 + 1] = b;
++        tri[i * 3 + 2] = d;
++      }
++
++      parts[pi] = new Part(key, sfc, 1, P, C, T, pos, cPos, cN, cSrc, cS, cT, cNear, cRole, tri);
++    }
++
++    final byte[] integrity = GeometryKey.modelKey(partKeys);
++    if(!Arrays.equals(integrity, modelKey)) {
++      throw new Invalid("modelKey != SHA-1(LRMK1 + partKeys)");
++    }
++
++    if(runtime != null) {
++      for(int pi = 0; pi < partCount; pi++) {
++        if(!Arrays.equals(partKeys[pi], runtime.partKeys[pi])) {
++          throw new Invalid("partKey " + pi + " != runtime");
++        }
++      }
++    }
++
++    final Variant[] variants = new Variant[variantCount];
++    int texturedCount = -1;
++    for(int vi = 0; vi < variantCount; vi++) {
++      need(body, 28, "variant " + vi);
++      final byte[] sha = new byte[20];
++      body.get(sha);
++      final int w = body.getShort() & 0xffff;
++      final int h = body.getShort() & 0xffff;
++      final long n = body.getInt() & 0xffff_ffffL;
++      if(w < 1 || h < 1 || w > MAX_TEX || h > MAX_TEX || (w & w - 1) != 0 || (h & h - 1) != 0) {
++        throw new Invalid("variant " + vi + " size " + w + 'x' + h + " not a power of two <= 2048");
++      }
++
++      need(body, 36L * n, "variant " + vi + " (texturedFaceCount " + n + ')');
++
++      if(texturedCount >= 0 && n != texturedCount) {
++        throw new Invalid("variant " + vi + " texturedFaceCount differs from variant 0");
++      }
++
++      texturedCount = (int)n;
++      if(runtime != null && n != runtime.texturedFaceCount) {
++        throw new Invalid("variant " + vi + " texturedFaceCount " + n + " != runtime " + runtime.texturedFaceCount);
++      }
++
++      final int[] faceHash = new int[(int)n];
++      for(int i = 0; i < faceHash.length; i++) {
++        faceHash[i] = body.getInt();
++      }
++
++      final float[] uv = new float[(int)n * 8];
++      final boolean[] quad = runtime != null ? runtime.texturedQuad : null;
++      for(int i = 0; i < uv.length; i++) {
++        final float f = body.getFloat();
++        // §3.5.4 "không kiểm": atlasUv góc thứ 4 (float 6, 7 của mặt) của mặt TAM GIÁC — bộ ghi đặt (0, 0), runtime không đọc
++        final boolean unchecked = quad != null && (i & 7) >= 6 && !quad[i >>> 3];
++        if(!unchecked && (!Float.isFinite(f) || f < 0.0f || f > 1.0f)) {
++          throw new Invalid("variant " + vi + " atlasUv outside [0,1]");
++        }
++        uv[i] = f;
++      }
++
++      variants[vi] = new Variant(sha, w, h, faceHash, uv);
++    }
++
++    if(body.hasRemaining()) {
++      throw new Invalid(body.remaining() + " trailing body bytes");
++    }
++
++    return new LrmFile(modelKey, level, generator, deflated, parts, variants);
++  }
++
++  private static void need(final ByteBuffer body, final long n, final String what) throws Invalid {
++    if(n < 0 || n > body.remaining()) {
++      throw new Invalid("body truncated at " + what);
++    }
++  }
++
++  /** Giải thân zlib: phải ra đúng bodySize byte, luồng kết thúc, không thừa byte đầu vào. Bộ đệm lớn dần (không cấp trước bodySize). */
++  private static byte[] inflate(final byte[] file, final int bodySize) throws Invalid {
++    final Inflater inf = new Inflater();
++    try {
++      inf.setInput(file, HEADER_SIZE, file.length - HEADER_SIZE);
++      final int cap = bodySize + 1;
++      byte[] buf = new byte[Math.min(cap, Math.max(4096, (file.length - HEADER_SIZE) * 4))];
++      int n = 0;
++
++      while(true) {
++        if(n == buf.length) {
++          if(buf.length >= cap) {
++            break;
++          }
++          buf = Arrays.copyOf(buf, (int)Math.min(cap, buf.length * 2L));
++        }
++
++        final int k = inf.inflate(buf, n, buf.length - n);
++        n += k;
++
++        if(inf.finished()) {
++          break;
++        }
++
++        if(k == 0 && (inf.needsInput() || inf.needsDictionary())) {
++          throw new Invalid("deflate stream truncated");
++        }
++      }
++
++      if(!inf.finished() || n != bodySize || inf.getRemaining() != 0) {
++        throw new Invalid("deflate body does not match bodySize / trailing bytes");
++      }
++
++      return n == buf.length ? buf : Arrays.copyOf(buf, n);
++    } catch(final DataFormatException e) {
++      throw new Invalid("deflate error");
++    } finally {
++      inf.end();
++    }
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/RemasterBuilder.java
+@@ -0,0 +1,307 @@
++package legend.scvi.remaster;
++
++import legend.core.renderer.Translucency;
++import legend.game.tmd.TmdObjLoader;
++
++/**
++ * [sc-vi] Dựng mảng đỉnh / chỉ số của một phần mode 1 (LRM spec 1 §3.2, §4.3). Thuần tính toán (không GL).
++ *
++ * Lớp lưới của mặt như getTranslucencySizes; thứ tự opaque, untextured translucent, Translucency theo ordinal, chỉ lớp có ít
++ * nhất một tam giác remaster, rồi ĐẢO (TmdObjLoader.java:324-326). Đỉnh của lớp L = mọi corner (chỉ số tăng dần) có
++ * lớp(srcFace) = L, 16 float mỗi đỉnh (bố cục createMesh); chỉ số = tam giác theo thứ tự file có lớp L, phát [a, a, b, a, c, a]
++ * (không QUAD_FLAG nên tmd.gsh chỉ dùng đỉnh 0, 2, 4). Bộ VRAM và mọi bộ ATLAS cùng thứ tự đỉnh và chung mảng chỉ số; bộ
++ * ATLAS chỉ khác float 7-9 của mặt có texture không LIVE: uv = I(atlasUv), tpage' = (tpage &amp; ~0x180) | 0x180.
++ *
++ * Phép f32 theo §3.2.2 (mỗi phép làm tròn float, không FMA): s = S / 65535f, t = T / 65535f; tam giác: nếu s + t &gt; 1 thì
++ * t = 1 - s, w = ((1 - s) - t, s, t); tứ giác: w = ((1-s)(1-t), s(1-t), (1-s)t, st); I(x) = ((w0 x0 + w1 x1) + w2 x2) [+ w3 x3].
++ */
++final class RemasterBuilder {
++  private RemasterBuilder() { }
++
++  static final int STRIDE = TmdObjLoader.VERTEX_SIZE;
++
++  /** Một lưới (một lớp) đã tính sẵn. */
++  static final class MeshData {
++    final int meshClass;
++    final boolean textured;
++    final boolean translucent;
++    final Translucency translucency;
++    final float[] vertices;
++    final int[] indices;
++
++    MeshData(final int meshClass, final boolean textured, final boolean translucent, final Translucency translucency, final float[] vertices, final int[] indices) {
++      this.meshClass = meshClass;
++      this.textured = textured;
++      this.translucent = translucent;
++      this.translucency = translucency;
++      this.vertices = vertices;
++      this.indices = indices;
++    }
++
++    String className() {
++      return switch(this.meshClass) {
++        case SrcFaces.CLASS_OPAQUE -> "opaque";
++        case SrcFaces.CLASS_UNTEXTURED_TRANSLUCENT -> "untextured translucent";
++        default -> this.translucency.toString();
++      };
++    }
++  }
++
++  /** Các bộ lưới của một phần: vram luôn có; atlas[v] = null khi biến thể v không dùng được. */
++  static final class PartSets {
++    final MeshData[] vram;
++    final MeshData[][] atlas;
++    final boolean backfaceCulling;
++
++    PartSets(final MeshData[] vram, final MeshData[][] atlas, final boolean backfaceCulling) {
++      this.vram = vram;
++      this.atlas = atlas;
++      this.backfaceCulling = backfaceCulling;
++    }
++  }
++
++  /**
++   * Bộ VRAM của phần (luôn dựng). texBase = chỉ số toàn cục của mặt có texture đầu tiên của phần. tw/th = kích thước
++   * texture PNG ghi đè của SC (0 nếu không có; mặt bpp 3 cần khác 0 như TmdObjLoader).
++   */
++  static MeshData[] buildVram(final SrcFaces faces, final LrmFile.Part part, final int tw, final int th) {
++    final int corners = part.cCount;
++    final int tris = part.tCount;
++
++    // lớp của từng corner / tam giác
++    final int[] cornerClass = new int[corners];
++    for(int c = 0; c < corners; c++) {
++      cornerClass[c] = faces.meshClass[part.cornerSrc[c]];
++    }
++
++    final boolean[] present = new boolean[SrcFaces.CLASS_COUNT];
++    for(int t = 0; t < tris; t++) {
++      present[cornerClass[part.tri[t * 3]]] = true;
++    }
++
++    int classCount = 0;
++    for(final boolean p : present) {
++      if(p) {
++        classCount++;
++      }
++    }
++
++    final MeshData[] out = new MeshData[classCount];
++    int slot = classCount - 1; // thứ tự lớp tăng dần rồi đảo => ghi từ cuối mảng
++    final int[] local = new int[corners];
++    final float[] w = new float[4];
++
++    for(int cls = 0; cls < SrcFaces.CLASS_COUNT; cls++) {
++      if(!present[cls]) {
++        continue;
++      }
++
++      int vertexCount = 0;
++      for(int c = 0; c < corners; c++) {
++        if(cornerClass[c] == cls) {
++          local[c] = vertexCount++;
++        } else {
++          local[c] = -1;
++        }
++      }
++
++      final float[] vertices = new float[vertexCount * STRIDE];
++      int o = 0;
++      for(int c = 0; c < corners; c++) {
++        if(cornerClass[c] != cls) {
++          continue;
++        }
++
++        writeVertex(vertices, o, faces, part, c, tw, th, w);
++        o += STRIDE;
++      }
++
++      int triCount = 0;
++      for(int t = 0; t < tris; t++) {
++        if(cornerClass[part.tri[t * 3]] == cls) {
++          triCount++;
++        }
++      }
++
++      final int[] indices = new int[triCount * 6];
++      int k = 0;
++      for(int t = 0; t < tris; t++) {
++        if(cornerClass[part.tri[t * 3]] != cls) {
++          continue;
++        }
++
++        final int a = local[part.tri[t * 3]];
++        final int b = local[part.tri[t * 3 + 1]];
++        final int d = local[part.tri[t * 3 + 2]];
++        indices[k++] = a;
++        indices[k++] = a;
++        indices[k++] = b;
++        indices[k++] = a;
++        indices[k++] = d;
++        indices[k++] = a;
++      }
++
++      final boolean textured;
++      final boolean translucent;
++      final Translucency translucency;
++      if(cls == SrcFaces.CLASS_OPAQUE) {
++        textured = faces.anyTextured;
++        translucent = false;
++        translucency = null;
++      } else if(cls == SrcFaces.CLASS_UNTEXTURED_TRANSLUCENT) {
++        textured = false;
++        translucent = true;
++        translucency = null;
++      } else {
++        textured = faces.anyTextured;
++        translucent = true;
++        translucency = Translucency.values()[cls - 2];
++      }
++
++      out[slot--] = new MeshData(cls, textured, translucent, translucency, vertices, indices);
++    }
++
++    return out;
++  }
++
++  /**
++   * Bộ ATLAS của một biến thể từ bộ VRAM: chép mảng đỉnh, sửa float 7-9 của corner thuộc mặt có texture không LIVE
++   * (live[g] theo biến thể: LIVE a-c của mô hình hoặc faceHash[g] == 0). atlasUv = f32[n][4][2] của biến thể.
++   */
++  static MeshData[] buildAtlas(final MeshData[] vram, final SrcFaces faces, final LrmFile.Part part, final int texBase, final boolean[] live, final float[] atlasUv) {
++    // chỉ số toàn cục của từng mặt có texture trong phần
++    final int[] texIndex = new int[faces.count];
++    int g = texBase;
++    for(int f = 0; f < faces.count; f++) {
++      texIndex[f] = faces.textured[f] ? g++ : -1;
++    }
++
++    final MeshData[] out = new MeshData[vram.length];
++    final float[] w = new float[4];
++    for(int m = 0; m < vram.length; m++) {
++      final MeshData src = vram[m];
++      final float[] vertices = src.vertices.clone();
++      int o = 0;
++      for(int c = 0; c < part.cCount; c++) {
++        if(faces.meshClass[part.cornerSrc[c]] != src.meshClass) {
++          continue;
++        }
++
++        final int f = part.cornerSrc[c];
++        final int tg = texIndex[f];
++        if(tg >= 0 && !live[tg]) {
++          final int vc = faces.vc[f];
++          weights(part.cornerS[c], part.cornerT[c], faces.quad[f], w);
++          final int base = tg * 8;
++          vertices[o + 7] = interp(w, vc, atlasUv[base], atlasUv[base + 2], atlasUv[base + 4], atlasUv[base + 6]);
++          vertices[o + 8] = interp(w, vc, atlasUv[base + 1], atlasUv[base + 3], atlasUv[base + 5], atlasUv[base + 7]);
++          vertices[o + 9] = (faces.tpage[f] & ~0x180) | 0x180;
++        }
++
++        o += STRIDE;
++      }
++
++      out[m] = new MeshData(src.meshClass, src.textured, src.translucent, src.translucency, vertices, src.indices);
++    }
++
++    return out;
++  }
++
++  /** 16 float của corner c (§3.2.3). */
++  private static void writeVertex(final float[] out, final int o, final SrcFaces faces, final LrmFile.Part part, final int c, final int tw, final int th, final float[] w) {
++    final int f = part.cornerSrc[c];
++    final int vc = faces.vc[f];
++    final int p = part.cornerPos[c] * 3;
++    weights(part.cornerS[c], part.cornerT[c], faces.quad[f], w);
++
++    out[o] = part.pos[p];
++    out[o + 1] = part.pos[p + 1];
++    out[o + 2] = part.pos[p + 2];
++    out[o + 3] = part.cornerNear[c];
++
++    if(faces.lit[f]) {
++      out[o + 4] = part.cornerNormal[c * 3];
++      out[o + 5] = part.cornerNormal[c * 3 + 1];
++      out[o + 6] = part.cornerNormal[c * 3 + 2];
++    }
++
++    if(faces.textured[f]) {
++      final int b = f * 4;
++      float u = interp(w, vc, faces.u[b], faces.u[b + 1], faces.u[b + 2], faces.u[b + 3]);
++      float v = interp(w, vc, faces.v[b], faces.v[b + 1], faces.v[b + 2], faces.v[b + 3]);
++
++      if(faces.bpp(f) == 3) {
++        if((tw | th) == 0) {
++          throw new RuntimeException("24bpp textures must have texture width/height specified");
++        }
++
++        u = u / tw;
++        v = v / th;
++      }
++
++      out[o + 7] = u;
++      out[o + 8] = v;
++      out[o + 9] = faces.tpage[f];
++      out[o + 10] = faces.clut[f];
++    }
++
++    if(faces.coloured[f]) {
++      final int b = f * 4;
++      final boolean textured = faces.textured[f];
++      for(int ch = 0; ch < 4; ch++) {
++        final int shift = ch * 8; // r = byte 0, g = 1, b = 2, m = 3 (MathHelper.colourToFloat)
++        out[o + 11 + ch] = interp(w, vc,
++          channel(faces.colour[b], shift, textured),
++          channel(faces.colour[b + 1], shift, textured),
++          channel(faces.colour[b + 2], shift, textured),
++          channel(faces.colour[b + 3], shift, textured));
++      }
++    } else {
++      out[o + 11] = 1.0f;
++      out[o + 12] = 1.0f;
++      out[o + 13] = 1.0f;
++      out[o + 14] = 1.0f;
++    }
++
++    out[o + 15] = faces.flags[f] & ~TmdObjLoader.QUAD_FLAG;
++  }
++
++  /** c_k của một kênh: byte / 255f, × 2f nếu mặt có texture (nhân trước khi nội suy). */
++  private static float channel(final int colour, final int shift, final boolean textured) {
++    final float x = (colour >>> shift & 0xff) / 255.0f;
++    return textured ? x * 2.0f : x;
++  }
++
++  /** Trọng số §3.2.2 vào w[0..3]. */
++  static void weights(final int S, final int T, final boolean quad, final float[] w) {
++    final float s = (float)S / 65535.0f;
++    float t = (float)T / 65535.0f;
++
++    if(quad) {
++      w[0] = (1.0f - s) * (1.0f - t);
++      w[1] = s * (1.0f - t);
++      w[2] = (1.0f - s) * t;
++      w[3] = s * t;
++    } else {
++      if(s + t > 1.0f) {
++        t = 1.0f - s;
++      }
++
++      w[0] = (1.0f - s) - t;
++      w[1] = s;
++      w[2] = t;
++      w[3] = 0.0f;
++    }
++  }
++
++  /** I(x) = ((w0 x0 + w1 x1) + w2 x2) [+ w3 x3], mỗi phép làm tròn f32. */
++  static float interp(final float[] w, final int vc, final float x0, final float x1, final float x2, final float x3) {
++    float acc = w[0] * x0;
++    acc = acc + w[1] * x1;
++    acc = acc + w[2] * x2;
++    if(vc == 4) {
++      acc = acc + w[3] * x3;
++    }
++    return acc;
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/RemasterConfig.java
+@@ -0,0 +1,177 @@
++package legend.scvi.remaster;
++
++import legend.game.EngineStates;
++
++import java.io.ByteArrayInputStream;
++import java.io.InputStream;
++import java.lang.ref.WeakReference;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.Locale;
++import java.util.Properties;
++
++/**
++ * [sc-vi] Công tắc mô hình HD (LRM spec 1 §3.7).
++ *
++ * Thứ tự ưu tiên: thuộc tính -Dscvi.remaster=off|geometry|full, rồi &lt;game&gt;/remaster.properties
++ * (java.util.Properties: enabled=true|false (thiếu = false), textures=hd|retail (thiếu = hd), log=true|false (thiếu = false);
++ * BOM UTF-8 ở đầu file được bỏ qua), rồi tắt. geometry = enabled + textures=retail (chỉ bộ VRAM); full = enabled + textures=hd.
++ * Nhật ký chi tiết: -Dscvi.remasterLog=true|false, nếu không có thì log= trong remaster.properties.
++ * Thư mục game = thư mục làm việc của tiến trình (như vi/files, lang/ của sc-vi). Thiếu remaster/index.tsv hoặc chỉ mục sai
++ * định dạng => tắt.
++ *
++ * Cấu hình và chỉ mục được đọc lại (kèm xoá cache LRM, quét AtlasCache, đặt lại nhật ký) khi đối tượng
++ * EngineStates.currentEngineState_8004dd04 đổi (so theo danh tính) — tức là mỗi lần chuyển cảnh lớn (trường / trận / bản đồ).
++ * Chế độ off không đọc chỉ mục và không ghi log.
++ */
++public final class RemasterConfig {
++  public enum Mode { OFF, GEOMETRY, FULL }
++
++  static final Path PROPERTIES = Path.of("remaster.properties");
++  /** Cỡ tối đa của remaster.properties (vài dòng là đủ). */
++  private static final long MAX_PROPERTIES = 1L << 20;
++
++  final Mode mode;
++  final boolean log;
++  /** null = không có chỉ mục dùng được (tính năng tắt). */
++  final RemasterIndex index;
++
++  private RemasterConfig(final Mode mode, final boolean log, final RemasterIndex index) {
++    this.mode = mode;
++    this.log = log;
++    this.index = index;
++  }
++
++  /** Bật (geometry/full) và có chỉ mục. */
++  boolean active() {
++    return this.mode != Mode.OFF && this.index != null;
++  }
++
++  private static boolean loaded;
++  private static WeakReference<Object> lastState;
++  private static RemasterConfig current;
++
++  /** Cấu hình hiện tại; đọc lại khi engine state đổi. Không bao giờ ném. */
++  static synchronized RemasterConfig current() {
++    final Object state = EngineStates.currentEngineState_8004dd04;
++    final Object last = lastState != null ? lastState.get() : null;
++
++    if(!loaded || last != state) {
++      loaded = true;
++      lastState = state != null ? new WeakReference<>(state) : null;
++      current = load();
++
++      try {
++        RemasterModels.onConfigReload(current);
++      } catch(final Throwable t) {
++        RemasterLog.warn("reload hook failed: %s", RemasterLog.reason(t));
++      }
++    }
++
++    return current;
++  }
++
++  private static RemasterConfig load() {
++    try {
++      return load0();
++    } catch(final Throwable t) {
++      return new RemasterConfig(Mode.OFF, false, null);
++    }
++  }
++
++  private static RemasterConfig load0() {
++    Properties props = null;
++    String propsError = null;
++
++    try {
++      if(Files.isRegularFile(PROPERTIES)) {
++        if(Files.size(PROPERTIES) > MAX_PROPERTIES) {
++          throw new java.io.IOException("file too large");
++        }
++
++        // bỏ BOM UTF-8 ở đầu (Notepad cũ / PowerShell 5.1 "-Encoding utf8" ghi BOM): nếu không, khoá đầu tiên thành
++        // "<3 byte BOM>enabled" và tính năng tắt mà không có dòng log nào
++        final byte[] bytes = Files.readAllBytes(PROPERTIES);
++        final int skip = bytes.length >= 3 && (bytes[0] & 0xff) == 0xef && (bytes[1] & 0xff) == 0xbb && (bytes[2] & 0xff) == 0xbf ? 3 : 0;
++        final Properties p = new Properties();
++        try(final InputStream in = new ByteArrayInputStream(bytes, skip, bytes.length - skip)) {
++          p.load(in);
++        }
++        props = p;
++      }
++    } catch(final Throwable t) {
++      propsError = RemasterLog.reason(t);
++    }
++
++    Mode mode = Mode.OFF;
++    String warning = null;
++    final String sysMode = System.getProperty("scvi.remaster");
++
++    if(sysMode != null) {
++      switch(sysMode.trim().toLowerCase(Locale.ROOT)) {
++        case "off" -> mode = Mode.OFF;
++        case "geometry" -> mode = Mode.GEOMETRY;
++        case "full" -> mode = Mode.FULL;
++        default -> warning = "unknown -Dscvi.remaster=" + sysMode + " (expected off|geometry|full), feature off";
++      }
++    } else if(props != null) {
++      if(bool(props.getProperty("enabled"), false)) {
++        final String textures = props.getProperty("textures");
++        if(textures == null || "hd".equalsIgnoreCase(textures.trim())) {
++          mode = Mode.FULL;
++        } else if("retail".equalsIgnoreCase(textures.trim())) {
++          mode = Mode.GEOMETRY;
++        } else {
++          mode = Mode.GEOMETRY;
++          warning = "unknown textures=" + textures + " in remaster.properties (expected hd|retail), using retail";
++        }
++      }
++    } else if(propsError != null) {
++      warning = "cannot read remaster.properties: " + propsError + ", feature off";
++    }
++
++    final String sysLog = System.getProperty("scvi.remasterLog");
++    final boolean log = sysLog != null ? bool(sysLog, false) : props != null && bool(props.getProperty("log"), false);
++
++    if(warning != null) {
++      RemasterLog.warn("%s", warning);
++    }
++
++    if(mode == Mode.OFF) {
++      return new RemasterConfig(Mode.OFF, log, null);
++    }
++
++    RemasterIndex index = null;
++    try {
++      index = RemasterIndex.load();
++      if(index == null) {
++        RemasterLog.warn("mode=%s but %s is missing, feature off", mode.name().toLowerCase(Locale.ROOT), RemasterIndex.FILE);
++      }
++    } catch(final Throwable t) {
++      RemasterLog.warn("mode=%s but %s is invalid (%s), feature off", mode.name().toLowerCase(Locale.ROOT), RemasterIndex.FILE, RemasterLog.reason(t));
++    }
++
++    if(index != null) {
++      RemasterLog.info("config mode=%s log=%s index=%d model(s)", mode.name().toLowerCase(Locale.ROOT), log, index.size());
++    }
++
++    return new RemasterConfig(mode, log, index);
++  }
++
++  private static boolean bool(final String value, final boolean fallback) {
++    if(value == null) {
++      return fallback;
++    }
++
++    final String v = value.trim();
++    if("true".equalsIgnoreCase(v)) {
++      return true;
++    }
++
++    if("false".equalsIgnoreCase(v)) {
++      return false;
++    }
++
++    return fallback;
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/RemasterIndex.java
+@@ -0,0 +1,97 @@
++package legend.scvi.remaster;
++
++import java.io.IOException;
++import java.nio.ByteBuffer;
++import java.nio.charset.CharacterCodingException;
++import java.nio.charset.CodingErrorAction;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.HashMap;
++import java.util.Map;
++import java.util.regex.Pattern;
++
++/**
++ * [sc-vi] Chỉ mục mô hình HD remaster/index.tsv (LRM spec 1 §3.7).
++ *
++ * UTF-8 (giải mã chặt, không BOM), xuống dòng LF. Dòng 1 đúng "LRMINDEX\t1"; mỗi dòng sau không rỗng:
++ * "&lt;modelKey&gt;\tmodels/&lt;modelKey&gt;.lrm\t&lt;nhãn&gt;" (khoá = 40 hex thường, nhãn không chứa TAB/CR/LF). Dòng rỗng bỏ
++ * qua; một dòng sai định dạng => coi như không có chỉ mục (tắt cả tính năng). Bộ sinh ghi file này cuối cùng (điểm commit).
++ */
++final class RemasterIndex {
++  static final Path DIR = Path.of("remaster");
++  static final Path FILE = DIR.resolve("index.tsv");
++  /** Giới hạn cỡ file chỉ mục (vài nghìn dòng là tối đa thực tế). */
++  private static final long MAX_SIZE = 16L << 20;
++  private static final Pattern KEY = Pattern.compile("[0-9a-f]{40}");
++
++  private final Map<String, String> labels;
++
++  private RemasterIndex(final Map<String, String> labels) {
++    this.labels = labels;
++  }
++
++  int size() {
++    return this.labels.size();
++  }
++
++  boolean contains(final String key) {
++    return this.labels.containsKey(key);
++  }
++
++  String label(final String key) {
++    return this.labels.get(key);
++  }
++
++  static Path modelPath(final String key) {
++    return DIR.resolve("models").resolve(key + ".lrm");
++  }
++
++  /** Thiếu file -&gt; null (tắt, không lỗi). Sai định dạng -&gt; ném Invalid (tắt, có ghi log). */
++  static RemasterIndex load() throws IOException, LrmFile.Invalid {
++    if(!Files.isRegularFile(FILE)) {
++      return null;
++    }
++
++    if(Files.size(FILE) > MAX_SIZE) {
++      throw new LrmFile.Invalid("index.tsv too large");
++    }
++
++    return parse(Files.readAllBytes(FILE));
++  }
++
++  static RemasterIndex parse(final byte[] data) throws LrmFile.Invalid {
++    final String text;
++    try {
++      text = StandardCharsets.UTF_8.newDecoder()
++        .onMalformedInput(CodingErrorAction.REPORT)
++        .onUnmappableCharacter(CodingErrorAction.REPORT)
++        .decode(ByteBuffer.wrap(data))
++        .toString();
++    } catch(final CharacterCodingException e) {
++      throw new LrmFile.Invalid("index.tsv is not valid UTF-8");
++    }
++
++    final String[] lines = text.split("\n", -1);
++    if(!"LRMINDEX\t1".equals(lines[0])) {
++      throw new LrmFile.Invalid("index.tsv line 1 must be LRMINDEX<TAB>1");
++    }
++
++    final Map<String, String> labels = new HashMap<>();
++    for(int i = 1; i < lines.length; i++) {
++      final String line = lines[i];
++      if(line.isEmpty()) {
++        continue;
++      }
++
++      final String[] cols = line.split("\t", -1);
++      if(cols.length != 3 || !KEY.matcher(cols[0]).matches() || !cols[1].equals("models/" + cols[0] + ".lrm") || cols[2].indexOf('\r') >= 0) {
++        throw new LrmFile.Invalid("index.tsv line " + (i + 1) + " malformed");
++      }
++
++      labels.put(cols[0], cols[2]);
++    }
++
++    return new RemasterIndex(labels);
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/RemasterLog.java
+@@ -0,0 +1,110 @@
++package legend.scvi.remaster;
++
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++
++import java.util.HashSet;
++import java.util.Set;
++
++/**
++ * [sc-vi] Nhật ký mô hình HD (LRM spec 1 §4.4). Mọi dòng bắt đầu bằng "scvi-remaster: " và đi qua log4j (INFO/WARN), nên
++ * trong game nằm ở debug.log và stdout.txt; khi chạy không cửa sổ (bộ thử) thêm -Dlog4j2.level=INFO để thấy trên console.
++ *
++ * Dòng chuẩn (mỗi khoá):  scvi-remaster: &lt;name&gt; key=&lt;k&gt; hit|miss|fallback(&lt;lý do&gt;) variant=&lt;v&gt;|vram [(ghi chú)]
++ *   - miss / fallback: một dòng mỗi khoá mỗi "thế hệ" cấu hình (đọc lại khi engine state đổi), cả ở chế độ chi tiết
++ *     (§3.5.4 "log một lần mỗi khoá").
++ *   - hit: khi trạng thái texture của lần nạp đó ngã ngũ — "variant=v" lúc xác minh đạt, "variant=vram (...)" khi không
++ *     có bộ ATLAS hoặc hết cửa sổ xác minh nhanh (2 s) mà chưa đạt.
++ * Chế độ chi tiết (-Dscvi.remasterLog=true hoặc log=true trong remaster.properties) thêm:
++ *   - "hit variant=pending" ngay lúc nạp (để mọi mô hình đều có khoá trong log),
++ *   - "mismatch variant=v face=g runtime=xxxxxxxx expected=xxxxxxxx" (mặt sai đầu tiên của từng biến thể),
++ *   - "facehash n=N sha1=..." = SHA-1 véc-tơ FaceHash runtime (§3.3.6: FaceHash thô mọi mặt có texture, mặt bpp 3 ghi 0)
++ *     để so với ref_spec.py / vectors.json.
++ * Chế độ off: không ghi gì.
++ */
++final class RemasterLog {
++  private RemasterLog() { }
++
++  private static final Logger LOGGER = LogManager.getFormatterLogger(RemasterLog.class);
++  private static final String PREFIX = "scvi-remaster: ";
++
++  private static boolean verbose;
++  private static final Set<String> missLogged = new HashSet<>();
++  private static final Set<String> fallbackLogged = new HashSet<>();
++
++  /** Gọi khi đọc lại cấu hình (engine state đổi): xoá bộ nhớ "đã ghi" của miss/fallback. */
++  static synchronized void reset(final boolean verboseLog) {
++    verbose = verboseLog;
++    missLogged.clear();
++    fallbackLogged.clear();
++  }
++
++  static synchronized boolean verbose() {
++    return verbose;
++  }
++
++  /** Một dòng mỗi khoá (§3.5.4, §4.1, §4.4) kể cả ở chế độ chi tiết; đặt lại khi đọc lại cấu hình. */
++  static synchronized void miss(final String name, final String key) {
++    if(missLogged.add(key)) {
++      info("%s key=%s miss variant=vram", name, key);
++    }
++  }
++
++  /** Một dòng mỗi khoá (§3.5.4 "log một lần mỗi khoá") kể cả ở chế độ chi tiết; đặt lại khi đọc lại cấu hình. */
++  static synchronized void fallback(final String name, final String key, final String reason) {
++    if(fallbackLogged.add(key)) {
++      warn("%s key=%s fallback(%s) variant=vram", name, key, reason);
++    }
++  }
++
++  /** variant &lt; 0 = vram. note có thể null. */
++  static void hit(final String name, final String key, final int variant, final String note) {
++    final String v = variant >= 0 ? Integer.toString(variant) : "vram";
++    if(note == null) {
++      info("%s key=%s hit variant=%s", name, key, v);
++    } else {
++      info("%s key=%s hit variant=%s (%s)", name, key, v, note);
++    }
++  }
++
++  static void info(final String format, final Object... args) {
++    try {
++      LOGGER.info(PREFIX + format, args);
++    } catch(final Throwable ignored) {
++      // nhật ký không bao giờ được làm hỏng đường nạp mô hình
++    }
++  }
++
++  static void warn(final String format, final Object... args) {
++    try {
++      LOGGER.warn(PREFIX + format, args);
++    } catch(final Throwable ignored) {
++      // như trên
++    }
++  }
++
++  static String hex(final byte[] bytes) {
++    final char[] out = new char[bytes.length * 2];
++    final char[] digits = "0123456789abcdef".toCharArray();
++    for(int i = 0; i < bytes.length; i++) {
++      out[i * 2] = digits[bytes[i] >>> 4 & 0xf];
++      out[i * 2 + 1] = digits[bytes[i] & 0xf];
++    }
++    return new String(out);
++  }
++
++  static String hex8(final int value) {
++    return String.format("%08x", value);
++  }
++
++  /** Lý do ngắn gọn của một Throwable (không có dấu ngoặc đóng để không vỡ "fallback(...)"). */
++  static String reason(final Throwable t) {
++    String msg = t.getMessage();
++    if(msg == null || msg.isEmpty()) {
++      msg = t.getClass().getSimpleName();
++    } else if(!(t instanceof LrmFile.Invalid)) {
++      msg = t.getClass().getSimpleName() + ": " + msg;
++    }
++    return msg.replace('(', '[').replace(')', ']').replace('\n', ' ').replace('\r', ' ');
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/RemasterMeshObj.java
+@@ -0,0 +1,382 @@
++package legend.scvi.remaster;
++
++import legend.core.renderer.Mesh;
++import legend.core.renderer.Texture;
++import legend.core.renderer.Translucency;
++import legend.game.tmd.TmdMeshObj;
++
++import javax.annotation.Nullable;
++import java.util.ArrayList;
++import java.util.List;
++
++/**
++ * [sc-vi] Obj của một phần mode 1 (LRM spec 1 §4.2, §4.4): bộ VRAM = super.meshes (lớp/thứ tự như lưới retail nên
++ * shouldRender/hasTranslucency của MeshObj vẫn đúng), thêm một bộ ATLAS cho mỗi biến thể dùng được, và trạng thái chung
++ * của cả mô hình (ModelState, mọi phần cùng một đối tượng).
++ *
++ * render(): state.tick() (xác minh theo lịch), rồi ATLAS(v) -&gt; atlas.use(0) + atlasSets[v][layer]; mọi trạng thái khác -&gt;
++ * bộ VRAM. Không tạo đối tượng GL và không mesh.update lúc vẽ (D5). performDelete xoá mọi bộ lưới và trả tham chiếu atlas.
++ */
++public final class RemasterMeshObj extends TmdMeshObj {
++  /** [biến thể][lớp]; null = biến thể không dùng được. */
++  private final Mesh[][] atlasSets;
++  private final ModelState state;
++
++  RemasterMeshObj(final String name, final Mesh[] vram, final boolean backfaceCulling, final Mesh[][] atlasSets, final ModelState state) {
++    super(name, vram, backfaceCulling);
++    this.atlasSets = atlasSets;
++    this.state = state;
++  }
++
++  /** Bộ ATLAS của biến thể v (null nếu không có) — cho bộ thử. */
++  public Mesh[] atlasMeshes(final int variant) {
++    return this.atlasSets != null && variant >= 0 && variant < this.atlasSets.length ? this.atlasSets[variant] : null;
++  }
++
++  /** Biến thể đang vẽ (-1 = bộ VRAM) — cho bộ thử / gỡ lỗi. */
++  public int currentVariant() {
++    return this.state.variant;
++  }
++
++  /** Chạy xác minh ngay (bỏ qua lịch) — cho bộ thử. Trả biến thể sau khi xác minh (-1 = VRAM). */
++  public int verifyNow() {
++    this.state.nextCheck = System.nanoTime();
++    return this.state.tick();
++  }
++
++  /** SHA-1 véc-tơ FaceHash runtime hiện tại (§3.3.6, mặt bpp 3 = 0) — cho bộ thử / so với Python. */
++  public String faceHashVectorSha1() {
++    return FaceVerify.vectorSha1(this.state.verify.vector(FaceVerify.GPU_VRAM));
++  }
++
++  boolean isMarkedDeleted() {
++    return this.deleted;
++  }
++
++  private Mesh atlasMesh(final int layer) {
++    final int v = this.state.tick();
++    if(v >= 0 && this.atlasSets != null && v < this.atlasSets.length && this.atlasSets[v] != null) {
++      return this.atlasSets[v][layer];
++    }
++    return null;
++  }
++
++  @Override
++  public void render(final int layer, final int startVertex, final int vertexCount) {
++    final Mesh atlas = this.atlasMesh(layer);
++    if(atlas == null) {
++      super.render(layer, startVertex, vertexCount);
++      return;
++    }
++
++    this.state.atlasTexture().use(0);
++    atlas.draw(startVertex, vertexCount);
++  }
++
++  @Override
++  public void render(@Nullable final Translucency translucency, final int layer, final int startVertex, final int vertexCount) {
++    final Mesh atlas = this.atlasMesh(layer);
++    if(atlas == null) {
++      super.render(translucency, layer, startVertex, vertexCount);
++      return;
++    }
++
++    // như MeshObj.render(Translucency, ...)
++    if(!atlas.translucent() && translucency == null || atlas.translucent() && atlas.translucencyMode() == translucency) {
++      this.state.atlasTexture().use(0);
++      atlas.draw(startVertex, vertexCount);
++    }
++  }
++
++  @Override
++  protected void performDelete() {
++    super.performDelete();
++
++    if(this.atlasSets != null) {
++      for(final Mesh[] set : this.atlasSets) {
++        if(set != null) {
++          for(final Mesh mesh : set) {
++            mesh.delete();
++          }
++        }
++      }
++    }
++
++    this.state.partDeleted();
++  }
++
++  /**
++   * Trạng thái chung của một lần nạp mô hình (§4.4): PENDING (vẽ VRAM) -&gt; ATLAS(v) khi mọi mặt có texture không LIVE khớp
++   * faceHash của biến thể v (thử 0, 1, ...; bỏ mặt LIVE a-c và mặt có faceHash 0; dừng ở mặt sai đầu tiên). PENDING kiểm
++   * khoảng mỗi 4 khung (66 ms) trong 2 s rồi mỗi 1 s; ATLAS kiểm lại toàn bộ mỗi 1 s, sai -&gt; PENDING. Chống nhấp nháy: sau 3
++   * lần ATLAS -&gt; PENDING thì khoá ở VRAM (log một lần). Không có bộ ATLAS -&gt; luôn VRAM (chỉ có thể in véc-tơ FaceHash khi
++   * nhật ký chi tiết).
++   */
++  static final class ModelState {
++    static final long FAST_INTERVAL = 66_000_000L;
++    static final long FAST_WINDOW = 2_000_000_000L;
++    static final long SLOW_INTERVAL = 1_000_000_000L;
++    static final int MAX_TRIPS = 3;
++
++    final String name;
++    final String key;
++    final FaceVerify verify;
++    final boolean[] liveModel;
++    /** [biến thể][g]; dòng null = biến thể không dùng được (không có atlas). */
++    final int[][] storedHash;
++    final Texture[] atlas;
++    final boolean verbose;
++    final FaceVerify.Vram vram;
++    private boolean hasAtlas;
++    private boolean dumpOnly;
++
++    int variant = -1;
++    long nextCheck;
++    private long pendingSince;
++    private boolean announced;
++    private boolean everAtlas;
++    private boolean locked;
++    private int trips;
++    private boolean firstCheckDone;
++    private String lastDump;
++
++    private final List<RemasterMeshObj> parts = new ArrayList<>();
++    private boolean buildingDone;
++    private int deletedParts;
++    private boolean released;
++
++    ModelState(final String name, final String key, final FaceVerify verify, final boolean[] liveModel, final int[][] storedHash, final Texture[] atlas, final boolean verbose, final FaceVerify.Vram vram) {
++      this.name = name;
++      this.key = key;
++      this.verify = verify;
++      this.liveModel = liveModel;
++      this.storedHash = storedHash;
++      this.atlas = atlas;
++      this.verbose = verbose;
++      this.vram = vram;
++      this.locked = true; // tới khi init()
++    }
++
++    /** Gọi sau khi mảng atlas / storedHash đã điền xong (atlas[v] != null &lt;=&gt; storedHash[v] != null). */
++    void init() {
++      boolean any = false;
++      for(int v = 0; v < this.atlas.length; v++) {
++        any |= this.atlas[v] != null && this.storedHash[v] != null;
++      }
++
++      this.hasAtlas = any;
++      this.dumpOnly = !any && this.verbose;
++      this.locked = false;
++
++      final long now = System.nanoTime();
++      this.pendingSince = now;
++      this.nextCheck = this.dumpOnly ? now + FAST_WINDOW : now;
++    }
++
++    Texture atlasTexture() {
++      return this.atlas[this.variant];
++    }
++
++    // ---------------------------------------------------------------- vòng đời
++
++    void addPart(final RemasterMeshObj obj) {
++      this.parts.add(obj);
++    }
++
++    void finishBuilding() {
++      if(this.buildingDone) {
++        return;
++      }
++
++      this.buildingDone = true;
++      if(this.parts.isEmpty() || this.deletedParts >= this.parts.size()) {
++        this.release();
++      }
++    }
++
++    void partDeleted() {
++      this.deletedParts++;
++      if(this.buildingDone && this.deletedParts >= this.parts.size()) {
++        this.release();
++      }
++    }
++
++    /** Mọi phần đã bị đánh dấu xoá (kể cả bị Obj.clearObjList bỏ mà không gọi performDelete). */
++    boolean isGone() {
++      if(this.released) {
++        return true;
++      }
++
++      if(!this.buildingDone) {
++        return false;
++      }
++
++      for(final RemasterMeshObj p : this.parts) {
++        if(!p.isMarkedDeleted()) {
++          return false;
++        }
++      }
++      return true;
++    }
++
++    private void release() {
++      if(!this.released) {
++        this.released = true;
++        AtlasCache.release(this);
++      }
++    }
++
++    /**
++     * AtlasCache.sweep đã bỏ chủ sở hữu này (mọi phần bị đánh dấu xoá, kể cả rò): từ giờ chỉ vẽ bộ VRAM để một Obj rò lỡ
++     * còn được vẽ cũng không dùng texture atlas đã delete().
++     */
++    void markReleased() {
++      this.released = true;
++      this.variant = -1;
++    }
++
++    // ---------------------------------------------------------------- xác minh
++
++    /** Gọi trong render(): chạy xác minh khi tới lịch; trả biến thể cần vẽ (-1 = VRAM). Không bao giờ ném. */
++    int tick() {
++      if(this.locked || this.released || !this.hasAtlas && !this.dumpOnly) {
++        return this.locked || this.released ? -1 : this.variant;
++      }
++
++      final long now = System.nanoTime();
++      if(now - this.nextCheck < 0) {
++        return this.variant;
++      }
++
++      try {
++        this.check(now);
++      } catch(final Throwable t) {
++        this.variant = -1;
++        this.locked = true;
++        RemasterLog.warn("%s key=%s verify error (%s), locked to vram", this.name, this.key, RemasterLog.reason(t));
++      }
++
++      return this.variant;
++    }
++
++    private void check(final long now) {
++      if(this.dumpOnly) {
++        // không có bộ ATLAS: chỉ in véc-tơ FaceHash một lần (nhật ký chi tiết) sau cửa sổ 2 s
++        this.dump(this.verify.vector(this.vram));
++        this.locked = true;
++        return;
++      }
++
++      final int[] runtime = new int[this.verify.count];
++      final boolean[] computed = new boolean[this.verify.count];
++
++      if(this.variant < 0) {
++        int match = -1;
++        for(int v = 0; v < this.storedHash.length && match < 0; v++) {
++          if(this.storedHash[v] != null && this.firstMismatch(v, runtime, computed, this.verbose && !this.firstCheckDone) < 0) {
++            match = v;
++          }
++        }
++
++        if(this.verbose && !this.firstCheckDone) {
++          this.dump(this.fill(runtime, computed));
++        }
++        this.firstCheckDone = true;
++
++        if(match >= 0) {
++          this.variant = match;
++          if(!this.everAtlas || this.verbose) {
++            RemasterLog.hit(this.name, this.key, match, this.everAtlas ? "re-verified" : null);
++          }
++          this.everAtlas = true;
++          this.announced = true;
++          if(this.verbose) {
++            this.dump(this.fill(runtime, computed));
++          }
++          this.nextCheck = now + SLOW_INTERVAL;
++          return;
++        }
++
++        final boolean fast = now - this.pendingSince < FAST_WINDOW;
++        if(!fast && !this.announced) {
++          this.announced = true;
++          RemasterLog.hit(this.name, this.key, -1, "texture not verified, retail texels");
++          if(this.verbose) {
++            for(int v = 0; v < this.storedHash.length; v++) {
++              if(this.storedHash[v] != null) {
++                this.firstMismatch(v, runtime, computed, true);
++              }
++            }
++            this.dump(this.fill(runtime, computed));
++          }
++        }
++
++        this.nextCheck = now + (fast ? FAST_INTERVAL : SLOW_INTERVAL);
++        return;
++      }
++
++      // ATLAS(v): kiểm lại toàn bộ
++      if(this.firstMismatch(this.variant, runtime, computed, this.verbose) >= 0) {
++        this.trips++;
++        RemasterLog.warn("%s key=%s guard: variant %d no longer matches VRAM, back to vram (trip %d)", this.name, this.key, this.variant, this.trips);
++        this.variant = -1;
++        this.pendingSince = now;
++        this.announced = true;
++
++        if(this.trips >= MAX_TRIPS) {
++          this.locked = true;
++          RemasterLog.warn("%s key=%s guard tripped %d times, locked to vram", this.name, this.key, this.trips);
++          return;
++        }
++
++        this.nextCheck = now + FAST_INTERVAL;
++        return;
++      }
++
++      this.nextCheck = now + SLOW_INTERVAL;
++    }
++
++    /** Mặt sai đầu tiên của biến thể v (-1 = khớp hết). Hash runtime tính lười, dùng lại trong một lần kiểm. */
++    private int firstMismatch(final int v, final int[] runtime, final boolean[] computed, final boolean log) {
++      final int[] stored = this.storedHash[v];
++      for(int g = 0; g < this.verify.count; g++) {
++        if(this.liveModel[g] || stored[g] == 0) {
++          continue;
++        }
++
++        if(!computed[g]) {
++          runtime[g] = this.verify.hash(g, this.vram);
++          computed[g] = true;
++        }
++
++        if(runtime[g] != stored[g]) {
++          if(log) {
++            RemasterLog.info("%s key=%s mismatch variant=%d face=%d runtime=%s expected=%s", this.name, this.key, v, g, RemasterLog.hex8(runtime[g]), RemasterLog.hex8(stored[g]));
++          }
++          return g;
++        }
++      }
++
++      return -1;
++    }
++
++    private int[] fill(final int[] runtime, final boolean[] computed) {
++      for(int g = 0; g < this.verify.count; g++) {
++        if(!computed[g]) {
++          runtime[g] = this.verify.hash(g, this.vram);
++          computed[g] = true;
++        }
++      }
++      return runtime;
++    }
++
++    /** "facehash n=N sha1=..." (chỉ khi khác lần in trước). */
++    private void dump(final int[] vector) {
++      final String sha = FaceVerify.vectorSha1(vector);
++      if(!sha.equals(this.lastDump)) {
++        this.lastDump = sha;
++        RemasterLog.info("%s key=%s facehash n=%d sha1=%s", this.name, this.key, vector.length, sha);
++      }
++    }
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/RemasterModels.java
+@@ -0,0 +1,399 @@
++package legend.scvi.remaster;
++
++import legend.core.gte.ModelPart10;
++import legend.core.renderer.BufferUsage;
++import legend.core.renderer.Mesh;
++import legend.core.renderer.Obj;
++import legend.core.renderer.Texture;
++import legend.core.renderer.VertexOrder;
++import legend.game.tmd.TmdObjLoader;
++import legend.game.tmd.TmdObjTable1c;
++import legend.game.types.Model124;
++
++import static legend.core.GameEngine.RENDERER;
++
++/**
++ * [sc-vi] Điểm vào của mô hình HD (route B) — LRM spec 1 §4.1, §4.2, §5. Gọi từ bản ghi đè
++ * legend.game.tmd.TmdObjLoader.fromModel (sc-vi/src): trước vòng lặp phần {@code RemasterModels.find(...)}, mỗi phần
++ * {@code r.buildPart(i, part.tmd_08)}; null =&gt; đường gốc fromObjTable (byte y hệt retail).
++ *
++ * find đi đường gốc (trả null) khi: chế độ off / không có chỉ mục; tên không bắt đầu bằng "CombatantModel (",
++ * "SobjModel (" hay "WmapEntityModel ("; khoá LRMK1 (tính &lt; 1 ms) không có trong chỉ mục (miss); file LRM sai bất kỳ điều
++ * nào của §3.5.4 (fallback, log một lần mỗi khoá); mọi Throwable. Trúng: giải mã mọi phần (SrcFaces), tính LIVE a-c,
++ * dựng sẵn mảng bộ VRAM của mọi phần mode 1 (lỗi dữ liệu =&gt; cả mô hình đường gốc), rồi nếu đồng thời chế độ full
++ * (textures=hd), tw == th == 0, clutAnimations_a4 == null, variantCount &gt; 0: nạp atlas từng biến thể (AtlasCache; PNG lỗi
++ * =&gt; biến thể đó không có bộ ATLAS) và dựng mảng bộ ATLAS. buildPart chỉ còn tạo lưới GL (makeMesh + 7 thuộc tính như
++ * createMesh); lỗi GL =&gt; phần đó đường gốc. Không bao giờ sửa dữ liệu TmdObjTable1c.
++ */
++public final class RemasterModels {
++  private RemasterModels() { }
++
++  private static final String[] PREFIXES = {"CombatantModel (", "SobjModel (", "WmapEntityModel ("};
++
++  /** Mô hình của lần find trước (để chốt "đã dựng xong" nếu vòng lặp phần bị ngắt giữa chừng). */
++  private static RemasterModel previous;
++
++  /** Gọi bởi RemasterConfig khi đọc lại cấu hình (engine state đổi). */
++  static synchronized void onConfigReload(final RemasterConfig config) {
++    RemasterLog.reset(config.log);
++    LrmFile.clearCache();
++    if(previous != null) {
++      previous.state.finishBuilding();
++      previous = null;
++    }
++    AtlasCache.sweep();
++  }
++
++  /** Không bao giờ ném: lỗi bất kỳ =&gt; null (đường gốc). */
++  public static RemasterModel find(final String name, final Model124 model, final int textureWidth, final int textureHeight) {
++    try {
++      return find0(name, model, textureWidth, textureHeight);
++    } catch(final Throwable t) {
++      try {
++        RemasterLog.warn("%s fallback(%s) variant=vram", name, RemasterLog.reason(t));
++      } catch(final Throwable ignored) {
++        // không gì cả
++      }
++      return null;
++    }
++  }
++
++  private static synchronized RemasterModel find0(final String name, final Model124 model, final int tw, final int th) {
++    final RemasterConfig config = RemasterConfig.current();
++    if(!config.active() || name == null || !allowed(name)) {
++      return null;
++    }
++
++    if(previous != null) {
++      previous.state.finishBuilding();
++      previous = null;
++    }
++
++    final ModelPart10[] modelParts = model.modelParts_00;
++    final int partCount = modelParts.length;
++    if(partCount == 0) {
++      return null;
++    }
++
++    // §3.1 khoá
++    final TmdObjTable1c[] tables = new TmdObjTable1c[partCount];
++    final byte[][] partKeys = new byte[partCount][];
++    final int[] srcFaceCounts = new int[partCount];
++    final int[] nVerts = new int[partCount];
++    int textured = 0;
++    for(int i = 0; i < partCount; i++) {
++      tables[i] = modelParts[i].tmd_08;
++      partKeys[i] = GeometryKey.partKey(tables[i]);
++      srcFaceCounts[i] = GeometryKey.packetCount(tables[i]);
++      nVerts[i] = tables[i].vert_top_00.length;
++      textured += GeometryKey.texturedCount(tables[i]);
++    }
++
++    final byte[] modelKey = GeometryKey.modelKey(partKeys);
++    final String key = RemasterLog.hex(modelKey);
++
++    if(!config.index.contains(key)) {
++      RemasterLog.miss(name, key);
++      return null;
++    }
++
++    // §3.5.4
++    final LrmFile lrm;
++    try {
++      lrm = LrmFile.load(key, new LrmFile.Runtime(modelKey, partKeys, srcFaceCounts, nVerts, textured, GeometryKey.texturedQuads(tables, textured)));
++    } catch(final LrmFile.Invalid e) {
++      RemasterLog.fallback(name, key, RemasterLog.reason(e)); // reason(): không để "(" ")" của thông điệp làm vỡ "fallback(...)"
++      return null;
++    }
++
++    try {
++      return build(name, key, model, tables, lrm, config, tw, th, textured);
++    } catch(final Throwable t) {
++      RemasterLog.fallback(name, key, RemasterLog.reason(t));
++      return null;
++    }
++  }
++
++  private static boolean allowed(final String name) {
++    for(final String p : PREFIXES) {
++      if(name.startsWith(p)) {
++        return true;
++      }
++    }
++    return false;
++  }
++
++  private static RemasterModel build(final String name, final String key, final Model124 model, final TmdObjTable1c[] tables, final LrmFile lrm, final RemasterConfig config, final int tw, final int th, final int texturedCount) {
++    final int partCount = tables.length;
++    if(lrm.parts.length != partCount) { // §3.5.4 mục 4: tự kiểm trước khi đánh chỉ số theo phần
++      throw new IllegalStateException("partCount mismatch");
++    }
++
++    final SrcFaces[] faces = new SrcFaces[partCount];
++    final int[] texBase = new int[partCount];
++    int g = 0;
++    boolean anyMode1 = false;
++    for(int i = 0; i < partCount; i++) {
++      faces[i] = SrcFaces.decode(tables[i]);
++      if(faces[i].count != lrm.parts[i].srcFaceCount) {
++        throw new IllegalStateException("srcFaceCount mismatch part " + i);
++      }
++      texBase[i] = g;
++      g += faces[i].texturedCount;
++      anyMode1 |= lrm.parts[i].mode == 1;
++    }
++
++    if(g != texturedCount) {
++      throw new IllegalStateException("texturedFaceCount mismatch");
++    }
++
++    if(!anyMode1) {
++      RemasterLog.hit(name, key, -1, "no mode-1 part, retail meshes");
++      return null;
++    }
++
++    // bộ VRAM (luôn có)
++    final RemasterBuilder.PartSets[] sets = new RemasterBuilder.PartSets[partCount];
++    final RemasterBuilder.MeshData[][] vram = new RemasterBuilder.MeshData[partCount][];
++    for(int i = 0; i < partCount; i++) {
++      if(lrm.parts[i].mode == 1) {
++        vram[i] = RemasterBuilder.buildVram(faces[i], lrm.parts[i], tw, th);
++      }
++    }
++
++    final FaceVerify verify = new FaceVerify(faces);
++    final boolean[] liveModel = verify.liveModel(model);
++    final boolean verbose = RemasterLog.verbose();
++    final int variantCount = lrm.variants.length;
++
++    // §4.2: điều kiện dựng bộ ATLAS
++    String noAtlas = null;
++    if(config.mode != RemasterConfig.Mode.FULL) {
++      noAtlas = "geometry mode";
++    } else if(tw != 0 || th != 0) {
++      noAtlas = "texture override";
++    } else if(model.clutAnimations_a4 != null) {
++      noAtlas = "clut animation";
++    } else if(variantCount == 0) {
++      noAtlas = "no variants";
++    }
++
++    // trạng thái chung tạo trước để làm chủ sở hữu atlas; mảng atlas / stored điền ngay sau, rồi state.init()
++    final Texture[] atlas = new Texture[variantCount];
++    final int[][] stored = new int[variantCount][];
++    final RemasterMeshObj.ModelState state = new RemasterMeshObj.ModelState(name, key, verify, liveModel, stored, atlas, verbose, FaceVerify.GPU_VRAM);
++
++    if(noAtlas == null) {
++      final StringBuilder errors = new StringBuilder();
++      int loaded = 0;
++
++      try {
++        for(int v = 0; v < variantCount; v++) {
++          final LrmFile.Variant variant = lrm.variants[v];
++          try {
++            atlas[v] = AtlasCache.acquire(variant.pngSha1, variant.w, variant.h, state);
++            stored[v] = variant.faceHash;
++            loaded++;
++          } catch(final LrmFile.Invalid e) {
++            if(!errors.isEmpty()) {
++              errors.append("; ");
++            }
++            errors.append("variant ").append(v).append(": ").append(e.getMessage());
++          }
++        }
++
++        if(loaded == 0) {
++          noAtlas = "atlas unavailable: " + errors;
++        } else if(!errors.isEmpty()) {
++          RemasterLog.warn("%s key=%s %s", name, key, errors.toString().replace('(', '[').replace(')', ']'));
++        }
++
++        // bộ ATLAS từng biến thể dùng được; LIVE của biến thể = LIVE a-c của mô hình ∪ mặt có faceHash 0 (§3.4 d)
++        if(noAtlas == null) {
++          final boolean[][] liveByVariant = new boolean[variantCount][];
++          for(int v = 0; v < variantCount; v++) {
++            if(atlas[v] != null) {
++              liveByVariant[v] = liveModel.clone();
++              final int[] fh = lrm.variants[v].faceHash;
++              for(int k = 0; k < fh.length; k++) {
++                liveByVariant[v][k] |= fh[k] == 0;
++              }
++            }
++          }
++
++          for(int i = 0; i < partCount; i++) {
++            if(vram[i] == null) {
++              continue;
++            }
++
++            final RemasterBuilder.MeshData[][] atlasSets = new RemasterBuilder.MeshData[variantCount][];
++            for(int v = 0; v < variantCount; v++) {
++              if(atlas[v] != null) {
++                atlasSets[v] = RemasterBuilder.buildAtlas(vram[i], faces[i], lrm.parts[i], texBase[i], liveByVariant[v], lrm.variants[v].atlasUv);
++              }
++            }
++
++            sets[i] = new RemasterBuilder.PartSets(vram[i], atlasSets, faces[i].backfaceCulling);
++          }
++        }
++      } catch(final Throwable t) {
++        AtlasCache.release(state);
++        throw t;
++      }
++    }
++
++    if(noAtlas != null) {
++      // không có bộ ATLAS: chỉ bộ VRAM
++      AtlasCache.release(state);
++      java.util.Arrays.fill(atlas, null);
++      java.util.Arrays.fill(stored, null);
++      for(int i = 0; i < partCount; i++) {
++        sets[i] = vram[i] != null ? new RemasterBuilder.PartSets(vram[i], null, faces[i].backfaceCulling) : null;
++      }
++      RemasterLog.hit(name, key, -1, noAtlas);
++    } else if(verbose) {
++      RemasterLog.info("%s key=%s hit variant=pending (%d variant(s), %d live face(s))", name, key, variantCount, count(liveModel));
++    }
++
++    state.init();
++    final RemasterModel result = new RemasterModel(name, key, tables, sets, state);
++    previous = result;
++    return result;
++  }
++
++  private static int count(final boolean[] flags) {
++    int n = 0;
++    for(final boolean f : flags) {
++      if(f) {
++        n++;
++      }
++    }
++    return n;
++  }
++
++  /** Kết quả find: tạo Obj cho từng phần (TmdObjLoader gọi buildPart(i, ...) cho mọi i theo thứ tự). */
++  public static final class RemasterModel {
++    private final String name;
++    private final String key;
++    private final TmdObjTable1c[] tables;
++    private final RemasterBuilder.PartSets[] sets;
++    final RemasterMeshObj.ModelState state;
++
++    RemasterModel(final String name, final String key, final TmdObjTable1c[] tables, final RemasterBuilder.PartSets[] sets, final RemasterMeshObj.ModelState state) {
++      this.name = name;
++      this.key = key;
++      this.tables = tables;
++      this.sets = sets;
++      this.state = state;
++    }
++
++    /** Obj remaster của phần i, hoặc null (mode 0, lỗi) =&gt; TmdObjLoader dùng đường gốc. Không bao giờ ném. */
++    public Obj buildPart(final int i, final TmdObjTable1c table) {
++      Mesh[] vram = null;
++      Mesh[][] atlas = null;
++      try {
++        if(i < 0 || i >= this.sets.length || this.sets[i] == null || table != this.tables[i]) {
++          return null;
++        }
++
++        final RemasterBuilder.PartSets set = this.sets[i];
++        this.sets[i] = null;
++        final String partName = this.name + " part " + i;
++
++        vram = new Mesh[set.vram.length];
++        for(int m = 0; m < vram.length; m++) {
++          vram[m] = createMesh(partName + " (" + set.vram[m].className() + ')', set.vram[m]);
++        }
++
++        if(set.atlas != null) {
++          atlas = new Mesh[set.atlas.length][];
++          for(int v = 0; v < set.atlas.length; v++) {
++            if(set.atlas[v] == null) {
++              continue;
++            }
++
++            atlas[v] = new Mesh[set.atlas[v].length];
++            for(int m = 0; m < atlas[v].length; m++) {
++              atlas[v][m] = createMesh(partName + " (" + set.atlas[v][m].className() + ") atlas " + v, set.atlas[v][m]);
++            }
++          }
++        }
++
++        final RemasterMeshObj obj = new RemasterMeshObj(partName, vram, set.backfaceCulling, atlas, this.state);
++        this.state.addPart(obj);
++        return obj;
++      } catch(final Throwable t) {
++        // dọn và ghi log cũng không được ném ra khỏi điểm vào (null => TmdObjLoader đi đường gốc)
++        try {
++          deleteAll(vram);
++          if(atlas != null) {
++            for(final Mesh[] set : atlas) {
++              deleteAll(set);
++            }
++          }
++          RemasterLog.warn("%s key=%s part %d fallback(%s)", this.name, this.key, i, RemasterLog.reason(t));
++        } catch(final Throwable ignored) {
++          // bỏ qua
++        }
++        return null;
++      } finally {
++        if(i >= this.sets.length - 1) {
++          try {
++            this.state.finishBuilding();
++          } catch(final Throwable ignored) {
++            // bỏ qua
++          }
++        }
++      }
++    }
++
++    private static void deleteAll(final Mesh[] meshes) {
++      if(meshes == null) {
++        return;
++      }
++
++      for(final Mesh mesh : meshes) {
++        if(mesh != null) {
++          try {
++            mesh.delete();
++          } catch(final Throwable ignored) {
++            // bỏ qua
++          }
++        }
++      }
++    }
++  }
++
++  /** Như TmdObjLoader.createMesh (affcef0 :329-359): TRIANGLES_ADJACENCY, STATIC, 7 thuộc tính. */
++  static Mesh createMesh(final String name, final RemasterBuilder.MeshData data) {
++    final Mesh mesh = RENDERER.api().makeMesh(name, VertexOrder.TRIANGLES_ADJACENCY, data.vertices, data.indices, data.textured, data.translucent, data.translucency, BufferUsage.STATIC);
++
++    mesh.attribute(0, 0L, TmdObjLoader.POS_SIZE, TmdObjLoader.VERTEX_SIZE);
++
++    int meshIndex = 1;
++    int meshOffset = TmdObjLoader.POS_SIZE;
++
++    mesh.attribute(meshIndex, meshOffset, TmdObjLoader.NORM_SIZE, TmdObjLoader.VERTEX_SIZE);
++    meshIndex++;
++    meshOffset += TmdObjLoader.NORM_SIZE;
++
++    mesh.attribute(meshIndex, meshOffset, TmdObjLoader.UV_SIZE, TmdObjLoader.VERTEX_SIZE);
++    meshIndex++;
++    meshOffset += TmdObjLoader.UV_SIZE;
++
++    mesh.attribute(meshIndex, meshOffset, TmdObjLoader.TPAGE_SIZE, TmdObjLoader.VERTEX_SIZE);
++    meshIndex++;
++    meshOffset += TmdObjLoader.TPAGE_SIZE;
++
++    mesh.attribute(meshIndex, meshOffset, TmdObjLoader.CLUT_SIZE, TmdObjLoader.VERTEX_SIZE);
++    meshIndex++;
++    meshOffset += TmdObjLoader.CLUT_SIZE;
++
++    mesh.attribute(meshIndex, meshOffset, TmdObjLoader.COLOUR_SIZE, TmdObjLoader.VERTEX_SIZE);
++    meshIndex++;
++    meshOffset += TmdObjLoader.COLOUR_SIZE;
++
++    mesh.attribute(meshIndex, meshOffset, TmdObjLoader.FLAGS_SIZE, TmdObjLoader.VERTEX_SIZE);
++    return mesh;
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/scvi/remaster/SrcFaces.java
+@@ -0,0 +1,217 @@
++package legend.scvi.remaster;
++
++import legend.core.IoHelper;
++import legend.game.tmd.TmdObjLoader;
++import legend.game.tmd.TmdObjTable1c;
++
++/**
++ * [sc-vi] Giải mã các gói (source face) của một phần đúng như TmdObjLoader.fromObjTable (affcef0 TmdObjLoader.java:89-186,
++ * specialFlags = 0): cùng cờ, cùng lớp lưới, cùng quy tắc backfaceCulling (:291-296). Đọc dữ liệu LIVE (sau
++ * updateTmdPacketIlen và UvAdjustmentMetrics14), không bao giờ sửa.
++ *
++ * Mặt thứ f = gói thứ f theo thứ tự đã làm phẳng (run theo thứ tự, data[] theo thứ tự). Lớp lưới: CLASS_OPAQUE,
++ * CLASS_UNTEXTURED_TRANSLUCENT, 2 + abr (Translucency.of(tpage &gt;&gt;&gt; 5 &amp; 3)) cho mặt có texture + trong mờ.
++ */
++final class SrcFaces {
++  static final int CLASS_OPAQUE = 0;
++  static final int CLASS_UNTEXTURED_TRANSLUCENT = 1;
++  /** 2 lớp không-Translucency + 4 Translucency. */
++  static final int CLASS_COUNT = 6;
++
++  final int count;
++  final int nVert;
++  final boolean[] quad;
++  final boolean[] textured;
++  final boolean[] lit;
++  final boolean[] coloured;
++  final int[] vc;
++  /** cờ đỉnh retail (LIT/TEXTURED/COLOURED/TRANSLUCENT/QUAD). */
++  final int[] flags;
++  final int[] meshClass;
++  final int[] tpage;
++  final int[] clut;
++  /** [f * 4 + k] */
++  final int[] u;
++  final int[] v;
++  final int[] colour;
++  /** chỉ số đỉnh TMD của góc k (để kiểm như Java: vượt n_vert thì ném). */
++  final int[] vertexIndex;
++  final boolean backfaceCulling;
++  final boolean anyTextured;
++  final int texturedCount;
++
++  private SrcFaces(final int count, final int nVert) {
++    this.count = count;
++    this.nVert = nVert;
++    this.quad = new boolean[count];
++    this.textured = new boolean[count];
++    this.lit = new boolean[count];
++    this.coloured = new boolean[count];
++    this.vc = new int[count];
++    this.flags = new int[count];
++    this.meshClass = new int[count];
++    this.tpage = new int[count];
++    this.clut = new int[count];
++    this.u = new int[count * 4];
++    this.v = new int[count * 4];
++    this.colour = new int[count * 4];
++    this.vertexIndex = new int[count * 4];
++    this.backfaceCulling = true;
++    this.anyTextured = false;
++    this.texturedCount = 0;
++  }
++
++  private SrcFaces(final SrcFaces src, final boolean backfaceCulling, final boolean anyTextured, final int texturedCount) {
++    this.count = src.count;
++    this.nVert = src.nVert;
++    this.quad = src.quad;
++    this.textured = src.textured;
++    this.lit = src.lit;
++    this.coloured = src.coloured;
++    this.vc = src.vc;
++    this.flags = src.flags;
++    this.meshClass = src.meshClass;
++    this.tpage = src.tpage;
++    this.clut = src.clut;
++    this.u = src.u;
++    this.v = src.v;
++    this.colour = src.colour;
++    this.vertexIndex = src.vertexIndex;
++    this.backfaceCulling = backfaceCulling;
++    this.anyTextured = anyTextured;
++    this.texturedCount = texturedCount;
++  }
++
++  static SrcFaces decode(final TmdObjTable1c objTable) {
++    final SrcFaces out = new SrcFaces(GeometryKey.packetCount(objTable), objTable.vert_top_00.length);
++    boolean backfaceCulling = true;
++    boolean anyTextured = false;
++    int texturedCount = 0;
++    int f = 0;
++
++    for(int primitiveIndex = 0; primitiveIndex < objTable.primitives_10.length; primitiveIndex++) {
++      final TmdObjTable1c.Primitive primitive = objTable.primitives_10[primitiveIndex];
++
++      // như TmdObjLoader.java:93-123 (specialFlags = 0)
++      final int command = primitive.header() & 0xff04_0000;
++      final int primitiveId = command >>> 24;
++      if((primitiveId >>> 5 & 0b11) != 1) {
++        throw new RuntimeException("Unsupported primitive type");
++      }
++
++      final boolean shaded = (command & 0x4_0000) != 0;
++      final boolean gourad = (primitiveId & 0b1_0000) != 0;
++      final boolean quad = (primitiveId & 0b1000) != 0;
++      final boolean textured = (primitiveId & 0b100) != 0;
++      final boolean translucent = (primitiveId & 0b10) != 0;
++      final boolean lit = (primitiveId & 0b1) == 0;
++
++      if(textured && shaded) {
++        throw new RuntimeException("Invalid primitive type");
++      }
++
++      if(!textured && !lit) {
++        throw new RuntimeException("Invalid primitive type");
++      }
++
++      final int vertexCount = quad ? 4 : 3;
++      final boolean coloured = shaded || !lit || !textured;
++
++      int flags = 0;
++      if(lit) {
++        flags |= TmdObjLoader.LIT_FLAG;
++      }
++      if(textured) {
++        flags |= TmdObjLoader.TEXTURED_FLAG;
++        anyTextured = true;
++      }
++      if(coloured) {
++        flags |= TmdObjLoader.COLOURED_FLAG;
++      }
++      if(translucent) {
++        flags |= TmdObjLoader.TRANSLUCENT_FLAG;
++      }
++      if(quad) {
++        flags |= TmdObjLoader.QUAD_FLAG;
++      }
++
++      for(final byte[] data : primitive.data()) {
++        out.quad[f] = quad;
++        out.textured[f] = textured;
++        out.lit[f] = lit;
++        out.coloured[f] = coloured;
++        out.vc[f] = vertexCount;
++        out.flags[f] = flags;
++
++        // như TmdObjLoader.java:127-186
++        int primitivesOffset = 0;
++        int meshClass = CLASS_OPAQUE;
++
++        if(textured) {
++          texturedCount++;
++          for(int k = 0; k < vertexCount; k++) {
++            out.u[f * 4 + k] = IoHelper.readUByte(data, primitivesOffset++);
++            out.v[f * 4 + k] = IoHelper.readUByte(data, primitivesOffset++);
++
++            if(k == 0) {
++              out.clut[f] = IoHelper.readUShort(data, primitivesOffset);
++            } else if(k == 1) {
++              out.tpage[f] = IoHelper.readUShort(data, primitivesOffset);
++
++              if(translucent) {
++                meshClass = 2 + (out.tpage[f] >>> 5 & 0b11);
++              }
++            }
++
++            primitivesOffset += 2;
++          }
++        } else if(translucent) {
++          meshClass = CLASS_UNTEXTURED_TRANSLUCENT;
++        }
++
++        if(shaded || !lit) {
++          for(int k = 0; k < vertexCount; k++) {
++            out.colour[f * 4 + k] = IoHelper.readInt(data, primitivesOffset);
++            primitivesOffset += 4;
++          }
++        } else if(!textured) {
++          final int colour = IoHelper.readInt(data, primitivesOffset);
++          primitivesOffset += 4;
++
++          for(int k = 0; k < vertexCount; k++) {
++            out.colour[f * 4 + k] = colour;
++          }
++        }
++
++        for(int k = 0; k < vertexCount; k++) {
++          if(lit && (gourad || k == 0)) {
++            primitivesOffset += 2; // chỉ số pháp tuyến: remaster dùng pháp tuyến trong file LRM
++          }
++
++          final int vertexIndex = IoHelper.readUShort(data, primitivesOffset);
++          primitivesOffset += 2;
++
++          if(vertexIndex >= objTable.vert_top_00.length) {
++            throw new ArrayIndexOutOfBoundsException("vertex index " + vertexIndex + " >= " + objTable.vert_top_00.length);
++          }
++
++          out.vertexIndex[f * 4 + k] = vertexIndex;
++        }
++
++        if(translucent && !textured) {
++          backfaceCulling = false;
++        }
++
++        out.meshClass[f] = meshClass;
++        f++;
++      }
++    }
++
++    return new SrcFaces(out, backfaceCulling, anyTextured, texturedCount);
++  }
++
++  /** bpp live = (tpage &gt;&gt;&gt; 7) &amp; 3. */
++  int bpp(final int face) {
++    return this.tpage[face] >>> 7 & 3;
++  }
++}

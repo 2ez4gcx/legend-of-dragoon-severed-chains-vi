@@ -1,0 +1,43 @@
+MÔ HÌNH HD (TUỲ CHỌN) — PHẦN MỀM BÊN THỨ BA
+Bản Việt hoá The Legend of Dragoon cho Severed Chains · công cụ "Tạo mô hình HD" (TAO_MO_HINH_HD.bat)
+
+Gói Việt hoá KHÔNG kèm sẵn các chương trình ở mục 1 và 2. Chúng chỉ được tải về máy người chơi khi người chơi đánh
+dấu ô đồng ý trong công cụ (hoặc người chơi tự tải file zip rồi chọn), từ đúng nguồn chính thức bên dưới; công cụ kiểm
+kích thước và SHA-256 với bản ghim trong vi/remaster/pins.json trước khi cài vào <thư mục game>/remaster_tools/.
+"Gỡ hết" trong công cụ xoá toàn bộ các chương trình này.
+
+1. Blender 5.2.2 (Windows x64) — BẮT BUỘC để tạo mô hình
+   Giấy phép   GNU General Public License (bản nhị phân phát hành theo GPL v3 hoặc mới hơn); Blender kèm nhiều thư viện
+               với giấy phép riêng, xem thư mục license/ trong bản cài.
+   Tải từ      https://download.blender.org/release/Blender5.2/blender-5.2.2-windows-x64.zip
+               SHA-256 chính thức: https://download.blender.org/release/Blender5.2/blender-5.2.2.sha256
+   Mã nguồn    https://projects.blender.org/blender/blender (thẻ v5.2.2)
+   Trang chủ   https://www.blender.org/
+   Dùng để     làm mịn hình khối nhân vật (chạy ngầm "blender -b", không mở cửa sổ); Python đi kèm Blender (numpy,
+               OpenImageIO) chạy bộ tạo mô hình vi/remaster/py.
+
+2. Real-ESRGAN ncnn Vulkan 20220424 (bản phát hành v0.2.5.0) — KHÔNG bắt buộc
+   Giấy phép   Real-ESRGAN và các mô hình realesrgan-x4plus, realesrgan-x4plus-anime: BSD-3-Clause, © Xintao Wang.
+               Chương trình realesrgan-ncnn-vulkan.exe dựng trên ncnn (BSD-3-Clause, Tencent) và realsr-ncnn-vulkan
+               (MIT, nihui). vcomp140.dll: thư viện OpenMP của Microsoft Visual C++ Redistributable, có sẵn trong zip
+               chính thức.
+   Tải từ      https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip
+               (GitHub không công bố mã băm cho file này; SHA-256 ghim là của bản có đúng kích thước chính thức.)
+   Mã nguồn    https://github.com/xinntao/Real-ESRGAN · https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan
+   Chỉ giải nén realesrgan-ncnn-vulkan.exe, vcomp140.dll, models/realesrgan-x4plus-anime.bin/.param,
+               models/realesrgan-x4plus.bin/.param (bỏ ảnh/phim mẫu và mô hình khác).
+   Dùng để     vẽ lại texture bằng AI. Cần card đồ hoạ hỗ trợ Vulkan; không có thì công cụ phóng to texture thường.
+               Chương trình này lỗi với đường dẫn có dấu tiếng Việt, nên khi thư mục game có dấu, công cụ chép nó sang một
+               thư mục chỉ có chữ ASCII (%PUBLIC%\LoD-SC-VN\realesrgan hoặc <ổ đĩa>:\LoD-SC-VN-tools\realesrgan) và
+               đánh dấu thư mục đó để "Xoá công cụ đã tải" / "Gỡ hết" xoá được.
+
+3. Dùng chung với Severed Chains (không phát hành lại, có sẵn trong thư mục game)
+   Gson 2.13.2  Apache License 2.0 — libs/gson-2.13.2.jar
+   JDK 25       Amazon Corretto (GPLv2 + Classpath Exception) — jdk25/, do launch.bat của Severed Chains tự tải.
+
+Mã nguồn của công cụ (vi/remaster/lodsc-remaster.jar, vi/remaster/py) phát hành theo AGPL-3.0 như Severed Chains, đầy đủ
+trong vi/NGUON/tools/remaster_tool/ và vi/NGUON/tools/sc_remaster/.
+
+Dữ liệu: mô hình và texture HD được tạo ngay trên máy người chơi từ dữ liệu mà Severed Chains giải nén từ đĩa gốc của
+chính người chơi; chúng chỉ nằm trong thư mục game đó và không được chia sẻ (kể cả gói Android xuất ra). Gói Việt hoá
+không chứa dữ liệu nào của Sony. The Legend of Dragoon © Sony Interactive Entertainment.

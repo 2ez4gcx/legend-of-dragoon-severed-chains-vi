@@ -2,7 +2,7 @@
 run_sc.ps1 — chạy Severed Chains (thư mục game) có/không có bản vá tiếng Việt sc-vi.jar.
 
 Cách gọi:
-  powershell -File tools/run_sc.ps1 [-Game game] [-NoVi] [-Install]
+  powershell -File tools/run_sc.ps1 [-Game game] [-NoVi] [-Install] [-Gles] [-Remaster off|geometry|full] [-RemasterLog]
     -Game     thư mục game SC (tương đối theo D:\LOD-SC hoặc tuyệt đối), mặc định "game"
     -Install  chép out/lang/*.lang + dialogue.vi.tsv, tr_sc/*.lang, out/fonts/vietnamese.*, out/sc-vi.jar và out/vi_files
               (lớp phủ đồ hoạ -> <game>/vi/files) vào game
@@ -15,6 +15,13 @@ Cách gọi:
               <game>\gfx\shaders; với shader gốc các bit thêm bị bỏ qua.
     -CharFx   thêm out/sc-charfx.jar như -Pn nhưng để PN tắt (-Dscvi.pn=0, trừ khi có -Pn): kiểm bản ghi đè không đổi gì
     -PnStrength8 s   độ phồng PN theo phần tám 1..8 (-Dscvi.pnStrength8=s; mặc định của jar = 8); chỉ dùng kèm -Pn/-CharFx
+    -Remaster off|geometry|full   mô hình HD (route B, tools/sc_remaster/SPEC.md §3.7): -Dscvi.remaster=<chế độ>, đè lên
+              <game>/remaster.properties. off = retail; geometry = hình học remaster + texel VRAM retail; full = thêm atlas HD
+              khi xác minh FaceHash đạt. Không đặt = theo remaster.properties (thiếu file = tắt). Cần sc-vi.jar (không -NoVi).
+    -RemasterLog  nhật ký chi tiết (-Dscvi.remasterLog=true): khoá mọi mô hình, mặt sai đầu tiên, SHA-1 véc-tơ FaceHash
+              (dòng "scvi-remaster: ..." trong debug.log / stdout.txt).
+              -Remaster/-RemasterLog KHÔNG được dùng cùng -Pn/-CharFx: cả hai cùng đặt một lớp TmdObjLoader ghi đè lên
+              classpath (sc-charfx.jar sẽ che bản của sc-vi.jar).
 Classpath lấy từ launch.bat của bản build (dòng gọi java), thêm sc-vi.jar lên đầu để lớp sửa đè lớp gốc.
 Ghi PID vào <game>\sc.pid. Log của SC: <game>\debug.log (ghi đè mỗi lần chạy, ghi trễ — đóng cửa sổ bằng CloseMainWindow
 trước khi đọc); trong lúc chạy đọc <game>\stdout.txt.
@@ -29,11 +36,20 @@ param(
   [string]$HdBg = '',
   [int]$Pn = -1,
   [switch]$CharFx,
-  [int]$PnStrength8 = 0
+  [int]$PnStrength8 = 0,
+  [string]$Remaster = '',
+  [switch]$RemasterLog
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not [System.IO.Path]::IsPathRooted($Game)) { $Game = Join-Path $root $Game }
+
+# Mô hình HD: kiểm tham số trước khi làm gì khác (cả hai jar thử đều ghi đè legend.game.tmd.TmdObjLoader)
+if ($Remaster -and @('off', 'geometry', 'full') -notcontains $Remaster) { throw '-Remaster phai la off, geometry hoac full' }
+if (($Remaster -or $RemasterLog) -and ($CharFx -or $Pn -ge 0)) {
+  throw '-Remaster/-RemasterLog khong dung chung voi -Pn/-CharFx (sc-charfx.jar va sc-vi.jar cung ghi de TmdObjLoader)'
+}
+if (($Remaster -or $RemasterLog) -and $NoVi) { throw '-Remaster/-RemasterLog can sc-vi.jar (bo -NoVi)' }
 
 if ($Install) {
   New-Item -ItemType Directory -Force (Join-Path $Game 'lang') | Out-Null
@@ -88,6 +104,8 @@ if ($CharFx -or $Pn -ge 0) {
 } elseif ($PnStrength8 -gt 0) {
   throw '-PnStrength8 chi dung kem -Pn hoac -CharFx'
 }
+if ($Remaster) { $extra += "-Dscvi.remaster=$Remaster" }
+if ($RemasterLog) { $extra += '-Dscvi.remasterLog=true' }
 $javaArgs = @('-Djoml.fastmath', '-Djoml.sinLookup', '-Djoml.useMathFma', '-Dscvi.logMissing=true',
   '--add-opens', 'java.base/java.util=ALL-UNNAMED', '--add-exports', 'java.base/jdk.internal.misc=ALL-UNNAMED',
   '--enable-native-access=ALL-UNNAMED') + $extra + @('-ea', '-cp', "`"$cp`"", 'legend.game.MainWindows')
@@ -96,4 +114,6 @@ $p = Start-Process -FilePath (Join-Path $Game 'jdk25\bin\java.exe') -ArgumentLis
 Set-Content (Join-Path $Game 'sc.pid') $p.Id
 $pnInfo = ''
 if ($CharFx -or $Pn -ge 0) { $pnInfo = ', pn=' + [Math]::Max($Pn, 0) }
+if ($Remaster) { $pnInfo += ", remaster=$Remaster" }
+if ($RemasterLog) { $pnInfo += ', remasterLog' }
 Write-Output "SC PID $($p.Id) (vi=$(-not $NoVi)$pnInfo)"
