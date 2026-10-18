@@ -1,0 +1,5 @@
+# Shader GLSL giữ LF: make_variants.py so khớp từng dòng với shader gốc của SC (LF) và khoá bộ đệm shader ES của bản
+# Android là SHA-256 của mã nguồn đúng từng byte
+*.gsh text eol=lf
+*.vsh text eol=lf
+*.fsh text eol=lf
