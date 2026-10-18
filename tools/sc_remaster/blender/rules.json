@@ -1,0 +1,117 @@
+{
+  "format": 1,
+  "ghi_chu": "Tham số pipeline hình học v2 (P2). remaster_core.py đọc file này rồi gộp với giá trị mặc định trong mã; geom_job.py có thể ghi đè bằng 'params' trong batch. Góc tính bằng độ, độ dài bằng đơn vị PS1 (TMD-local) trừ khi tên có _rel (tỉ lệ theo đường chéo phần) hoặc _edge (bội số độ dài cạnh trung bình).",
+  "levels": [
+    1,
+    2
+  ],
+  "weld_dist": 0.001,
+  "translucent_l0_frac": 0.8,
+  "crease": {
+    "sharp_angle": 120.0,
+    "split_angle": 20.0,
+    "hard_angle": 40.0,
+    "hard_crease": 0.9,
+    "soft_angle": 15.0,
+    "soft_crease": 0.4,
+    "boxy_hi_angle": 50.0,
+    "boxy_hi_base": 0.45,
+    "boxy_hi_add": 0.3,
+    "boxy_hi_span": 40.0,
+    "boxy_hi_max": 0.75,
+    "boxy_lo_angle": 30.0,
+    "boxy_lo_crease": 0.3,
+    "nonmanifold_crease": 1.0,
+    "translucent_border_crease": 1.0,
+    "eye_crease": 1.0,
+    "sole_min_angle": 70.0,
+    "sole_max_angle": 110.0,
+    "sole_down_dot": 0.7,
+    "weapon_angle": 50.0,
+    "armour_angle": 40.0,
+    "hands_angle": 30.0,
+    "hands_crease": 0.5
+  },
+  "tip": {
+    "angle_sum": 200.0,
+    "skin_angle_sum": 280.0,
+    "skin_crease": 0.5
+  },
+  "inflate": {
+    "enabled": true,
+    "feature_deficit": 60.0,
+    "joint_zone_rel": 0.1,
+    "free_clamp_edge": 1.0,
+    "pinned_clamp_edge": 1.5,
+    "f_max": 1.5,
+    "bisect_iters": 12,
+    "haus_target_rel": 0.025
+  },
+  "joint_fix": {
+    "enabled": true,
+    "margin": 0.25,
+    "iters": 12,
+    "damping": 0.8,
+    "max_move_edge": 0.5,
+    "max_move_rel": 0.03,
+    "grid": 0.5,
+    "max_move_abs": 2.0
+  },
+  "skirt": {
+    "enabled": true,
+    "len_edge": 2.0,
+    "len_rel": 0.08,
+    "combine": "max",
+    "tilt_in": 0.25,
+    "joint_cover_min": 0.5,
+    "shrink_steps": 4,
+    "hidden_min": 1.0
+  },
+  "normals": {
+    "blend_p90_angle": 60.0,
+    "blend_weight": 0.5
+  },
+  "profiles": {
+    "eye_transp_frac": 0.2,
+    "boots_floor_rel": 0.03,
+    "boots_height_rel": 0.35,
+    "weapon_ratio_long": 4.0,
+    "weapon_ratio_flat_long": 3.0,
+    "weapon_ratio_flat_thin": 8.0,
+    "weapon_level_max": 1,
+    "weapon_min_len_rel": 0.45,
+    "hands_diag_rel": 0.18,
+    "hands_y_min": 0.3,
+    "hands_y_max": 0.75,
+    "hands_lat_rel": 0.05,
+    "hands_max_faces": 40,
+    "armour_flat_frac": 0.4,
+    "armour_min_faces": 6
+  },
+  "sampling": {
+    "plan_keyframes": 64
+  },
+  "qa": {
+    "hausdorff_rel": 0.03,
+    "boundary_drift": 0.5,
+    "uv_err_texel": 0.001,
+    "iou_min": 0.97,
+    "iou_views": 16,
+    "iou_res": 192,
+    "tri_budget": {
+      "1": 5500,
+      "2": 20000
+    },
+    "inside_max_rel": 0.5,
+    "iou_part_res": 96,
+    "exposure_tol": 0.25,
+    "hausdorff_out_rel": 0.06,
+    "coverage_tol": 0.0001,
+    "normal_len_tol": 0.001,
+    "normal_flip_frac": 0.25
+  },
+  "overrides": {
+    "ghi_chu": "Ghi đè theo mô hình: khoá = tên job, đường dẫn mô hình (source.model) hoặc modelKey; 'parts': {chỉ số phần: {profile: [...], level_max: n, skirt: false, normals_blend: 0..1}}.",
+    "models": {}
+  }
+}

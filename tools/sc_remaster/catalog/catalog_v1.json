@@ -1,0 +1,2522 @@
+[
+ {
+  "id": "albert.field.22p256t",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — ngoài cảnh, 22 phần, 256 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/536/99",
+    "tim": "SECT/DRGN21.BIN/536/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 22,
+   "tris": 256
+  },
+  "key_us": "102c114a64b84890ff1656a3882d1f7aee76dc28"
+ },
+ {
+  "id": "albert.field.18p353t",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Albert — ngoài cảnh (bị bắt, cởi trần quỳ), 18 phần, 353 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/110/33",
+    "tim": "SECT/DRGN21.BIN/110/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 353
+  },
+  "key_us": "af1084ace55ed99bb9cff7c4ce3870a768dcff58"
+ },
+ {
+  "id": "albert.field.22p367t",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — ngoài cảnh, 22 phần, 367 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/38/132",
+    "tim": "SECT/DRGN21.BIN/38/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 22,
+   "tris": 367
+  },
+  "key_us": "edb38a8b133940da737ae165a061ca92dc834a22"
+ },
+ {
+  "id": "albert.field.22p367t-2",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — ngoài cảnh, 22 phần, 367 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/1136/165",
+    "tim": "SECT/DRGN22.BIN/1136/textures/5"
+   }
+  ],
+  "expect": {
+   "nobj": 22,
+   "tris": 367
+  },
+  "key_us": "3c57afa10e571bacdc9413f9c14e68c853cf52e6"
+ },
+ {
+  "id": "albert.field.23p392t",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — ngoài cảnh (cầm giáo), 23 phần, 392 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/869/363",
+    "tim": "SECT/DRGN22.BIN/869/textures/11"
+   }
+  ],
+  "expect": {
+   "nobj": 23,
+   "tris": 392
+  },
+  "key_us": "30d884f1fc2f3cbf42d470900575e345339167c6"
+ },
+ {
+  "id": "albert.field.23p465t",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Albert — ngoài cảnh (áo choàng hoàng gia), 23 phần, 465 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/284/99",
+    "tim": "SECT/DRGN21.BIN/284/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 23,
+   "tris": 465
+  },
+  "key_us": "ae29867535c12e371f37a0671ea7f4c07051a6a9"
+ },
+ {
+  "id": "albert.field.22p542t",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — ngoài cảnh, 22 phần, 542 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/329/165",
+    "tim": "SECT/DRGN21.BIN/329/textures/5"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/554/66",
+    "tim": "SECT/DRGN21.BIN/554/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 22,
+   "tris": 542
+  },
+  "key_us": "f7237150b59f272aae1761e752f9e1ff72f638fa"
+ },
+ {
+  "id": "albert.field.23p567t",
+  "char": "albert",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — ngoài cảnh (cầm giáo), 23 phần, 567 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/689/330",
+    "tim": "SECT/DRGN21.BIN/689/textures/10"
+   }
+  ],
+  "expect": {
+   "nobj": 23,
+   "tris": 567
+  },
+  "key_us": "9bde6e29e18bf3a5157c5f9a274ea9388497ab41"
+ },
+ {
+  "id": "albert.field_dragoon.28p567t",
+  "char": "albert",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Albert — Dragoon Ngọc Bích ngoài cảnh, 28 phần, 567 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/488/66",
+    "tim": "SECT/DRGN23.BIN/488/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 28,
+   "tris": 567
+  },
+  "key_us": "686de531c3f40c2d8f117f59d8cff14b32d1cd59"
+ },
+ {
+  "id": "dart.field.15p247t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 247 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/41/0",
+    "tim": "SECT/DRGN21.BIN/41/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 247
+  },
+  "key_us": "a051a034f1d9b7cbd673bf3a914cc7c05a77d221"
+ },
+ {
+  "id": "dart.field.15p318t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 318 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/809/0",
+    "tim": "SECT/DRGN22.BIN/809/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 318
+  },
+  "key_us": "16b5cdf4a0cd4ada1a95aa94d95f892f6fa5d3a7"
+ },
+ {
+  "id": "dart.field.15p332t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 332 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/50/0",
+    "tim": "SECT/DRGN21.BIN/50/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 332
+  },
+  "key_us": "621452b77c5a0fc9d5aee0fbeeebc0e1021843ea"
+ },
+ {
+  "id": "dart.field.15p336t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 336 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/686/0",
+    "tim": "SECT/DRGN22.BIN/686/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 336
+  },
+  "key_us": "36dfc7ab772fbca973c20d240d8a20367b2170d3"
+ },
+ {
+  "id": "dart.field.15p356t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 356 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/50/330",
+    "tim": "SECT/DRGN21.BIN/50/textures/10"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 356
+  },
+  "key_us": "609f554ffd79877bd1c77fd06709872012867f55"
+ },
+ {
+  "id": "dart.field.15p468t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 468 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/8/0",
+    "tim": "SECT/DRGN21.BIN/8/textures/0"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/638/0",
+    "tim": "SECT/DRGN21.BIN/638/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 468
+  },
+  "key_us": "8b9db0c49595177297d106bfcd88b30028f91158"
+ },
+ {
+  "id": "dart.field.15p468t-2",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 468 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/416/0",
+    "tim": "SECT/DRGN21.BIN/416/textures/0"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/809/231",
+    "tim": "SECT/DRGN22.BIN/809/textures/7"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 468
+  },
+  "key_us": "0c2e954b796fe9ecce32098ad79c9aa6787809a1"
+ },
+ {
+  "id": "dart.field.15p484t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 484 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/101/0",
+    "tim": "SECT/DRGN21.BIN/101/textures/0"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/557/0",
+    "tim": "SECT/DRGN21.BIN/557/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 484
+  },
+  "key_us": "94b66966a5186de1ad58a3bea63efc9659da1b24"
+ },
+ {
+  "id": "dart.field.15p502t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 502 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/35/231",
+    "tim": "SECT/DRGN21.BIN/35/textures/7"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 502
+  },
+  "key_us": "955abd7416e1b3c628b2287c3ae5f90a5382ce64"
+ },
+ {
+  "id": "dart.field.16p534t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh (rút kiếm), 16 phần, 534 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/128/33",
+    "tim": "SECT/DRGN21.BIN/128/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 16,
+   "tris": 534
+  },
+  "key_us": "bf40f39be585b58645bc8866bbc2375d0d935888"
+ },
+ {
+  "id": "dart.field.15p855t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh (nhiều đa giác), 15 phần, 855 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/20/0",
+    "tim": "SECT/DRGN21.BIN/20/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 855
+  },
+  "key_us": "55eb5ccaba78a4865b9f38b07e5015eac8459b32"
+ },
+ {
+  "id": "dart.field.15p873t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — ngoài cảnh, 15 phần, 873 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/716/198",
+    "tim": "SECT/DRGN21.BIN/716/textures/6"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 873
+  },
+  "key_us": "941a1e1b32ae42fa610491b69cfa42dd03d53c93"
+ },
+ {
+  "id": "dart.field.16p951t",
+  "char": "dart",
+  "form": "field",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Dart — ngoài cảnh (đĩa 4, áo nâu), 16 phần, 951 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/788/0",
+    "tim": "SECT/DRGN24.BIN/788/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 16,
+   "tris": 951
+  },
+  "key_us": "f46b17c0bc9dce3d3b87135e9136be80e893a8fd"
+ },
+ {
+  "id": "dart.field_dragoon.28p583t",
+  "char": "dart",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — Dragoon Mắt Đỏ ngoài cảnh, 28 phần, 583 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/17/0",
+    "tim": "SECT/DRGN21.BIN/17/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 28,
+   "tris": 583
+  },
+  "key_us": "dc5695c761e96142d3998ae635565be5c4c70e4c"
+ },
+ {
+  "id": "dart.field_dragoon.28p583t-2",
+  "char": "dart",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — Dragoon Mắt Đỏ ngoài cảnh, 28 phần, 583 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/5/33",
+    "tim": "SECT/DRGN21.BIN/5/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 28,
+   "tris": 583
+  },
+  "key_us": "148143ac26fa3b35d913783aa374b3b0e84b80e0"
+ },
+ {
+  "id": "haschel.field.15p252t",
+  "char": "haschel",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Haschel — ngoài cảnh, 15 phần, 252 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/452/132",
+    "tim": "SECT/DRGN21.BIN/452/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 252
+  },
+  "key_us": "6870ee05e66d215440c0e36dbedcf43bf1f0a6fb"
+ },
+ {
+  "id": "haschel.field.15p323t",
+  "char": "haschel",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Haschel — ngoài cảnh, 15 phần, 323 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/923/165",
+    "tim": "SECT/DRGN22.BIN/923/textures/5"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 323
+  },
+  "key_us": "89c748e5181bac054312651adba3c7958078771a"
+ },
+ {
+  "id": "haschel.field.15p327t",
+  "char": "haschel",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Haschel — ngoài cảnh, 15 phần, 327 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/38/66",
+    "tim": "SECT/DRGN21.BIN/38/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 327
+  },
+  "key_us": "083df909de597dfe354674ddb80762ffac570c7d"
+ },
+ {
+  "id": "haschel.field.15p461t",
+  "char": "haschel",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Haschel — ngoài cảnh, 15 phần, 461 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/809/165",
+    "tim": "SECT/DRGN22.BIN/809/textures/5"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 461
+  },
+  "key_us": "e409bea2237b412891cef921eca6f7655cec65e8"
+ },
+ {
+  "id": "haschel.field.15p461t-2",
+  "char": "haschel",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Haschel — ngoài cảnh, 15 phần, 461 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/866/0",
+    "tim": "SECT/DRGN24.BIN/866/textures/0"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/800/33",
+    "tim": "SECT/DRGN22.BIN/800/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 461
+  },
+  "key_us": "6283519a6f05f39c14dd3815701ebfee31108574"
+ },
+ {
+  "id": "haschel.field_dragoon.25p524t",
+  "char": "haschel",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Haschel — Dragoon Tím ngoài cảnh, 25 phần, 524 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/491/66",
+    "tim": "SECT/DRGN23.BIN/491/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 25,
+   "tris": 524
+  },
+  "key_us": "cbdcf0c49fa7516b2c072f98e1555157495a287a"
+ },
+ {
+  "id": "kongol.field.17p375t",
+  "char": "kongol",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — ngoài cảnh, 17 phần, 375 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/428/297",
+    "tim": "SECT/DRGN21.BIN/428/textures/9"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 375
+  },
+  "key_us": "3f9cc7af809bf30dfb68c9f331e9178d68c3e133"
+ },
+ {
+  "id": "kongol.field.17p510t",
+  "char": "kongol",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — ngoài cảnh, 17 phần, 510 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/809/198",
+    "tim": "SECT/DRGN22.BIN/809/textures/6"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 510
+  },
+  "key_us": "3044467c7237112b8b8c7c7357a8d5ba9edaed56"
+ },
+ {
+  "id": "kongol.field.17p510t-2",
+  "char": "kongol",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — ngoài cảnh, 17 phần, 510 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/800/66",
+    "tim": "SECT/DRGN22.BIN/800/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 510
+  },
+  "key_us": "07808636c9471c44258fe95a01a49e62b32c910f"
+ },
+ {
+  "id": "kongol.field.18p552t",
+  "char": "kongol",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — ngoài cảnh (cầm rìu), 18 phần, 552 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/341/66",
+    "tim": "SECT/DRGN21.BIN/341/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 552
+  },
+  "key_us": "b5fef20145f661ed59385614dfd0e5c6f8ab1c70"
+ },
+ {
+  "id": "kongol.field.17p645t",
+  "char": "kongol",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — ngoài cảnh, 17 phần, 645 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/686/165",
+    "tim": "SECT/DRGN21.BIN/686/textures/5"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 645
+  },
+  "key_us": "e0e55a566033a5cbc5cf839b8fd0e2af2097693d"
+ },
+ {
+  "id": "kongol.field.17p659t",
+  "char": "kongol",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — ngoài cảnh, 17 phần, 659 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/746/99",
+    "tim": "SECT/DRGN24.BIN/746/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 659
+  },
+  "key_us": "e75fc29bd68b3eb8be71c7c7c6ed60660b2876e7"
+ },
+ {
+  "id": "kongol.field_dragoon.28p554t",
+  "char": "kongol",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Kongol — Dragoon Vàng ngoài cảnh, 28 phần, 554 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/494/66",
+    "tim": "SECT/DRGN23.BIN/494/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 28,
+   "tris": 554
+  },
+  "key_us": "68f8d2431a037e415481723b83e175ff80870ada"
+ },
+ {
+  "id": "lavitz.field.15p327t",
+  "char": "lavitz",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Lavitz — ngoài cảnh, 15 phần, 327 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/50/66",
+    "tim": "SECT/DRGN21.BIN/50/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 327
+  },
+  "key_us": "45bf527b6aab4d3fd3729eccf89ecbdbfcde1b78"
+ },
+ {
+  "id": "lavitz.field.16p352t",
+  "char": "lavitz",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Lavitz — ngoài cảnh (cầm giáo), 16 phần, 352 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/50/363",
+    "tim": "SECT/DRGN21.BIN/50/textures/11"
+   }
+  ],
+  "expect": {
+   "nobj": 16,
+   "tris": 352
+  },
+  "key_us": "cdecaefe3ea63ede11be2577c21983989dff0801"
+ },
+ {
+  "id": "lavitz.field.15p448t",
+  "char": "lavitz",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Lavitz — ngoài cảnh, 15 phần, 448 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/119/99",
+    "tim": "SECT/DRGN21.BIN/119/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 448
+  },
+  "key_us": "ab4017797765a307059efb86df47a71db766c420"
+ },
+ {
+  "id": "lavitz.field.16p473t",
+  "char": "lavitz",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Lavitz — ngoài cảnh (cầm giáo), 16 phần, 473 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/47/66",
+    "tim": "SECT/DRGN21.BIN/47/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 16,
+   "tris": 473
+  },
+  "key_us": "12830b7f84b16e7ef67f12ab8fae23f093c3a170"
+ },
+ {
+  "id": "lavitz-albert.field_dragoon.29p631t",
+  "char": "lavitz|albert",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Lavitz/Albert — Dragoon Ngọc Bích ngoài cảnh (cầm giáo), 29 phần, 631 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/677/330",
+    "tim": "SECT/DRGN21.BIN/677/textures/10"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 631
+  },
+  "key_us": "032f8b5270a0215f86c5a6e9dc0510c5c32e2a3f"
+ },
+ {
+  "id": "meru.field.27p303t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh, 27 phần, 303 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/968/66",
+    "tim": "SECT/DRGN22.BIN/968/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 27,
+   "tris": 303
+  },
+  "key_us": "98ff66d149fbcbdd52e341dd5c70db68c91bec20"
+ },
+ {
+  "id": "meru.field.17p396t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Meru — ngoài cảnh (váy, đĩa 4), 17 phần, 396 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/455/99",
+    "tim": "SECT/DRGN24.BIN/455/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 396
+  },
+  "key_us": "a6d7870c89eeb54171f27b20107af2107de77b37"
+ },
+ {
+  "id": "meru.field.27p411t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh, 27 phần, 411 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/641/198",
+    "tim": "SECT/DRGN22.BIN/641/textures/6"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/497/99",
+    "tim": "SECT/DRGN24.BIN/497/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 27,
+   "tris": 411
+  },
+  "key_us": "0477b5dfe115b71b5e707ad91a062d05fbb626a0"
+ },
+ {
+  "id": "meru.field.27p419t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh, 27 phần, 419 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/686/99",
+    "tim": "SECT/DRGN22.BIN/686/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 27,
+   "tris": 419
+  },
+  "key_us": "379e65bd435d61c22f4ec5c78a5d28841daf4c9a"
+ },
+ {
+  "id": "meru.field.18p432t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Meru — ngoài cảnh (váy, đĩa 4), 18 phần, 432 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/854/0",
+    "tim": "SECT/DRGN24.BIN/854/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 432
+  },
+  "key_us": "eadbc6ee8c77ab3581df8d3a222f598858cb1235"
+ },
+ {
+  "id": "meru.field.29p439t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh (cánh Wingly mở), 29 phần, 439 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/614/132",
+    "tim": "SECT/DRGN24.BIN/614/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 439
+  },
+  "key_us": "2749bc30aaadeca3d82ce7be2e6a64cd72e841a6"
+ },
+ {
+  "id": "meru.field.27p541t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh, 27 phần, 541 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/755/33",
+    "tim": "SECT/DRGN22.BIN/755/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 27,
+   "tris": 541
+  },
+  "key_us": "2d0587866edce2e916ec9934bdfce548290396b9"
+ },
+ {
+  "id": "meru.field.27p541t-2",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh, 27 phần, 541 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/809/66",
+    "tim": "SECT/DRGN22.BIN/809/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 27,
+   "tris": 541
+  },
+  "key_us": "940a42833f9744957d9be6007982352c60326d3e"
+ },
+ {
+  "id": "meru.field.29p561t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh (cánh Wingly mở), 29 phần, 561 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/221/132",
+    "tim": "SECT/DRGN23.BIN/221/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 561
+  },
+  "key_us": "e167aad19a18c580ecdbbae9b61ef6d03e8d0483"
+ },
+ {
+  "id": "meru.field.28p579t",
+  "char": "meru",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — ngoài cảnh (cầm búa), 28 phần, 579 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/755/264",
+    "tim": "SECT/DRGN22.BIN/755/textures/8"
+   }
+  ],
+  "expect": {
+   "nobj": 28,
+   "tris": 579
+  },
+  "key_us": "bce71d84b5ab3982b258b7ccb744c89ae02b863b"
+ },
+ {
+  "id": "meru.field_dragoon.27p512t",
+  "char": "meru",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Meru — Dragoon Biển Xanh ngoài cảnh, 27 phần, 512 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/485/66",
+    "tim": "SECT/DRGN23.BIN/485/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 27,
+   "tris": 512
+  },
+  "key_us": "6f1fbb5e450b6b2e24f3fc650130f9820151d707"
+ },
+ {
+  "id": "meru.field_dragoon.27p580t",
+  "char": "meru",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Meru — Dragoon Biển Xanh ngoài cảnh, 27 phần, 580 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/980/165",
+    "tim": "SECT/DRGN22.BIN/980/textures/5"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/377/165",
+    "tim": "SECT/DRGN24.BIN/377/textures/5"
+   }
+  ],
+  "expect": {
+   "nobj": 27,
+   "tris": 580
+  },
+  "key_us": "e1250566e29581fc922919d581fec3c2f8f81fe1"
+ },
+ {
+  "id": "miranda.field.15p233t",
+  "char": "miranda",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Miranda — ngoài cảnh, 15 phần, 233 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/71/33",
+    "tim": "SECT/DRGN23.BIN/71/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 233
+  },
+  "key_us": "b47cfb381aad75e1971e12692765f8ca2a666544"
+ },
+ {
+  "id": "miranda.field.15p354t",
+  "char": "miranda",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Miranda — ngoài cảnh, 15 phần, 354 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/689/132",
+    "tim": "SECT/DRGN22.BIN/689/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 354
+  },
+  "key_us": "98089ac5819a282ce2bfcbdd959181f759e5a6c3"
+ },
+ {
+  "id": "miranda.field.15p504t",
+  "char": "miranda",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Miranda — ngoài cảnh, 15 phần, 504 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/848/0",
+    "tim": "SECT/DRGN24.BIN/848/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 504
+  },
+  "key_us": "3b00af7618bf5156ab6b401a8e7db0a5304dc43e"
+ },
+ {
+  "id": "miranda.field.15p504t-2",
+  "char": "miranda",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Miranda — ngoài cảnh, 15 phần, 504 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/116/33",
+    "tim": "SECT/DRGN23.BIN/116/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 504
+  },
+  "key_us": "d1ae8dee7cd26cb8c0539ab37e9ca9284566764d"
+ },
+ {
+  "id": "miranda.field.18p518t",
+  "char": "miranda",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Miranda — ngoài cảnh (cầm cung), 18 phần, 518 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/230/132",
+    "tim": "SECT/DRGN23.BIN/230/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 518
+  },
+  "key_us": "f0c01386d92177a1675fda5d379b4acb144770ed"
+ },
+ {
+  "id": "miranda.field_dragoon.43p481t",
+  "char": "miranda",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Miranda — Dragoon Bạch Ngân ngoài cảnh, 43 phần, 481 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/167/396",
+    "tim": "SECT/DRGN23.BIN/167/textures/12"
+   }
+  ],
+  "expect": {
+   "nobj": 43,
+   "tris": 481
+  },
+  "key_us": "3364b5ce815a4f3867d63a2c3ab3ea1915380a58"
+ },
+ {
+  "id": "rose.field.17p262t",
+  "char": "rose",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — ngoài cảnh, 17 phần, 262 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/368/99",
+    "tim": "SECT/DRGN21.BIN/368/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 262
+  },
+  "key_us": "86ae7a5e348773104bfa364ec2fb9fb6b164137c"
+ },
+ {
+  "id": "rose.field.17p349t",
+  "char": "rose",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — ngoài cảnh, 17 phần, 349 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/809/99",
+    "tim": "SECT/DRGN22.BIN/809/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 349
+  },
+  "key_us": "ff80c4cbf564aee5d0cd220426be2f1e9f956a35"
+ },
+ {
+  "id": "rose.field.17p350t",
+  "char": "rose",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — ngoài cảnh, 17 phần, 350 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/38/99",
+    "tim": "SECT/DRGN21.BIN/38/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 350
+  },
+  "key_us": "cc259240decb54636075926fe244293eb4da448b"
+ },
+ {
+  "id": "rose.field.18p372t",
+  "char": "rose",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — ngoài cảnh (cầm kiếm), 18 phần, 372 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/98/396",
+    "tim": "SECT/DRGN21.BIN/98/textures/12"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 372
+  },
+  "key_us": "5e48d776355ee3aef67a8a24ff809dd9fa89edc4"
+ },
+ {
+  "id": "rose.field.17p485t",
+  "char": "rose",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — ngoài cảnh, 17 phần, 485 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/14/0",
+    "tim": "SECT/DRGN21.BIN/14/textures/0"
+   },
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/335/132",
+    "tim": "SECT/DRGN21.BIN/335/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 485
+  },
+  "key_us": "0fa2541cf35bebf92e24c78b4ba891daf2a694d3"
+ },
+ {
+  "id": "rose.field.18p507t",
+  "char": "rose",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — ngoài cảnh (cầm kiếm), 18 phần, 507 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/95/198",
+    "tim": "SECT/DRGN21.BIN/95/textures/6"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 507
+  },
+  "key_us": "b47b5dc55953b528a17186834b69ef7f85318fed"
+ },
+ {
+  "id": "rose.field_dragoon.30p533t",
+  "char": "rose",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Rose — Dragoon Bóng Tối ngoài cảnh (đĩa 4), 30 phần, 533 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/758/363",
+    "tim": "SECT/DRGN24.BIN/758/textures/11"
+   }
+  ],
+  "expect": {
+   "nobj": 30,
+   "tris": 533
+  },
+  "key_us": "0a1593d50e2513401498538e0e741a0ff345adc9"
+ },
+ {
+  "id": "rose.field_dragoon.31p605t",
+  "char": "rose",
+  "form": "field_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Rose — Quái Vật Đen (dạng tối có cánh) ngoài cảnh, 31 phần, 605 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/713/99",
+    "tim": "SECT/DRGN21.BIN/713/textures/3"
+   }
+  ],
+  "expect": {
+   "nobj": 31,
+   "tris": 605
+  },
+  "key_us": "db42697146bae51e91bb3de1c2fa2ab0dc7612d8"
+ },
+ {
+  "id": "shana.field.15p250t",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — ngoài cảnh, 15 phần, 250 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/41/363",
+    "tim": "SECT/DRGN21.BIN/41/textures/11"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 250
+  },
+  "key_us": "ed608314b57945547c47612de238d3e811a5ba6b"
+ },
+ {
+  "id": "shana.field.15p324t",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — ngoài cảnh, 15 phần, 324 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/809/33",
+    "tim": "SECT/DRGN22.BIN/809/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 324
+  },
+  "key_us": "132d7a9d77fc3425e50a8c70133f8f3e82ed605f"
+ },
+ {
+  "id": "shana.field.15p326t",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — ngoài cảnh, 15 phần, 326 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/26/66",
+    "tim": "SECT/DRGN21.BIN/26/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 326
+  },
+  "key_us": "08f1fd4e1fb053a0b90fba3746fdfb7a7d042a84"
+ },
+ {
+  "id": "shana.field.15p464t",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — ngoài cảnh, 15 phần, 464 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/875/33",
+    "tim": "SECT/DRGN24.BIN/875/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 464
+  },
+  "key_us": "8909d8da4e9d3bf998a8c118203f984117d38d3d"
+ },
+ {
+  "id": "shana.field.15p488t",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Shana — ngoài cảnh (quỳ, đoạn kết), 15 phần, 488 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/698/33",
+    "tim": "SECT/DRGN24.BIN/698/textures/1"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 488
+  },
+  "key_us": "d24d2ddf549fc333b5442bd891d13b3081543c20"
+ },
+ {
+  "id": "shana.field.15p490t",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — ngoài cảnh, 15 phần, 490 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/11/0",
+    "tim": "SECT/DRGN21.BIN/11/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 490
+  },
+  "key_us": "97881f0adc3180c5a3185d451a83598af780f0a8"
+ },
+ {
+  "id": "shana.field.15p490t-2",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — ngoài cảnh, 15 phần, 490 tam giác; cũng là avatar bản đồ thế giới",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/119/66",
+    "tim": "SECT/DRGN21.BIN/119/textures/2"
+   }
+  ],
+  "expect": {
+   "nobj": 15,
+   "tris": 490
+  },
+  "key_us": "70ac425617f0bd3e4232247a81ed8cd720861d4c"
+ },
+ {
+  "id": "shana.field.17p510t",
+  "char": "shana",
+  "form": "field",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — ngoài cảnh (cầm cung), 17 phần, 510 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/86/297",
+    "tim": "SECT/DRGN21.BIN/86/textures/9"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 510
+  },
+  "key_us": "44bcf2a6eda00a6f5525e7cddff15beec6cdf938"
+ },
+ {
+  "id": "composite.field_composite.30p974t",
+  "char": "composite",
+  "form": "field_composite",
+  "tier": "optional",
+  "confidence": "high",
+  "label_vi": "Mô hình ghép — ngoài cảnh (Dart + Shana trong một TMD), 30 phần, 974 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/338/165",
+    "tim": "SECT/DRGN21.BIN/338/textures/5"
+   }
+  ],
+  "expect": {
+   "nobj": 30,
+   "tris": 974
+  },
+  "key_us": "fe4699468888b03cce1805a6bc3e2080a9b8a2e6"
+ },
+ {
+  "id": "composite.field_composite.32p681t",
+  "char": "composite",
+  "form": "field_composite",
+  "tier": "optional",
+  "confidence": "high",
+  "label_vi": "Mô hình ghép — ngoài cảnh (Dart + Rose trong một TMD), 32 phần, 681 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/971/231",
+    "tim": "SECT/DRGN22.BIN/971/textures/7"
+   }
+  ],
+  "expect": {
+   "nobj": 32,
+   "tris": 681
+  },
+  "key_us": "7b95cbb604fc650e5f46f21703a85ee4be018a58"
+ },
+ {
+  "id": "composite.field_composite.32p577t",
+  "char": "composite",
+  "form": "field_composite",
+  "tier": "optional",
+  "confidence": "medium",
+  "label_vi": "Mô hình ghép — ngoài cảnh (Haschel + một NPC), 32 phần, 577 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN22.BIN/800/132",
+    "tim": "SECT/DRGN22.BIN/800/textures/4"
+   }
+  ],
+  "expect": {
+   "nobj": 32,
+   "tris": 577
+  },
+  "key_us": "a5a46ec63b88f0d4099e4bec31bbdb19e41a09e3"
+ },
+ {
+  "id": "composite.field_composite.48p1368t",
+  "char": "composite",
+  "form": "field_composite",
+  "tier": "optional",
+  "confidence": "low",
+  "label_vi": "Mô hình ghép — ngoài cảnh (Shana + ngựa + người cưỡi), 48 phần, 1368 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/173/165",
+    "tim": "SECT/DRGN21.BIN/173/textures/5"
+   }
+  ],
+  "expect": {
+   "nobj": 48,
+   "tris": 1368
+  },
+  "key_us": "4c104846404188a72ebe72ccf247674831f9c959"
+ },
+ {
+  "id": "dart.field_child.17p734t",
+  "char": "dart",
+  "form": "field_child",
+  "tier": "optional",
+  "confidence": "medium",
+  "label_vi": "Dart — lúc nhỏ, ngoài cảnh, 17 phần, 734 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN21.BIN/731/0",
+    "tim": "SECT/DRGN21.BIN/731/textures/0"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 734
+  },
+  "key_us": "fea574c36dea402cc1d4d2a5e6574907addb54cd"
+ },
+ {
+  "id": "kongol.field_child.17p428t",
+  "char": "kongol",
+  "form": "field_child",
+  "tier": "optional",
+  "confidence": "medium",
+  "label_vi": "Kongol — lúc nhỏ, ngoài cảnh, 17 phần, 428 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN24.BIN/740/396",
+    "tim": "SECT/DRGN24.BIN/740/textures/12"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 428
+  },
+  "key_us": "77893a1176bce0e0866b1f9a2947dd520c51a435"
+ },
+ {
+  "id": "meru.field_prop.2p20t",
+  "char": "meru",
+  "form": "field_prop",
+  "tier": "optional",
+  "confidence": "low",
+  "label_vi": "Meru — đạo cụ ngoài cảnh (cánh), 2 phần, 20 tam giác",
+  "sources": [
+   {
+    "kind": "field",
+    "model": "SECT/DRGN23.BIN/59/231",
+    "tim": "SECT/DRGN23.BIN/59/textures/7"
+   }
+  ],
+  "expect": {
+   "nobj": 2,
+   "tris": 20
+  },
+  "key_us": "76f8d3ba9dc1d46acc7e9a203092e00e59e23340"
+ },
+ {
+  "id": "dart.battle_combat",
+  "char": "dart",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — trong trận, 17 phần, 870 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/dart/models/combat/32",
+    "tim": "characters/dart/textures/combat"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 870
+  },
+  "key_us": "7d9df82e67a52ee77ec36cbb62e9980b4d7dc547"
+ },
+ {
+  "id": "dart.battle_dragoon",
+  "char": "dart",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — Dragoon Mắt Đỏ trong trận, 29 phần, 1005 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/dart/models/dragoon/32",
+    "tim": "characters/dart/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 1005
+  },
+  "key_us": "08a422cd19d0c9637f7b56e4d2fcf69aac0bffcb"
+ },
+ {
+  "id": "lavitz.battle_combat",
+  "char": "lavitz",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Lavitz — trong trận, 16 phần, 890 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/lavitz/models/combat/32",
+    "tim": "characters/lavitz/textures/combat"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/21",
+    "tim": "SECT/DRGN0.BIN/22"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/187",
+    "tim": "SECT/DRGN0.BIN/188"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/329",
+    "tim": "SECT/DRGN0.BIN/330"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/498",
+    "tim": "SECT/DRGN0.BIN/499"
+   }
+  ],
+  "expect": {
+   "nobj": 16,
+   "tris": 890
+  },
+  "key_us": "cfda6f48a2a8475ef52dc1f3dc372c1c2a9fbbd3"
+ },
+ {
+  "id": "lavitz.battle_dragoon",
+  "char": "lavitz",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Lavitz — Dragoon Ngọc Bích trong trận, 29 phần, 952 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/lavitz/models/dragoon/32",
+    "tim": "characters/lavitz/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 952
+  },
+  "key_us": "fd2d6284737752d9e07fcbcbf06ccb84bfcdff3e"
+ },
+ {
+  "id": "shana.battle_combat",
+  "char": "shana",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — trong trận, 20 phần, 891 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/shana/models/combat/32",
+    "tim": "characters/shana/textures/combat"
+   },
+   {
+    "kind": "monster",
+    "model": "SECT/DRGN0.BIN/3426/32",
+    "tim": "monsters/289/textures/combat"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/7",
+    "tim": "SECT/DRGN0.BIN/8"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/195",
+    "tim": "SECT/DRGN0.BIN/196"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/220",
+    "tim": "SECT/DRGN0.BIN/221"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/295",
+    "tim": "SECT/DRGN0.BIN/296"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/522",
+    "tim": "SECT/DRGN0.BIN/523"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/609",
+    "tim": "SECT/DRGN0.BIN/610"
+   }
+  ],
+  "expect": {
+   "nobj": 20,
+   "tris": 891
+  },
+  "key_us": "8b675bcccda5394f5f206c100108da717d772847"
+ },
+ {
+  "id": "shana.battle_dragoon",
+  "char": "shana",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Shana — Dragoon Bạch Ngân trong trận, 31 phần, 941 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/shana/models/dragoon/32",
+    "tim": "characters/shana/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 31,
+   "tris": 941
+  },
+  "key_us": "ad35bb72a4d82159bda53c91f5e9cd406bef7713"
+ },
+ {
+  "id": "rose.battle_combat",
+  "char": "rose",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — trong trận, 19 phần, 807 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/rose/models/combat/32",
+    "tim": "characters/rose/textures/combat"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/86",
+    "tim": "SECT/DRGN0.BIN/87"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/163",
+    "tim": "SECT/DRGN0.BIN/164"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/200",
+    "tim": "SECT/DRGN0.BIN/201"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/230",
+    "tim": "SECT/DRGN0.BIN/231"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/359",
+    "tim": "SECT/DRGN0.BIN/360"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/460",
+    "tim": "SECT/DRGN0.BIN/461"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/530",
+    "tim": "SECT/DRGN0.BIN/531"
+   }
+  ],
+  "expect": {
+   "nobj": 19,
+   "tris": 807
+  },
+  "key_us": "0639753596cc6cd573891e13bfa43ad5f6baea2b"
+ },
+ {
+  "id": "rose.battle_dragoon",
+  "char": "rose",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Rose — Dragoon Bóng Tối trong trận, 32 phần, 887 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/rose/models/dragoon/32",
+    "tim": "characters/rose/textures/dragoon"
+   },
+   {
+    "kind": "monster",
+    "model": "SECT/DRGN0.BIN/3392/32",
+    "tim": "monsters/255/textures/combat"
+   }
+  ],
+  "expect": {
+   "nobj": 32,
+   "tris": 887
+  },
+  "key_us": "83112bb731649037e02f04f340b30d5b18c95aa2"
+ },
+ {
+  "id": "haschel.battle_combat",
+  "char": "haschel",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Haschel — trong trận, 17 phần, 791 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/haschel/models/combat/32",
+    "tim": "characters/haschel/textures/combat"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/464",
+    "tim": "SECT/DRGN0.BIN/465"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/582",
+    "tim": "SECT/DRGN0.BIN/583"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 791
+  },
+  "key_us": "7f3104a7c39a53c7d8dbe08224dedfa39921a074"
+ },
+ {
+  "id": "haschel.battle_dragoon",
+  "char": "haschel",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Haschel — Dragoon Tím trong trận, 25 phần, 820 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/haschel/models/dragoon/32",
+    "tim": "characters/haschel/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 25,
+   "tris": 820
+  },
+  "key_us": "b3a6cbe93d4cc74ff2b830cad11819dd99982161"
+ },
+ {
+  "id": "meru.battle_combat",
+  "char": "meru",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — trong trận, 22 phần, 806 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/meru/models/combat/32",
+    "tim": "characters/meru/textures/combat"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/138",
+    "tim": "SECT/DRGN0.BIN/139"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/277",
+    "tim": "SECT/DRGN0.BIN/278"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/612",
+    "tim": "SECT/DRGN0.BIN/613"
+   }
+  ],
+  "expect": {
+   "nobj": 22,
+   "tris": 806
+  },
+  "key_us": "2435e8cbf3c5ac8b9b7ea518f435c792c295cc03"
+ },
+ {
+  "id": "meru.battle_dragoon",
+  "char": "meru",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Meru — Dragoon Biển Xanh trong trận, 29 phần, 875 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/meru/models/dragoon/32",
+    "tim": "characters/meru/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 875
+  },
+  "key_us": "2cbdf21174d4f0e6c565c36ffdaf669436a51b4d"
+ },
+ {
+  "id": "kongol.battle_combat",
+  "char": "kongol",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — trong trận, 18 phần, 795 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/kongol/models/combat/32",
+    "tim": "characters/kongol/textures/combat"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 795
+  },
+  "key_us": "5b2b6c59b425b42a94356aaa8897250413c86d36"
+ },
+ {
+  "id": "kongol.battle_dragoon",
+  "char": "kongol",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — Dragoon Vàng trong trận, 31 phần, 894 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/kongol/models/dragoon/32",
+    "tim": "characters/kongol/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 31,
+   "tris": 894
+  },
+  "key_us": "9fe750671ba6857eb2a5dcb93bdd37ecacde121f"
+ },
+ {
+  "id": "miranda.battle_combat",
+  "char": "miranda",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Miranda — trong trận, 19 phần, 809 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/miranda/models/combat/32",
+    "tim": "characters/miranda/textures/combat"
+   }
+  ],
+  "expect": {
+   "nobj": 19,
+   "tris": 809
+  },
+  "key_us": "8d26ceb50e1bc83c51a96210732b8149e429c2dc"
+ },
+ {
+  "id": "miranda.battle_dragoon",
+  "char": "miranda",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Miranda — Dragoon Bạch Ngân trong trận, 31 phần, 855 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/miranda/models/dragoon/32",
+    "tim": "characters/miranda/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 31,
+   "tris": 855
+  },
+  "key_us": "238fae9df182a24360b38e1224eb6c20b541ff9f"
+ },
+ {
+  "id": "albert.battle_combat",
+  "char": "albert",
+  "form": "battle_combat",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — trong trận, 21 phần, 866 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/albert/models/combat/32",
+    "tim": "characters/albert/textures/combat"
+   }
+  ],
+  "expect": {
+   "nobj": 21,
+   "tris": 866
+  },
+  "key_us": "2e897dd45123f80883790d003192901cc5d63e94"
+ },
+ {
+  "id": "albert.battle_dragoon",
+  "char": "albert",
+  "form": "battle_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — Dragoon Ngọc Bích trong trận, 29 phần, 958 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/albert/models/dragoon/32",
+    "tim": "characters/albert/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 958
+  },
+  "key_us": "96cc5105b6fd9ef971407a1333ee7b4cd421f6e7"
+ },
+ {
+  "id": "dart.battle_divine_dragoon",
+  "char": "dart",
+  "form": "battle_divine_dragoon",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — Dragoon Thần Long trong trận, 17 phần, 865 tam giác",
+  "sources": [
+   {
+    "kind": "battle",
+    "model": "characters/divine/models/dragoon/32",
+    "tim": "characters/divine/textures/dragoon"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 865
+  },
+  "key_us": "0c0576ce88b1497d9274f08c02ef70dfedfedd0e"
+ },
+ {
+  "id": "dart.battle_story.drgn0-0",
+  "char": "dart",
+  "form": "battle_story",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Dart — trong trận, bản cốt truyện DRGN0/0, 17 phần, 875 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/0",
+    "tim": "SECT/DRGN0.BIN/1"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/52",
+    "tim": "SECT/DRGN0.BIN/53"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/78",
+    "tim": "SECT/DRGN0.BIN/79"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/112",
+    "tim": "SECT/DRGN0.BIN/113"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/151",
+    "tim": "SECT/DRGN0.BIN/152"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/178",
+    "tim": "SECT/DRGN0.BIN/179"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/214",
+    "tim": "SECT/DRGN0.BIN/215"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/264",
+    "tim": "SECT/DRGN0.BIN/265"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/315",
+    "tim": "SECT/DRGN0.BIN/316"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/364",
+    "tim": "SECT/DRGN0.BIN/365"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/405",
+    "tim": "SECT/DRGN0.BIN/406"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/480",
+    "tim": "SECT/DRGN0.BIN/481"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/592",
+    "tim": "SECT/DRGN0.BIN/593"
+   }
+  ],
+  "expect": {
+   "nobj": 17,
+   "tris": 875
+  },
+  "key_us": "4844ee8da8454425e40852fd87e68ce3e3c4c49c"
+ },
+ {
+  "id": "albert.battle_story.drgn0-60",
+  "char": "albert",
+  "form": "battle_story",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — trong trận, bản cốt truyện DRGN0/60, 21 phần, 874 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/60",
+    "tim": "SECT/DRGN0.BIN/61"
+   }
+  ],
+  "expect": {
+   "nobj": 21,
+   "tris": 874
+  },
+  "key_us": "34f10aef604a15f70775cfdd04975f3a6ed2ee83"
+ },
+ {
+  "id": "albert.battle_story.drgn0-169",
+  "char": "albert",
+  "form": "battle_story",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Albert — trong trận, bản cốt truyện DRGN0/169, 21 phần, 874 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/169",
+    "tim": "SECT/DRGN0.BIN/170"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/422",
+    "tim": "SECT/DRGN0.BIN/423"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/602",
+    "tim": "SECT/DRGN0.BIN/603"
+   }
+  ],
+  "expect": {
+   "nobj": 21,
+   "tris": 874
+  },
+  "key_us": "285200889a7c4000a552ec370e8e4e5e918775ae"
+ },
+ {
+  "id": "albert.battle_story.drgn0-287",
+  "char": "albert",
+  "form": "battle_story",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Albert — trong trận, bản cốt truyện DRGN0/287 (áo choàng, cầm giáo), 21 phần, 876 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/287",
+    "tim": "SECT/DRGN0.BIN/288"
+   }
+  ],
+  "expect": {
+   "nobj": 21,
+   "tris": 876
+  },
+  "key_us": "288025ec51e00641b93b8220f42fcd42e37725a5"
+ },
+ {
+  "id": "miranda.battle_story.drgn0-133",
+  "char": "miranda",
+  "form": "battle_story",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Miranda — trong trận, bản cốt truyện DRGN0/133 (cầm cung), 19 phần, 803 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/133",
+    "tim": "SECT/DRGN0.BIN/134"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/455",
+    "tim": "SECT/DRGN0.BIN/456"
+   }
+  ],
+  "expect": {
+   "nobj": 19,
+   "tris": 803
+  },
+  "key_us": "63cec6bfd44cc60bd3f417941d8bfbc3a8bcaf47"
+ },
+ {
+  "id": "kongol.battle_story.drgn0-337",
+  "char": "kongol",
+  "form": "battle_story",
+  "tier": "core",
+  "confidence": "high",
+  "label_vi": "Kongol — trong trận, bản cốt truyện DRGN0/337, 18 phần, 795 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/337",
+    "tim": "SECT/DRGN0.BIN/338"
+   },
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/616",
+    "tim": "SECT/DRGN0.BIN/617"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 795
+  },
+  "key_us": "527a816325255ddb2ebf4d2089160b9e4d6622cf"
+ },
+ {
+  "id": "kongol.battle_story.drgn0-468",
+  "char": "kongol",
+  "form": "battle_story",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Kongol — trong trận, bản cốt truyện DRGN0/468, 18 phần, 797 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/468",
+    "tim": "SECT/DRGN0.BIN/469"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 797
+  },
+  "key_us": "3bb3a6462f610d87826f772c1c7439a049547bb6"
+ },
+ {
+  "id": "dart.battle_story_dragoon.drgn0-324",
+  "char": "dart",
+  "form": "battle_story_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Dart — Dragoon Mắt Đỏ trong trận, bản cốt truyện DRGN0/324, 29 phần, 1001 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/324",
+    "tim": "SECT/DRGN0.BIN/325"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 1001
+  },
+  "key_us": "75ca24d6f619435e83deff621fc3c0915d753dcc"
+ },
+ {
+  "id": "lavitz-albert.battle_story_dragoon.drgn0-505",
+  "char": "lavitz|albert",
+  "form": "battle_story_dragoon",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Lavitz/Albert — Dragoon Ngọc Bích trong trận, bản cốt truyện DRGN0/505, 29 phần, 950 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/505",
+    "tim": "SECT/DRGN0.BIN/506"
+   }
+  ],
+  "expect": {
+   "nobj": 29,
+   "tris": 950
+  },
+  "key_us": "1fb47eea172d2e564916c41730a47083514bdb01"
+ },
+ {
+  "id": "albert.battle_story.drgn0-539",
+  "char": "albert",
+  "form": "battle_story",
+  "tier": "optional",
+  "confidence": "low",
+  "label_vi": "Albert — trong trận, bản cốt truyện DRGN0/539 (bị bắt, cởi trần quỳ), 14 phần, 781 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/539",
+    "tim": "SECT/DRGN0.BIN/540"
+   }
+  ],
+  "expect": {
+   "nobj": 14,
+   "tris": 781
+  },
+  "key_us": "2f606f03002ffd45cd6b43b75093af875154cfc3"
+ },
+ {
+  "id": "albert.battle_story.drgn0-549",
+  "char": "albert",
+  "form": "battle_story",
+  "tier": "optional",
+  "confidence": "low",
+  "label_vi": "Albert — trong trận, bản cốt truyện DRGN0/549 (bị bắt, biến thể của DRGN0/539), 18 phần, 773 tam giác",
+  "sources": [
+   {
+    "kind": "story",
+    "model": "SECT/DRGN0.BIN/549",
+    "tim": "SECT/DRGN0.BIN/550"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 773
+  },
+  "key_us": "2daa5e326b87be95886938eaae22ac04b9f00798"
+ },
+ {
+  "id": "kongol.battle_enemy.monster-265",
+  "char": "kongol",
+  "form": "battle_enemy",
+  "tier": "core",
+  "confidence": "medium",
+  "label_vi": "Kongol — trong trận, ô quái 265 (trùm Kongol), 18 phần, 795 tam giác",
+  "sources": [
+   {
+    "kind": "monster",
+    "model": "SECT/DRGN0.BIN/3402/32",
+    "tim": "monsters/265/textures/combat"
+   }
+  ],
+  "expect": {
+   "nobj": 18,
+   "tris": 795
+  },
+  "key_us": "ba2c2408c4bf3622eaa1270908ea0ee7ec0aa22f"
+ }
+]
