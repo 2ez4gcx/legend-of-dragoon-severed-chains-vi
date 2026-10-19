@@ -14,32 +14,4 @@
     <string name="not_bin">không phải ảnh đĩa BIN 2352 byte/sector</string>
     <string name="ready">Đã có 4 đĩa. Bấm Chơi.</string>
     <string name="launch_failed">Không mở được đĩa: %1$s\nHãy chọn lại 4 đĩa.</string>
-    <string name="auto_launch">Sắp vào game (%1$d)…\nMuốn đổi đĩa hoặc nhập, bật, tắt mô hình HD: bấm nút tương ứng bên dưới trước khi hết giờ.</string>
-
-    <!-- Mô hình HD (route B): gói .zip xuất từ công cụ "Tạo mô hình HD" trên máy tính, xem android/README.md -->
-    <string name="hd_import">Nhập mô hình HD (.zip)</string>
-    <string name="hd_importing">Đang nhập mô hình HD: %1$d%%</string>
-    <string name="hd_importing_mb">Đang nhập mô hình HD: %1$d MB</string>
-    <string name="hd_ok">Đã nhập %1$d mô hình HD và bật Mô hình HD. Lần vào game tới sẽ dùng bộ mô hình mới.</string>
-    <string name="hd_bad_zip">Gói .zip hỏng hoặc không an toàn: %1$s.\nĐã huỷ nhập; mô hình HD đang có (nếu có) giữ nguyên.</string>
-    <string name="hd_wrong_format">Không phải gói mô hình HD đúng định dạng: %1$s.\nHãy xuất lại gói Android bằng công cụ “Tạo mô hình HD” trên máy tính. Mô hình HD đang có (nếu có) giữ nguyên.</string>
-    <string name="hd_no_space">Không đủ bộ nhớ trống để nhập mô hình HD: cần khoảng %1$d MB, còn %2$d MB.</string>
-    <string name="hd_failed">Nhập mô hình HD thất bại: %1$s\nMô hình HD đang có (nếu có) giữ nguyên.</string>
-    <string name="hd_on">Mô hình HD: Bật</string>
-    <string name="hd_off">Mô hình HD: Tắt</string>
-    <string name="hd_why_unsafe">đường dẫn không an toàn “%1$s”</string>
-    <string name="hd_why_corrupt">không đọc được tệp zip (%1$s)</string>
-    <string name="hd_why_empty">không phải tệp .zip hoặc tệp rỗng</string>
-    <string name="hd_why_incomplete">tệp zip không trọn vẹn: %1$s</string>
-    <string name="hd_why_dup">tệp “%1$s” xuất hiện hai lần</string>
-    <string name="hd_why_big">tệp “%1$s” lớn hơn giới hạn %2$d MB</string>
-    <string name="hd_why_total">tổng dung lượng sau khi giải nén vượt %1$d MB</string>
-    <string name="hd_why_many">có hơn %1$d tệp</string>
-    <string name="hd_why_extra">có tệp không thuộc gói mô hình HD “%1$s”</string>
-    <string name="hd_why_lrm">“%1$s” không phải tệp mô hình LRM1 phiên bản 1 hợp lệ</string>
-    <string name="hd_why_png">ảnh “%1$s” hỏng hoặc tên không khớp mã SHA-1</string>
-    <string name="hd_why_index">remaster/index.tsv sai ở dòng %1$d</string>
-    <string name="hd_why_noindex">thiếu remaster/index.tsv</string>
-    <string name="hd_why_missing">index.tsv có “%1$s” nhưng gói không có tệp này</string>
-    <string name="hd_why_manifest">remaster/manifest.json không đọc được hoặc không phải định dạng 1</string>
 </resources>

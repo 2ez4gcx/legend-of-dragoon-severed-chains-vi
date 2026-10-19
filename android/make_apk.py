@@ -18,17 +18,6 @@ Nội dung APK:
 Ký bằng khoá deps/android/keys/lodsc-release.jks (tạo lần đầu, mật khẩu ngẫu nhiên trong keystore.pass — SAO LƯU, mọi bản
 cập nhật phải ký cùng khoá). Kết quả: release/LoD-SC-VN-v<ver>-android-arm64.apk (+ dòng trong release/SHA256SUMS.txt).
 Xác định: cùng đầu vào -> cùng payload.zip (thời gian cố định, thứ tự cố định).
-
-Mô hình HD (route B, tools/sc_remaster/SPEC.md): APK chỉ chở mã. Công cụ PC (TAO_MO_HINH_HD.bat, HUONG_DAN_MO_HINH_HD.txt,
-vi/remaster/** trừ THIRD_PARTY.txt) bị bỏ khỏi payload; dữ liệu sinh từ đĩa người chơi được nhập trên máy bằng
-SetupActivity/RemasterImport vào filesDir/game/remaster (+ game/remaster.properties). Chốt chặn (dừng dựng, "LOI (mo hinh HD)"):
-    - không mục payload nào dưới game/remaster/, game/remaster.import|old/, game/remaster_work|tools|export/, không có
-      remaster.properties, không còn vi/remaster/ (trừ THIRD_PARTY.txt), TAO_MO_HINH_HD.bat, HUONG_DAN_MO_HINH_HD.txt;
-    - không tệp .lrm (trừ mẫu tổng hợp spec/sample_cube.lrm trong mã nguồn vi/NGUON), không PNG atlas (<sha1>.png,
-      *_atlas*.png), không exe/dll/mô hình Real-ESRGAN hay exe Blender (mọi mẫu không phân biệt hoa thường);
-    - Payload.PROGRAM (đọc từ Payload.java: các thư mục bị xoá khi cập nhật APK) không chứa "remaster" và không có mục trỏ
-      tới cả game/ ("", ".", "./", thành phần "..").
-Tự kiểm chốt chặn (không dựng APK, exit 0 = đạt):  python android/make_apk.py --selftest-guards
 """
 import argparse
 import hashlib
@@ -63,65 +52,8 @@ SDL_JAVA = os.path.join(DEPS, 'out', 'sdl-java')
 PKG = 'Severed Chains (VN)/'
 FIXED = (2026, 10, 17, 0, 0, 0)
 # Tệp của gói Windows không đưa vào bản Android
-DROP_TOP = re.compile(r'^(launch[^/]*\.(bat|sh|command)|launch\.conf|updater\.jar|HUONG_DAN_VIET_HOA\.txt'
-                      r'|TAO_MO_HINH_HD\.bat|HUONG_DAN_MO_HINH_HD\.txt)$')
+DROP_TOP = re.compile(r'^(launch[^/]*\.(bat|sh|command)|launch\.conf|updater\.jar|HUONG_DAN_VIET_HOA\.txt)$')
 DROP_LIB = re.compile(r'natives-(windows|linux|macos)|-windows-x86_64\.jar$')
-# công cụ "Tạo mô hình HD" chỉ chạy trên PC (jar Swing, worker Python, danh mục, pins); giữ ghi chú giấy phép
-DROP_PATH = re.compile(r'^vi/remaster/(?!THIRD_PARTY\.txt$)')
-PAYLOAD_JAVA = os.path.join(AND, 'app', 'java', 'vn', 'lodsc', 'Payload.java')
-# mẫu tổng hợp của WP0 (không phải dữ liệu Sony) có thể đi theo mã nguồn AGPL trong vi/NGUON
-LRM_OK = {'game/vi/NGUON/tools/sc_remaster/spec/sample_cube.lrm'}
-# không phân biệt hoa thường: gói Windows dựng trên NTFS (Remaster/ = remaster/), và tệp X.LRM / atlas tên hex hoa vẫn là
-# dữ liệu sinh từ đĩa dù runtime không đọc
-FORBID = [(re.compile('(?i)' + rx), why) for rx, why in (
-    (r'^game/remaster(/|$)', 'du lieu mo hinh HD game/remaster/ (sinh tu dia nguoi choi)'),
-    (r'^game/remaster\.(import|old)(/|$)', 'thu muc tam cua RemasterImport'),
-    (r'^game/remaster_(work|tools|export)(/|$)', 'thu muc cua cong cu PC (remaster_work/tools/export)'),
-    (r'(^|/)remaster\.properties(\.tmp)?$', 'cong tac remaster.properties (cua nguoi choi)'),
-    (r'^game/vi/remaster/(?!THIRD_PARTY\.txt$)', 'cong cu PC vi/remaster/ (chi giu THIRD_PARTY.txt)'),
-    (r'^game/(TAO_MO_HINH_HD\.bat|HUONG_DAN_MO_HINH_HD\.txt)$', 'tep chi dung tren PC'),
-    (r'\.lrm(\.tmp)?$', 'mo hinh .lrm'),
-    (r'(^|/)[0-9a-f]{40}\.png$', 'atlas PNG <sha1>.png'),
-    (r'_atlas(_pad|_4x|_2x|_x4)?\.png$', 'atlas PNG cua bo sinh'),
-    (r'realesrgan[^/]*\.(exe|dll|bin|param)$|(^|/)vcomp140\.dll$', 'Real-ESRGAN (nguoi choi tu tai)'),
-    (r'(^|/)blender[^/]*\.(exe|zip)$', 'Blender (nguoi choi tu tai)'),
-)]
-
-
-def keep(rel):
-    """mục rel (tương đối trong gói Windows) có đưa vào payload Android không"""
-    return not (DROP_TOP.match(rel) or (rel.startswith('libs/') and DROP_LIB.search(rel)) or DROP_PATH.match(rel))
-
-
-def guard_payload(names):
-    """dừng dựng nếu payload chở dữ liệu mô hình HD / công cụ PC (tên mục payload: game/..., jre/...)"""
-    bad = []
-    for n in names:
-        for rx, why in FORBID:
-            if rx.search(n) and not (n in LRM_OK and n.endswith('.lrm')):
-                bad.append('%s (%s)' % (n, why))
-                break
-    if bad:
-        sys.exit('LOI (mo hinh HD): payload khong duoc chua:\n  ' + '\n  '.join(bad[:20]))
-
-
-def guard_program(text):
-    """Payload.PROGRAM = thư mục/tệp bị xoá khi cập nhật APK: không được chứa remaster (dữ liệu + công tắc phải còn)"""
-    m = re.search(r'PROGRAM\s*=\s*\{([^}]*)\}', text)
-    items = re.findall(r'"([^"]*)"', m.group(1)) if m else []
-    if not items:
-        sys.exit('LOI (mo hinh HD): khong doc duoc Payload.PROGRAM trong Payload.java')
-    # "remaster*" hoặc mục trỏ tới cả game/ hay ra ngoài ("", ".", "./", "..", có thành phần "..") -> Payload.deleteTree xoá
-    # luôn dữ liệu người chơi
-    def whole(i):
-        parts = [p for p in re.split(r'[/\\]', i.strip()) if p not in ('', '.')]
-        return not parts or '..' in parts
-    bad = [i for i in items if 'remaster' in i.lower() or whole(i)]
-    if bad:
-        sys.exit('LOI (mo hinh HD): Payload.PROGRAM chua %s -> cap nhat APK se xoa mo hinh HD / cong tac' % bad)
-    return items
-
-
 NATIVE_LIBS = ['libSDL3.so', 'libopenal.so', 'libopus.so', 'liblwjgl.so', 'liblwjgl_opengles.so', 'liblwjgl_stb.so',
                'libsclauncher.so', 'libc++_shared.so']
 
@@ -161,10 +93,9 @@ def payload(zip_path, version, abi):
             if not n.startswith(PKG) or n.endswith('/'):
                 continue
             rel = n[len(PKG):]
-            if not keep(rel):
+            if DROP_TOP.match(rel) or (rel.startswith('libs/') and DROP_LIB.search(rel)):
                 continue
             entries.append(('game/' + rel, z.read(n)))
-    guard_payload(e[0] for e in entries)   # dừng sớm, trước khi đọc JRE
     cp = ['vi/sc-android.jar', 'vi/sc-vi.jar'] + classpath(launch)
     present = {e[0][len('game/'):] for e in entries}
     missing = [p for p in cp if p not in present and p != 'vi/sc-android.jar']
@@ -208,7 +139,6 @@ def payload(zip_path, version, abi):
             if target.isfile():
                 entries.append(('jre/' + name, t.extractfile(target).read()))
 
-    guard_payload(e[0] for e in entries)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for name, b in sorted(entries):
@@ -234,101 +164,13 @@ def keystore():
     return ks, pw
 
 
-def selftest_guards():
-    """gieo từng vi phạm, kiểm chốt chặn dừng đúng chỗ; gói sạch và Payload.java thật phải qua. exit 0 = đạt"""
-    import tempfile
-    results = []
-
-    def fires(fn):
-        try:
-            fn()
-        except SystemExit as e:
-            return str(e)
-        return None
-
-    def check(desc, ok, note=''):
-        results.append(ok)
-        print('%-4s %s%s' % ('DAT' if ok else 'LOI', desc, (' -> ' + note.splitlines()[0]) if note else ''))
-
-    k = 'ab' * 20
-    clean = ['jre/bin/java', 'game/vi/sc-vi.jar', 'game/vi/remaster/THIRD_PARTY.txt', 'game/files/.keep',
-             'game/vi/NGUON/tools/sc_remaster/spec/sample_cube.lrm', 'game/vi/NGUON/tools/sc_remaster/worker.py',
-             'game/vi/NGUON/tools/sc_remaster/blender/geom_job.py', 'game/vi/NGUON/android/test/remaster_import.ps1',
-             'game/vi/NGUON/android/app/java/vn/lodsc/RemasterImport.java', 'game/gfx/shaders_es/tmd.fsh',
-             'game/vi/NGUON/tools/sc_remaster/SPEC.md', 'game/vi/NGUON/tools/remaster_tool/TAO_MO_HINH_HD.bat.in',
-             'game/vi/NGUON/tools/remaster_tool/src/vn/lodsc/remaster/Toggle.java',
-             'game/vi/NGUON/sc-vi/src/legend/scvi/remaster/RemasterConfig.java']
-    msg = fires(lambda: guard_payload(clean))
-    check('payload sach khong bi chan', msg is None, msg or '')
-    seeded = ['game/remaster/index.tsv', 'game/remaster/manifest.json', 'game/remaster/models/%s.lrm' % k,
-              'game/remaster/textures/%s.png' % k, 'game/remaster', 'game/remaster.properties',
-              'game/remaster.import/remaster/index.tsv', 'game/remaster.old/index.tsv', 'game/remaster_work/scan.json',
-              'game/remaster_tools/realesrgan/realesrgan-ncnn-vulkan.exe', 'game/remaster_export/LoD-HD.zip',
-              'game/vi/remaster/lodsc-remaster.jar', 'game/vi/remaster/py/worker.py', 'game/vi/remaster/catalog_v1.json',
-              'game/vi/remaster/pins.json', 'game/TAO_MO_HINH_HD.bat', 'game/HUONG_DAN_MO_HINH_HD.txt',
-              'game/vi/NGUON/tools/sc_remaster/work/%s.lrm' % k, 'game/vi/x.lrm', 'game/files/%s.png' % k,
-              'game/vi/NGUON/tools/sc_remodel/out/dart_atlas_4x.png', 'game/vi/dart_atlas.png',
-              'game/vi/models/realesrgan-x4plus-anime.bin', 'game/x/vcomp140.dll', 'game/x/blender.exe',
-              # hoa thường khác (NTFS không phân biệt) và tệp tạm của bộ sinh / công tắc
-              'game/Remaster/index.tsv', 'game/REMASTER.PROPERTIES', 'game/vi/X.LRM', 'game/vi/%s.PNG' % k.upper(),
-              'game/vi/Remaster/pins.json', 'game/vi/Dart_ATLAS_4x.png', 'game/remaster.properties.tmp',
-              'game/vi/NGUON/x/%s.lrm.tmp' % k]
-    for s in seeded:
-        msg = fires(lambda: guard_payload(clean + [s]))
-        check('chan %s' % s, msg is not None and msg.startswith('LOI (mo hinh HD)'), msg or 'KHONG CHAN')
-
-    real = open(PAYLOAD_JAVA, encoding='utf-8').read()
-    msg = fires(lambda: guard_program(real))
-    check('Payload.java hien tai qua (PROGRAM = %s)' % (guard_program(real) if msg is None else '?'), msg is None, msg or '')
-    for desc, text in (('PROGRAM co "remaster"', real.replace('"patches"', '"patches", "remaster"')),
-                       ('PROGRAM co "remaster.properties"', real.replace('"lang"', '"remaster.properties", "lang"')),
-                       ('PROGRAM co "Remaster"', real.replace('"gfx"', '"Remaster", "gfx"')),
-                       ('PROGRAM co "" (ca game/)', real.replace('"gfx"', '"", "gfx"')),
-                       ('PROGRAM co "./"', real.replace('"gfx"', '"./", "gfx"')),
-                       ('PROGRAM co "../game"', real.replace('"gfx"', '"../game", "gfx"')),
-                       ('khong co PROGRAM', 'final class Payload { }')):
-        msg = fires(lambda: guard_program(text))
-        check('chan ' + desc, msg is not None and msg.startswith('LOI (mo hinh HD)'), msg or 'KHONG CHAN')
-
-    for rel, want in (('TAO_MO_HINH_HD.bat', False), ('HUONG_DAN_MO_HINH_HD.txt', False),
-                      ('vi/remaster/lodsc-remaster.jar', False), ('vi/remaster/py/worker.py', False),
-                      ('vi/remaster/py/lib/lrm.py', False), ('vi/remaster/catalog_v1.json', False),
-                      ('vi/remaster/pins.json', False), ('vi/remaster/THIRD_PARTY.txt', True), ('vi/sc-vi.jar', True),
-                      ('launch-vi.bat', False), ('vi/NGUON/tools/sc_remaster/worker.py', True),
-                      ('HUONG_DAN_VIET_HOA.txt', False), ('README.txt', True)):
-        check('loc goi Windows: %s -> %s' % (rel, 'giu' if want else 'bo'), keep(rel) == want)
-
-    # đầu-cuối: payload() trên gói Windows giả có gieo vi phạm phải dừng ở chốt chặn (trước khi đọc JRE)
-    with tempfile.TemporaryDirectory() as d:
-        for s in ('remaster/index.tsv', 'remaster.properties', 'remaster/models/%s.lrm' % k, 'remaster_work/scan.json'):
-            zp = os.path.join(d, 'fake.zip')
-            with zipfile.ZipFile(zp, 'w') as z:
-                z.writestr(PKG + 'launch.bat', 'java -cp "vi/sc-vi.jar;libs/a.jar" legend.game.Main\r\n')
-                z.writestr(PKG + 'vi/sc-vi.jar', b'')
-                z.writestr(PKG + 'libs/a.jar', b'')
-                z.writestr(PKG + 'vi/remaster/lodsc-remaster.jar', b'')   # bị lọc, không phải vi phạm
-                z.writestr(PKG + s, b'x')
-            msg = fires(lambda: payload(zp, '0.0', 'x86_64'))
-            check('payload() dung voi %s trong goi Windows' % s, msg is not None and msg.startswith('LOI (mo hinh HD)'),
-                  msg or 'KHONG DUNG')
-    bad = results.count(False)
-    print('%s: %d/%d' % ('DAT' if not bad else 'KHONG DAT', len(results) - bad, len(results)))
-    return 0 if not bad else 1
-
-
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--version')
+    ap.add_argument('--version', required=True)
     ap.add_argument('--build', type=int, default=1)
     ap.add_argument('--zip')
     ap.add_argument('--abi', default='arm64-v8a', choices=sorted(ABIS))
-    ap.add_argument('--selftest-guards', action='store_true', help='chi tu kiem chot chan mo hinh HD, khong dung APK')
     a = ap.parse_args()
-    if a.selftest_guards:
-        sys.exit(selftest_guards())
-    if not a.version:
-        ap.error('can --version')
-    guard_program(open(PAYLOAD_JAVA, encoding='utf-8').read())
     zip_path = a.zip or os.path.join(ROOT, 'release', 'LoD-SC-VN-v%s-sc-affcef0-windows.zip' % a.version)
     major, minor = (int(x) for x in a.version.split('.')[:2])
     version_code = major * 100000 + minor * 1000 + a.build

@@ -2,29 +2,14 @@
 run_sc.ps1 — chạy Severed Chains (thư mục game) có/không có bản vá tiếng Việt sc-vi.jar.
 
 Cách gọi:
-  powershell -File tools/run_sc.ps1 [-Game game] [-NoVi] [-Install] [-Gles] [-Remaster off|geometry|full] [-RemasterLog]
+  powershell -File tools/run_sc.ps1 [-Game game] [-NoVi] [-Install]
     -Game     thư mục game SC (tương đối theo D:\LOD-SC hoặc tuyệt đối), mặc định "game"
     -Install  chép out/lang/*.lang + dialogue.vi.tsv, tr_sc/*.lang, out/fonts/vietnamese.*, out/sc-vi.jar và out/vi_files
               (lớp phủ đồ hoạ -> <game>/vi/files) vào game
     -NoVi     chạy SC gốc (không thêm sc-vi.jar vào classpath)
     -Gles     thử đường OpenGL ES của bản Android (out/android/sc-android.jar + shader ES, ES 3.2 qua WGL, heap 1,5 GB)
-    -HdBg     thử ảnh nền HD: thêm out/sc-hdbg.jar (tools/sc_hdbg/build.ps1) và -Dscvi.hdbg=<thư mục PNG của tools/sc_hd_layers.py>
-    -Pn n     thử làm mịn mô hình nhân vật (PN-triangles): thêm out/sc-charfx.jar (tools/sc_charfx/java/build.ps1, TmdObjLoader
-              ghi bit PN theo góc vào cờ đỉnh; thiếu jar thì báo lỗi) LÊN ĐẦU classpath và -Dscvi.pn=n (0 = tắt, 1..4 -> mức 2..4).
-              Mặc định -1 = không dùng jar. Script này KHÔNG tráo shader: shader PN do bộ thử ngoài (sc_fx.ps1) chép vào
-              <game>\gfx\shaders; với shader gốc các bit thêm bị bỏ qua.
-    -CharFx   thêm out/sc-charfx.jar như -Pn nhưng để PN tắt (-Dscvi.pn=0, trừ khi có -Pn): kiểm bản ghi đè không đổi gì
-    -PnStrength8 s   độ phồng PN theo phần tám 1..8 (-Dscvi.pnStrength8=s; mặc định của jar = 8); chỉ dùng kèm -Pn/-CharFx
-    -Remaster off|geometry|full   mô hình HD (route B, tools/sc_remaster/SPEC.md §3.7): -Dscvi.remaster=<chế độ>, đè lên
-              <game>/remaster.properties. off = retail; geometry = hình học remaster + texel VRAM retail; full = thêm atlas HD
-              khi xác minh FaceHash đạt. Không đặt = theo remaster.properties (thiếu file = tắt). Cần sc-vi.jar (không -NoVi).
-    -RemasterLog  nhật ký chi tiết (-Dscvi.remasterLog=true): khoá mọi mô hình, mặt sai đầu tiên, SHA-1 véc-tơ FaceHash
-              (dòng "scvi-remaster: ..." trong debug.log / stdout.txt).
-              -Remaster/-RemasterLog KHÔNG được dùng cùng -Pn/-CharFx: cả hai cùng đặt một lớp TmdObjLoader ghi đè lên
-              classpath (sc-charfx.jar sẽ che bản của sc-vi.jar).
 Classpath lấy từ launch.bat của bản build (dòng gọi java), thêm sc-vi.jar lên đầu để lớp sửa đè lớp gốc.
-Ghi PID vào <game>\sc.pid. Log của SC: <game>\debug.log (ghi đè mỗi lần chạy, ghi trễ — đóng cửa sổ bằng CloseMainWindow
-trước khi đọc); trong lúc chạy đọc <game>\stdout.txt.
+Ghi PID vào <game>\sc.pid. Log của SC: <game>\logs\.
 CHÚ Ý: gọi thành lệnh độc lập, KHÔNG bắt đầu ra (| Out-Null, $x = ..., Start-Job): java thừa hưởng handle của pipe nên
 lệnh gọi treo đến khi game thoát.
 #>
@@ -32,24 +17,11 @@ param(
   [string]$Game = 'game',
   [switch]$NoVi,
   [switch]$Install,
-  [switch]$Gles,
-  [string]$HdBg = '',
-  [int]$Pn = -1,
-  [switch]$CharFx,
-  [int]$PnStrength8 = 0,
-  [string]$Remaster = '',
-  [switch]$RemasterLog
+  [switch]$Gles
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not [System.IO.Path]::IsPathRooted($Game)) { $Game = Join-Path $root $Game }
-
-# Mô hình HD: kiểm tham số trước khi làm gì khác (cả hai jar thử đều ghi đè legend.game.tmd.TmdObjLoader)
-if ($Remaster -and @('off', 'geometry', 'full') -notcontains $Remaster) { throw '-Remaster phai la off, geometry hoac full' }
-if (($Remaster -or $RemasterLog) -and ($CharFx -or $Pn -ge 0)) {
-  throw '-Remaster/-RemasterLog khong dung chung voi -Pn/-CharFx (sc-charfx.jar va sc-vi.jar cung ghi de TmdObjLoader)'
-}
-if (($Remaster -or $RemasterLog) -and $NoVi) { throw '-Remaster/-RemasterLog can sc-vi.jar (bo -NoVi)' }
 
 if ($Install) {
   New-Item -ItemType Directory -Force (Join-Path $Game 'lang') | Out-Null
@@ -82,38 +54,10 @@ if ($Gles) {
   $extra = @('-Xmx1536m', '-Dscvi.android=true', '-Dorg.lwjgl.opengles.libname=opengl32.dll', '-Dorg.lwjgl.opengles.contextAPI=native',
     '--add-opens', 'java.base/java.io=ALL-UNNAMED')
 }
-if ($HdBg) {
-  if (-not [System.IO.Path]::IsPathRooted($HdBg)) { $HdBg = Join-Path $root $HdBg }
-  $HdBg = [System.IO.Path]::GetFullPath($HdBg)
-  if (-not (Test-Path -LiteralPath $HdBg -PathType Container)) { throw "khong co thu muc HdBg: $HdBg" }
-  $hdJar = Join-Path $root 'out\sc-hdbg.jar'
-  if (-not (Test-Path -LiteralPath $hdJar)) { throw "chua dung $hdJar (tools/sc_hdbg/build.ps1)" }
-  $cp = $hdJar + ';' + $cp
-  # Start-Process không tự thoát ký tự: "...\hd\" thành \" (dấu nháy thật) và nuốt cả -cp/lớp main -> nhân đôi \ cuối
-  $v = "-Dscvi.hdbg=$HdBg"
-  if ($v -match '(\\+)$') { $v += $Matches[1] }
-  $extra += "`"$v`""
-}
-if ($CharFx -or $Pn -ge 0) {
-  # Jar thử TmdObjLoader ghi bit PN (tools/sc_charfx/java); đứng đầu classpath để đè lớp gốc
-  $fxJar = Join-Path $root 'out\sc-charfx.jar'
-  if (-not (Test-Path -LiteralPath $fxJar)) { throw "chua dung $fxJar (tools/sc_charfx/java/build.ps1)" }
-  $cp = $fxJar + ';' + $cp
-  $extra += "-Dscvi.pn=$([Math]::Max($Pn, 0))"
-  if ($PnStrength8 -gt 0) { $extra += "-Dscvi.pnStrength8=$PnStrength8" }
-} elseif ($PnStrength8 -gt 0) {
-  throw '-PnStrength8 chi dung kem -Pn hoac -CharFx'
-}
-if ($Remaster) { $extra += "-Dscvi.remaster=$Remaster" }
-if ($RemasterLog) { $extra += '-Dscvi.remasterLog=true' }
 $javaArgs = @('-Djoml.fastmath', '-Djoml.sinLookup', '-Djoml.useMathFma', '-Dscvi.logMissing=true',
   '--add-opens', 'java.base/java.util=ALL-UNNAMED', '--add-exports', 'java.base/jdk.internal.misc=ALL-UNNAMED',
   '--enable-native-access=ALL-UNNAMED') + $extra + @('-ea', '-cp', "`"$cp`"", 'legend.game.MainWindows')
 $p = Start-Process -FilePath (Join-Path $Game 'jdk25\bin\java.exe') -ArgumentList $javaArgs -WorkingDirectory $Game -PassThru `
   -RedirectStandardOutput (Join-Path $Game 'stdout.txt') -RedirectStandardError (Join-Path $Game 'stderr.txt')
 Set-Content (Join-Path $Game 'sc.pid') $p.Id
-$pnInfo = ''
-if ($CharFx -or $Pn -ge 0) { $pnInfo = ', pn=' + [Math]::Max($Pn, 0) }
-if ($Remaster) { $pnInfo += ", remaster=$Remaster" }
-if ($RemasterLog) { $pnInfo += ', remasterLog' }
-Write-Output "SC PID $($p.Id) (vi=$(-not $NoVi)$pnInfo)"
+Write-Output "SC PID $($p.Id) (vi=$(-not $NoVi))"
