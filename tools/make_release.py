@@ -213,8 +213,16 @@ def main():
     if git('rev-parse', 'HEAD', cwd=sc_src).decode().strip() != SC_COMMIT:
         sys.exit('LOI: clone %s khong o commit %s (sc_lang/sc_font doc en.lang va font goc tu day)' % (sc_src, SC_COMMIT[:7]))
     src_commit = git('rev-parse', 'HEAD').decode().strip()
-    lod_commit = git('rev-parse', 'HEAD', cwd=LOD).decode().strip()
-    dirty = git('status', '--porcelain', '--', 'sc-vi', 'tools', 'tr_sc').decode().strip()
+    # LOD_ROOT có thể là bản sao (thư mục nối tới D:\LOD khi đĩa trong D:\LOD đang nén) nằm trong repo này: git sẽ trả commit
+    # của LoD-SC. Khi đó phải ghi commit của D:\LOD qua biến LOD_COMMIT.
+    lod_top = git('rev-parse', '--show-toplevel', cwd=LOD).decode().strip()
+    if os.path.normcase(os.path.abspath(lod_top)) == os.path.normcase(os.path.abspath(LOD)):
+        lod_commit = git('rev-parse', 'HEAD', cwd=LOD).decode().strip()
+    elif os.environ.get('LOD_COMMIT'):
+        lod_commit = git('rev-parse', os.environ['LOD_COMMIT'], cwd=os.path.join(ROOT, '..', 'LOD')).decode().strip()
+    else:
+        sys.exit('LOI: %s khong phai goc repo git (ban sao?) — dat LOD_COMMIT = commit cua D:\\LOD' % LOD)
+    dirty =git('status', '--porcelain', '--', 'sc-vi', 'tools', 'tr_sc').decode().strip()
     if dirty:
         print('canh bao: co thay doi chua commit trong sc-vi/tools/tr_sc — goi dung tu HEAD %s, KHONG gom thay doi do' % src_commit[:7])
 
