@@ -98,7 +98,8 @@ def main():
         data = open(path, 'rb').read()
         if name in existing:
             sys.exit('LOI: release da co tep %s (khong ghi de)' % name)
-        ctype = 'application/zip' if name.endswith('.zip') else 'text/plain'
+        ctype = ('application/zip' if name.endswith('.zip') else
+                 'application/vnd.android.package-archive' if name.endswith('.apk') else 'text/plain')
         _, body = call('POST', '%s?name=%s' % (upload, urllib.request.quote(name)), tok, data, ctype)
         asset = json.loads(body)
         # tải ngược về (API asset, octet-stream) và so SHA-256
