@@ -146,6 +146,7 @@ sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng 
   tải lại từ GitHub khớp; tải được khi không đăng nhập).
 - v0.3-sc-affcef0 (19/10/2026, theo lời người dùng "Hãy phát hành v0.3"; tag → 2e8a8bc, zip 132.904.722 byte, SHA `2e278f79…`)
   và v0.3-android-sc-affcef0 (tag → 2e8a8bc, APK arm64 200.178.270 byte, SHA `d979c602…`, versionCode 3001, dựng từ zip v0.3;
-  ghi chú `release_notes/v0.3-android-sc-affcef0.md`). Gắn tag vào commit đã dựng gói (dựng lại từ commit khác thì
+  ghi chú `release_notes/v0.3-android-sc-affcef0.md`); cả hai tải lại từ GitHub khớp SHA-256, tải được khi không đăng nhập.
+  Gắn tag vào commit đã dựng gói (dựng lại từ commit khác thì
   `lod_sc_commit` trong `vi/VERSION.txt` đổi → SHA đổi).
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
