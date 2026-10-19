@@ -1,7 +1,7 @@
 # Phát hành bản tiếng Việt cho Severed Chains
 
 Người dùng chốt (16/10/2026): **tự phát hành** bản sửa kèm (jar + lang + font + launcher), mã nguồn công khai theo AGPL-3.0,
-**ghim theo commit SC**. Repo private + Releases: xem mục Phát hành cuối tệp (v0.1 phát hành 17/10/2026).
+**ghim theo commit SC**. Repo public + Releases: xem mục Phát hành cuối tệp (v0.1 phát hành 17/10/2026).
 
 ## Vì sao gói phải kèm nguyên bản build SC
 
@@ -120,12 +120,14 @@ sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng 
 
 ## Phát hành
 
-- Repo mã nguồn **private**: https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi (tạo 16/10/2026 theo lời người
-  dùng; người dùng tự bật public khi muốn). Gói zip (132 MB, quá 100 MB/file của git) đưa lên mục **Releases**, tag
+- Repo mã nguồn **public** từ 19/10/2026 theo lời người dùng: https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi
+  (tạo private 16/10/2026). Gói zip (132 MB, quá 100 MB/file của git) đưa lên mục **Releases**, tag
   `v<ver>-sc-<commit7>`, đánh dấu pre-release khi còn thử nghiệm, kèm `SHA256SUMS.txt`. Sau khi tải lên: tải lại từ GitHub và so
   SHA-256 với bản đã kiểm.
 - Đã phát hành (pre-release): v0.1-sc-affcef0 (tag → 243d150, zip SHA `3eccc6c3…`), v0.2-sc-affcef0 (17/10/2026, tag → adb4e65,
-  zip 132.807.079 byte, SHA `834384aa…`; tải lại từ GitHub khớp).
+  zip 132.807.079 byte, SHA `834384aa…`; tải lại từ GitHub khớp), v0.2-android-sc-affcef0 (19/10/2026, tag → 47bef50,
+  APK arm64 200.075.870 byte, SHA `2f5e6f13…`, kèm `SHA256SUMS-android.txt`, ghi chú `release_notes/v0.2-android-sc-affcef0.md`;
+  tải lại từ GitHub khớp; tải được khi không đăng nhập).
 - v0.3-sc-affcef0: gói thử đã dựng (`release/`, SHA `135fbb47…`, ghi chú nháp `release_notes/v0.3-sc-affcef0.md`), **chưa phát hành**
   — chờ người dùng bảo. Khi phát hành: chạy cài sạch trước, gắn tag vào commit đã dựng gói (60bc3ff; dựng lại từ commit khác thì
   `lod_sc_commit` trong `vi/VERSION.txt` đổi → SHA đổi).
