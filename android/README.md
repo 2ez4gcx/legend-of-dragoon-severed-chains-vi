@@ -12,7 +12,11 @@ SetupActivity  (lần đầu / sau cập nhật) giải nén assets/payload.zip 
                mỗi lần chơi: mở 4 tệp, nối game/isos/discN.bin -> /proc/self/fd/N
 VnGameActivity (SDLActivity của SDL3) nạp libSDL3.so + libsclauncher.so, gọi SDL_main
 libsclauncher  nạp trước thư viện của JRE, dlopen libjvm.so, JNI_CreateJavaVM (luồng 16 MB), chạy legend.game.Main
-               trong thư mục game/; móc exit -> _exit; tay cầm ảo SDL (SDL_AttachVirtualJoystick) cho lớp phủ cảm ứng
+               trong thư mục game/; móc exit -> _exit; tay cầm ảo SDL (SDL_AttachVirtualJoystick) cho lớp phủ cảm ứng;
+               cầu tua nhanh: TouchPad.nativeSetSpeed ghi biến C, RegisterNatives AndroidBridge.fastForward() cho HotSpot
+TouchPad       lớp phủ phím (D-pad, ✕○△□, L1/L2/R1/R2, SELECT/START); hàng giữa trên: ⚙ (TouchSettings: độ đậm 10–100%,
+               cỡ phím 70–120%, rung khi bấm, tốc độ tua nhanh ×2/×3/×4; lưu SharedPreferences "touchpad"),
+               ẩn/hiện, ▶▶ tua nhanh (bật/tắt; tắt thì về tốc độ chọn trong Tùy chọn → Lối chơi → Tốc độ game)
 SC             SDL3 + OpenGL ES 3.2 (GlesApi) + OpenAL Soft + FFmpeg (JavaCPP) như bản PC
 ```
 
@@ -24,8 +28,15 @@ Lớp đè chỉ dùng cho Android (`sc-android/`, đứng đầu classpath, mã
 | `legend.core.renderer.ShaderManager` | Dùng shader GLSL ES dịch sẵn `gfx/shaders_es` (sinh trên PC bằng `ShaderCacheTool`, shaderc + SPIRV-Cross) — không mang shaderc/SPIRV-Cross lên máy |
 | `legend.core.renderer.opengles.GlesTexture` | Texture độ sâu dùng `GL_DEPTH_COMPONENT32F` (ES 3 không nhận `GL_DEPTH_COMPONENT` + `GL_FLOAT`: "Render buffer is not complete!") |
 | `legend.game.unpacker.IsoReader` | Đọc đĩa từ fd đã mở sẵn (mở lại `/proc/self/fd/N` bị kiểm quyền chủ tệp `media_rw`) |
+| `legend.core.platform.AndroidBridge` (mới) | Hàm `fastForward()` do libsclauncher đăng ký; `SdlWindow.tick()` đọc mỗi khung, đặt `Config.setGameSpeedMultiplier` (tắt → `getLoadedGameSpeedMultiplier`) |
 
 Ngoài ra `config.conf` đặt sẵn `low_memory_unpacker=true` (heap điện thoại 1–2 GB; kiểu giải nén thường hết bộ nhớ).
+
+Hiệu năng (dùng chung với bản PC, trong `sc-vi`): logic SC chạy đúng một lần mỗi khung vẽ, không bù giờ, nên điện thoại vẽ
+không kịp thì cả game chậm như quay chậm. `RenderEngine` (sc-vi) tự bỏ vẽ khung bị trễ (Tùy chọn → Đồ họa → "Tự bỏ khung
+hình khi máy chậm", mặc định bật; logcat ghi `[sc-vi] auto frame skip: X of Y frames not drawn`), và lần chạy đầu trên
+Android `ConfigStorage` hạ độ phân giải "Theo cửa sổ" (máy 2400×1080 vẽ 3200×1200) xuống 720p (1920×720) một lần (dấu
+`game/scvi-android-defaults-1`); người chơi đổi lại trong Tùy chọn thì giữ lựa chọn đó.
 
 ## Dựng
 
