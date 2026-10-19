@@ -165,7 +165,13 @@ CÀI ĐẶT
    Phông chữ = "Tiếng Việt (pixel)", Ngôn ngữ = Vietnamese.
 
 PHÍM MẶC ĐỊNH: mũi tên di chuyển, Enter/Space xác nhận/nói chuyện, Escape quay lại, E mở menu,
-Enter 2 lần bỏ qua phim. Có thể đổi trong Tùy chọn → Controls. Tay cầm được hỗ trợ sẵn.
+Enter 2 lần bỏ qua phim. Có thể đổi trong Tùy chọn → Tùy chọn chung → Điều khiển. Tay cầm được hỗ trợ sẵn.
+
+TỐC ĐỘ VÀ HIỆU NĂNG (từ v0.3)
+- Tùy chọn → Tùy chọn chung → Lối chơi → Tốc độ game: Bình thường, Nhanh gấp 2/3/4 (tăng tốc cả game, nhạc nền giữ
+  nguyên). Phím tắt có sẵn của SC: "=" tăng, "-" giảm tốc độ.
+- Tùy chọn → Tùy chọn chung → Đồ họa → "Tự bỏ khung hình khi máy chậm" (mặc định bật): máy vẽ không kịp thì bỏ bớt
+  khung hình để game vẫn đúng tốc độ, không bị chậm như quay chậm. Máy yếu nên hạ Độ phân giải xuống 720p hoặc 480p.
 
 LƯU Ý QUAN TRỌNG
 - Gói ghim theo một bản build SC nên đã tắt kiểm tra cập nhật (không hiện "Update Available"). Đừng cập nhật SC
