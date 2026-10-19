@@ -10,6 +10,7 @@ Gói ra: release/LoD-SC-VN-v<ver>-sc-<commit7>-windows.zip (+ release/SHA256SUMS
     - vi/sc-vi.jar (lớp sửa lõi), vi/NGUON/ (mã nguồn sc-vi + diff + tự kiểm + công cụ sinh dữ liệu, theo AGPL-3.0),
       vi/VERSION.txt (commit D:\\LOD-SC, D:\\LOD, SC), vi/LICENSE (AGPL-3.0 của SC).
     - lang/lod.vi.lang, lang/scvi.vi.lang, lang/core.vi.lang, lang/unpacker.vi.lang, lang/turnorder.vi.lang,
+      lang/scvi_ui.vi.lang (mục tùy chọn sc-vi thêm: Tốc độ game, Tự bỏ khung hình),
       lang/dialogue.vi.tsv, gfx/fonts/vietnamese.json/.png, gfx/ui/title_menu.vi.png/.widths (menu màn tựa),
       vi/files/ (lớp phủ đồ hoạ tiếng Việt: ảnh đã duyệt của bản PS1, Loader đọc thay files/)
     - config.dcnf tối giản: ngôn ngữ = vi, phông chữ = vietnamese.json (mọi mục khác để SC tự đặt mặc định)
@@ -240,7 +241,7 @@ def main():
     files.append(('lang/lod.vi.lang', open(os.path.join(out, 'lang', 'lod.vi.lang'), 'rb').read()))
     files.append(('lang/dialogue.vi.tsv', open(os.path.join(out, 'lang', 'dialogue.vi.tsv'), 'rb').read()))
     files.append(('lang/scvi.vi.lang', open(os.path.join(out, 'lang', 'scvi.vi.lang'), 'rb').read()))
-    for f in ('core.vi.lang', 'unpacker.vi.lang', 'turnorder.vi.lang'):
+    for f in ('core.vi.lang', 'unpacker.vi.lang', 'turnorder.vi.lang', 'scvi_ui.vi.lang'):
         files.append(('lang/' + f, open(os.path.join(src, 'tr_sc', f), 'rb').read()))
     files.append(('gfx/fonts/vietnamese.json', open(os.path.join(out, 'fonts', 'vietnamese.json'), 'rb').read()))
     files.append(('gfx/fonts/vietnamese.png', open(os.path.join(out, 'fonts', 'vietnamese.png'), 'rb').read()))

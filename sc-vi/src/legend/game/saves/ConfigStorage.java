@@ -8,7 +8,9 @@ import legend.core.tags.MapTag;
 import legend.core.tags.RawTag;
 import legend.core.tags.RegistryIdTag;
 import legend.core.tags.StringTag;
+import legend.core.renderer.Resolution;
 import legend.game.modding.coremod.CoreMod;
+import legend.game.modding.coremod.config.GameSpeedConfigEntry;
 import legend.game.modding.events.config.ConfigLoadedEvent;
 import legend.game.ui.GameOverlay;
 import legend.game.unpacker.FileData;
@@ -39,6 +41,7 @@ public final class ConfigStorage {
 
     if(!Files.exists(file)) {
       configs.clearConfig(location);
+      androidFirstRunDefaults(configs, location, file);
       return;
     }
 
@@ -50,6 +53,46 @@ public final class ConfigStorage {
     } catch(final Throwable e) {
       LOGGER.warn("Failed to load config file %s", file);
       LOGGER.warn("Exception", e);
+    }
+
+    androidFirstRunDefaults(configs, location, file);
+  }
+
+  /**
+   * [sc-vi] Android, once per install (marker file next to config.dcnf): a phone screen at "Theo cửa sổ" renders about
+   * 3200x1200, more than most phone GPUs can draw at 60 FPS, so the game ran in slow motion. Lower the default to 720p; the
+   * player can raise it again in Options and that choice is kept (the marker stops this from running again).
+   */
+  private static void androidFirstRunDefaults(final ConfigCollection configs, final ConfigStorageLocation location, final Path file) {
+    if(!Boolean.getBoolean("scvi.android") || location != ConfigStorageLocation.GLOBAL || configs != CONFIG) {
+      return;
+    }
+
+    final Path marker = file.toAbsolutePath().resolveSibling("scvi-android-defaults-1");
+
+    if(Files.exists(marker)) {
+      return;
+    }
+
+    if(configs.getConfig(CoreMod.RESOLUTION_CONFIG.get()) == Resolution.NATIVE) {
+      LOGGER.info("[sc-vi] Android: render resolution NATIVE -> 720p");
+      configs.setConfigQuietly(CoreMod.RESOLUTION_CONFIG.get(), Resolution._720);
+      saveConfig(configs, location, file);
+    }
+
+    try {
+      Files.writeString(marker, "resolution 720p applied once (sc-vi ConfigStorage)\n");
+    } catch(final IOException e) {
+      LOGGER.warn("Failed to write %s", marker, e);
+    }
+  }
+
+  /** [sc-vi] apply the global configs that live outside the config system once they are loaded */
+  private static void applyLoadedConfig(final ConfigCollection configs, final ConfigStorageLocation storageLocation) {
+    RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
+
+    if(storageLocation == ConfigStorageLocation.GLOBAL && configs == CONFIG) {
+      GameSpeedConfigEntry.apply(CONFIG.getConfig(CoreMod.GAME_SPEED_CONFIG.get()));
     }
   }
 
@@ -117,7 +160,7 @@ public final class ConfigStorage {
     }
 
     EVENTS.postEvent(new ConfigLoadedEvent(configs, storageLocation));
-    RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
+    applyLoadedConfig(configs, storageLocation);
 
     // [sc-vi] On startup bootMods() loads the lang files before config.dcnf is read, so a saved language other than the
     // system one was only applied after a campaign booted the mods again. Reload the lang once the global config is in.
@@ -189,7 +232,7 @@ public final class ConfigStorage {
     }
 
     EVENTS.postEvent(new ConfigLoadedEvent(configs, storageLocation));
-    RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
+    applyLoadedConfig(configs, storageLocation);
   }
 
   private static <T> void loadConfigValue(final ConfigCollection configs, final ConfigEntry<T> configEntry, final MapTag configTag, final boolean requireSchema) {

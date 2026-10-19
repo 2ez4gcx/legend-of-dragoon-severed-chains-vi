@@ -1,0 +1,10 @@
+# Mục tùy chọn do bản Việt hoá thêm vào Severed Chains (sc-vi: CoreMod, GameSpeedConfigEntry, AutoFrameSkipConfigEntry).
+# Không có bản tiếng Anh: bộ nạp ngôn ngữ của SC gộp tệp *.en.lang trong game/lang SAU tệp vi (đè tiếng Việt).
+lod_core.config.game_speed.label=Tốc độ game
+lod_core.config.game_speed.help=Tăng tốc cả game: đi lại, trận đánh, lời thoại, phim. Nhạc nền giữ nguyên.\nMáy cần đủ mạnh để chạy nhanh hơn; nên bật "Bỏ khung hình" (mục Đồ họa).
+lod_core.config.game_speed.X1=Bình thường
+lod_core.config.game_speed.X2=Nhanh gấp 2
+lod_core.config.game_speed.X3=Nhanh gấp 3
+lod_core.config.game_speed.X4=Nhanh gấp 4
+lod_core.config.auto_frame_skip.label=Tự bỏ khung hình khi máy chậm
+lod_core.config.auto_frame_skip.help=Máy vẽ không kịp thì bỏ bớt khung hình để game vẫn chạy đúng tốc độ,\nkhông bị chậm như quay chậm. Máy đủ mạnh sẽ không bị bỏ khung nào.

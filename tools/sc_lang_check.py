@@ -7,6 +7,9 @@ Cặp kiểm (Việt -> Anh):
     tr_sc/core.vi.lang          -> .../lod_core/lang/en.lang
     tr_sc/turnorder.vi.lang     -> .../turn_order/lang/en.lang
     tr_sc/unpacker.vi.lang      -> Severed-Chains/lang/unpacker.en.lang
+    tr_sc/scvi_ui.vi.lang       -> (không có bản Anh) mục tùy chọn do sc-vi thêm; chỉ kiểm giá trị không rỗng. KHÔNG đặt tệp
+                                   *.en.lang vào game/lang: bộ nạp của SC (mod-loader LangManager) gộp tệp en (FALLBACK) SAU
+                                   tệp vi nên tiếng Anh đè tiếng Việt
 Lỗi (exit 1): khoá không có trong bản Anh; tham số định dạng (%s %d %.2f ..., không tính %% là dấu %) khác bản Anh; giá trị rỗng khi bản Anh có chữ.
 Cảnh báo: khoá chưa dịch (trừ khoá cố ý giữ tiếng Anh như bản PS1); dòng có thể tràn: bề rộng dòng Việt (phông Việt
 out/fonts/vietnamese.json, bước = w + 1) lớn hơn dòng Anh tương ứng (phông Smooth mặc định của SC) quá 15% và quá 6 px.
@@ -24,6 +27,7 @@ PAIRS = [
     (os.path.join(ROOT, 'tr_sc', 'core.vi.lang'), os.path.join(RES, 'lod_core', 'lang', 'en.lang')),
     (os.path.join(ROOT, 'tr_sc', 'turnorder.vi.lang'), os.path.join(RES, 'turn_order', 'lang', 'en.lang')),
     (os.path.join(ROOT, 'tr_sc', 'unpacker.vi.lang'), os.path.join(SC, 'lang', 'unpacker.en.lang')),
+    (os.path.join(ROOT, 'tr_sc', 'scvi_ui.vi.lang'), None),
 ]
 KEEP_EN = re.compile(r'^lod\.(equipment\.[a-z0-9_]+\.name|additions\.|character_templates\.|name$|campaign_type\.)'
                      r'|^lod_core\.(ui\.hotkey|ui\.title\.hotkey|ui\.fps|ui\.mods\.tooltip|ui\.options\.tooltip|ui\.about\.tooltip|'
@@ -66,8 +70,13 @@ def main():
         if not os.path.exists(vi_path):
             errors.append('thieu file %s' % vi_path)
             continue
-        vi, en = load(vi_path), load(en_path)
         name = os.path.relpath(vi_path, ROOT)
+        if en_path is None:
+            for k, v in load(vi_path).items():
+                if not v:
+                    errors.append('%s: %s rong' % (name, k))
+            continue
+        vi, en = load(vi_path), load(en_path)
         for k, v in vi.items():
             if k not in en:
                 errors.append('%s: khoa %s khong co trong ban Anh' % (name, k))

@@ -10,6 +10,8 @@
  *
  * Tay cầm ảo: lớp phủ cảm ứng gọi nativeSetButton/nativeSetAxis (JNI, lớp vn.lodsc.TouchPad) → SDL_SetJoystickVirtual*.
  * Tay cầm ảo được gắn khi SC đã khởi tạo hệ con gamepad của SDL (lần chạm đầu tiên sau đó).
+ * Nút tua nhanh: TouchPad.nativeSetSpeed ghi g_fast_forward; launcher đăng ký (RegisterNatives) hàm
+ * legend.core.platform.AndroidBridge.fastForward() của sc-android.jar trả về giá trị đó, SdlWindow đọc mỗi khung.
  */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -40,6 +42,31 @@ typedef jint (*CreateJavaVM_t)(JavaVM **, void **, void *);
 static int g_argc;
 static char **g_argv;
 static int g_exit_code = 1;
+/* nút tua nhanh của lớp phủ cảm ứng: 0 = tắt, n >= 2 = hệ số tốc độ (ghi từ luồng giao diện ART, đọc từ luồng game) */
+static volatile jint g_fast_forward;
+
+static jint JNICALL bridge_fast_forward(JNIEnv *env, jclass cls) {
+  (void)env; (void)cls;
+  return __atomic_load_n(&g_fast_forward, __ATOMIC_RELAXED);
+}
+
+/* sc-android.jar cũ (không có lớp AndroidBridge) vẫn chạy được: bỏ qua, không tua nhanh */
+static void register_bridge(JNIEnv *env) {
+  jclass bridge = (*env)->FindClass(env, "legend/core/platform/AndroidBridge");
+  if(bridge == NULL) {
+    (*env)->ExceptionClear(env);
+    LOGE("khong tim thay legend.core.platform.AndroidBridge: nut tua nhanh khong dung duoc");
+    return;
+  }
+  static const JNINativeMethod methods[] = {
+    {"fastForward", "()I", (void *)bridge_fast_forward},
+  };
+  if((*env)->RegisterNatives(env, bridge, methods, 1) != JNI_OK) {
+    (*env)->ExceptionClear(env);
+    LOGE("RegisterNatives AndroidBridge loi");
+  }
+  (*env)->DeleteLocalRef(env, bridge);
+}
 
 static const char *arg_value(const char *key) {
   const size_t n = strlen(key);
@@ -240,6 +267,7 @@ static void *jvm_thread(void *unused) {
     (*vm)->DestroyJavaVM(vm);
     return NULL;
   }
+  register_bridge(env);
   jmethodID mainMethod = (*env)->GetStaticMethodID(env, main, "main", "([Ljava/lang/String;)V");
   jobjectArray jargs = (*env)->NewObjectArray(env, 0, (*env)->FindClass(env, "java/lang/String"), NULL);
   LOGI("chay legend.game.Main");
@@ -319,4 +347,9 @@ JNIEXPORT void JNICALL Java_vn_lodsc_TouchPad_nativeSetAxis(JNIEnv *env, jclass 
   if(j != NULL) {
     SDL_SetJoystickVirtualAxis(j, axis, (Sint16)value);
   }
+}
+
+JNIEXPORT void JNICALL Java_vn_lodsc_TouchPad_nativeSetSpeed(JNIEnv *env, jclass cls, jint speed) {
+  (void)env; (void)cls;
+  __atomic_store_n(&g_fast_forward, speed, __ATOMIC_RELAXED);
 }

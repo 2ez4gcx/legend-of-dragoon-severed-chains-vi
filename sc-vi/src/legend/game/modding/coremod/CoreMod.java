@@ -1,0 +1,384 @@
+package legend.game.modding.coremod;
+
+import legend.core.GameEngine;
+import legend.core.font.RetailFontConfigEntry;
+import legend.core.platform.input.AxisInputActivation;
+import legend.core.platform.input.ButtonInputActivation;
+import legend.core.platform.input.InputAction;
+import legend.core.platform.input.InputActionRegistryEvent;
+import legend.core.platform.input.InputAxis;
+import legend.core.platform.input.InputAxisDirection;
+import legend.core.platform.input.InputButton;
+import legend.core.platform.input.InputKey;
+import legend.core.platform.input.InputMod;
+import legend.core.platform.input.KeyInputActivation;
+import legend.core.platform.input.ScancodeInputActivation;
+import legend.game.RegisterEngineStateTypesEvent;
+import legend.game.characters.CharacterTemplate;
+import legend.game.combat.formula.Formula;
+import legend.game.combat.formula.PhysicalDamageFormula;
+import legend.game.combat.postbattleactions.RegisterPostBattleActionsEvent;
+import legend.game.inventory.IconSetConfigEntry;
+import legend.game.inventory.Item;
+import legend.game.inventory.ItemGroupSortModeConfigEntry;
+import legend.game.inventory.ItemRegistryEvent;
+import legend.game.inventory.screens.GatherShopExtensionsEvent;
+import legend.game.modding.coremod.config.AdditionModeConfigEntry;
+import legend.game.modding.coremod.config.AutoFrameSkipConfigEntry;
+import legend.game.modding.coremod.config.GameSpeedConfigEntry;
+import legend.game.modding.coremod.config.AdditionOverlayConfigEntry;
+import legend.game.modding.coremod.config.AdditionOverlaySizeConfigEntry;
+import legend.game.modding.coremod.config.AdditionTimingWindowConfigEntry;
+import legend.game.modding.coremod.config.AllowWidescreenConfigEntry;
+import legend.game.modding.coremod.config.AudioDeviceConfig;
+import legend.game.modding.coremod.config.AutoTextDelayConfigEntry;
+import legend.game.modding.coremod.config.AutoSaveAfterBattleConfig;
+import legend.game.modding.coremod.config.BattleTransitionModeConfigEntry;
+import legend.game.modding.coremod.config.ControllerKeybindsConfigEntry;
+import legend.game.modding.coremod.config.CreateCrashSaveConfigEntry;
+import legend.game.modding.coremod.config.DeadzoneConfigEntry;
+import legend.game.modding.coremod.config.DisableMouseInputConfigEntry;
+import legend.game.modding.coremod.config.ElementIconConfig;
+import legend.game.modding.coremod.config.EnabledModsConfigEntry;
+import legend.game.modding.coremod.config.EncounterRateConfigEntry;
+import legend.game.modding.coremod.config.EquipEffectsInDragoonConfig;
+import legend.game.modding.coremod.config.FmvVolumeConfigEntry;
+import legend.game.modding.coremod.config.FrameSkipConfigEntry;
+import legend.game.modding.coremod.config.FullscreenConfigEntry;
+import legend.game.modding.coremod.config.IgnoreSteamInputModeConfigEntry;
+import legend.game.modding.coremod.config.IndicatorModeConfigEntry;
+import legend.game.modding.coremod.config.InventorySizeConfigEntry;
+import legend.game.modding.coremod.config.LanguageConfigEntry;
+import legend.game.modding.coremod.config.LegacyWidescreenModeConfig;
+import legend.game.modding.coremod.config.MashModeConfigEntry;
+import legend.game.modding.coremod.config.MasterVolumeConfigEntry;
+import legend.game.modding.coremod.config.MonitorConfigEntry;
+import legend.game.modding.coremod.config.MusicEffectsOverTimeGranularityConfigEntry;
+import legend.game.modding.coremod.config.MusicInterpolationPrecisionConfigEntry;
+import legend.game.modding.coremod.config.MusicPitchResolutionConfigEntry;
+import legend.game.modding.coremod.config.MusicVolumeConfigEntry;
+import legend.game.modding.coremod.config.PixelateModeConfigEntry;
+import legend.game.modding.coremod.config.QuickTextModeConfigEntry;
+import legend.game.modding.coremod.config.ReduceMotionFlashingConfigEntry;
+import legend.game.modding.coremod.config.ResolutionConfig;
+import legend.game.modding.coremod.config.RumbleIntensityConfigEntry;
+import legend.game.modding.coremod.config.RunByDefaultConfig;
+import legend.game.modding.coremod.config.SaveAnywhereConfig;
+import legend.game.modding.coremod.config.SecondaryCharacterXpMultiplierConfigEntry;
+import legend.game.modding.coremod.config.SfxVolumeConfigEntry;
+import legend.game.modding.coremod.config.ShowAdvancedOptionsConfigEntry;
+import legend.game.modding.coremod.config.TransformationModeConfigEntry;
+import legend.game.modding.coremod.config.UnlockPartyConfig;
+import legend.game.modding.coremod.shops.EquipmentShopExtension;
+import legend.game.modding.coremod.shops.GoodShopExtension;
+import legend.game.modding.coremod.shops.ItemShopExtension;
+import legend.game.modding.events.gamestate.GameLoadedEvent;
+import legend.game.modding.events.input.RegisterDefaultInputBindingsEvent;
+import legend.game.saves.BoolConfigEntry;
+import legend.game.saves.CampaignNameConfigEntry;
+import legend.game.saves.ConfigCategory;
+import legend.game.saves.ConfigEntry;
+import legend.game.saves.ConfigRegistryEvent;
+import legend.game.saves.ConfigStorageLocation;
+import legend.game.saves.FloatConfigEntry;
+import legend.game.textures.Image;
+import legend.game.textures.RegisterAtlasTexturesEvent;
+import org.legendofdragoon.modloader.Mod;
+import org.legendofdragoon.modloader.events.EventListener;
+import org.legendofdragoon.modloader.registries.Registrar;
+import org.legendofdragoon.modloader.registries.RegistryDelegate;
+import org.legendofdragoon.modloader.registries.RegistryId;
+
+import static legend.core.GameEngine.REGISTRIES;
+
+/** Core mod that contains engine-level content. Game can not run without it. */
+@Mod(id = CoreMod.MOD_ID, version = "^3.0.0")
+@EventListener
+public class CoreMod {
+  public static final String MOD_ID = "lod_core";
+
+  private static final Registrar<Item, ItemRegistryEvent> ITEM_REGISTRAR = new Registrar<>(GameEngine.REGISTRIES.items, MOD_ID);
+
+  public static final RegistryDelegate<Item> NOTHING = ITEM_REGISTRAR.register("nothing", NothingItem::new);
+
+  private static final Registrar<ConfigEntry<?>, ConfigRegistryEvent> CONFIG_REGISTRAR = new Registrar<>(GameEngine.REGISTRIES.config, MOD_ID);
+
+  // Global config
+  public static final RegistryDelegate<DeadzoneConfigEntry> MENU_INNER_DEADZONE_CONFIG = CONFIG_REGISTRAR.register("menu_inner_deadzone", () -> new DeadzoneConfigEntry(0.5f));
+  public static final RegistryDelegate<DeadzoneConfigEntry> MENU_OUTER_DEADZONE_CONFIG = CONFIG_REGISTRAR.register("menu_outer_deadzone", () -> new DeadzoneConfigEntry(0.6f));
+  public static final RegistryDelegate<DeadzoneConfigEntry> MOVEMENT_INNER_DEADZONE_CONFIG = CONFIG_REGISTRAR.register("movement_inner_deadzone", () -> new DeadzoneConfigEntry(0.2f));
+  public static final RegistryDelegate<DeadzoneConfigEntry> MOVEMENT_OUTER_DEADZONE_CONFIG = CONFIG_REGISTRAR.register("movement_outer_deadzone", () -> new DeadzoneConfigEntry(0.9f));
+  public static final RegistryDelegate<BoolConfigEntry> RECEIVE_INPUT_ON_INACTIVE_WINDOW_CONFIG = CONFIG_REGISTRAR.register("receive_input_on_inactive_window", () -> new BoolConfigEntry(false, ConfigStorageLocation.GLOBAL, ConfigCategory.CONTROLS));
+  public static final RegistryDelegate<BoolConfigEntry> DISABLE_MOUSE_INPUT_CONFIG = CONFIG_REGISTRAR.register("disable_mouse_input", DisableMouseInputConfigEntry::new);
+  public static final RegistryDelegate<BoolConfigEntry> RUMBLE_CONFIG = CONFIG_REGISTRAR.register("rumble", () -> new BoolConfigEntry(true, ConfigStorageLocation.GLOBAL, ConfigCategory.CONTROLS));
+  public static final RegistryDelegate<RumbleIntensityConfigEntry> RUMBLE_INTENSITY_CONFIG = CONFIG_REGISTRAR.register("rumble_intensity", RumbleIntensityConfigEntry::new);
+  public static final RegistryDelegate<IgnoreSteamInputModeConfigEntry> IGNORE_STEAM_INPUT_MODE_CONFIG = CONFIG_REGISTRAR.register("ignore_steam_input_mode", IgnoreSteamInputModeConfigEntry::new);
+  public static final RegistryDelegate<BoolConfigEntry> ALLOW_WIDESCREEN_CONFIG = CONFIG_REGISTRAR.register("allow_widescreen", AllowWidescreenConfigEntry::new);
+  public static final RegistryDelegate<LegacyWidescreenModeConfig> LEGACY_WIDESCREEN_MODE_CONFIG = CONFIG_REGISTRAR.register("submap_widescreen_mode", LegacyWidescreenModeConfig::new);
+  public static final RegistryDelegate<BoolConfigEntry> FULLSCREEN_CONFIG = CONFIG_REGISTRAR.register("fullscreen", FullscreenConfigEntry::new);
+  public static final RegistryDelegate<ResolutionConfig> RESOLUTION_CONFIG = CONFIG_REGISTRAR.register("resolution", ResolutionConfig::new);
+  public static final RegistryDelegate<MonitorConfigEntry> MONITOR_CONFIG = CONFIG_REGISTRAR.register("monitor", MonitorConfigEntry::new);
+  public static final RegistryDelegate<ReduceMotionFlashingConfigEntry> REDUCE_MOTION_FLASHING_CONFIG = CONFIG_REGISTRAR.register("reduce_motion_flashing", ReduceMotionFlashingConfigEntry::new);
+  public static final RegistryDelegate<RetailFontConfigEntry> RETAIL_FONT_CONFIG = CONFIG_REGISTRAR.register("retail_font", RetailFontConfigEntry::new);
+  public static final RegistryDelegate<FrameSkipConfigEntry> FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("frame_skip", FrameSkipConfigEntry::new);
+  /** [sc-vi] Tự bỏ khung hình khi máy vẽ không kịp (RenderEngine): game giữ đúng tốc độ thay vì chậm lại như quay chậm */
+  public static final RegistryDelegate<AutoFrameSkipConfigEntry> AUTO_FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("auto_frame_skip", AutoFrameSkipConfigEntry::new);
+  /** [sc-vi] Tốc độ game trong Tùy chọn (Config.gameSpeedMultiplier, bản gốc chỉ đổi được bằng phím tắt) */
+  public static final RegistryDelegate<GameSpeedConfigEntry> GAME_SPEED_CONFIG = CONFIG_REGISTRAR.register("game_speed", GameSpeedConfigEntry::new);
+
+  public static final RegistryDelegate<AudioDeviceConfig> AUDIO_DEVICE_CONFIG = CONFIG_REGISTRAR.register("audio_device", AudioDeviceConfig::new);
+  public static final RegistryDelegate<MasterVolumeConfigEntry> MASTER_VOLUME_CONFIG = CONFIG_REGISTRAR.register("master_volume", MasterVolumeConfigEntry::new);
+  public static final RegistryDelegate<MusicVolumeConfigEntry> MUSIC_VOLUME_CONFIG = CONFIG_REGISTRAR.register("music_volume", MusicVolumeConfigEntry::new);
+  public static final RegistryDelegate<SfxVolumeConfigEntry> SFX_VOLUME_CONFIG = CONFIG_REGISTRAR.register("sfx_volume", SfxVolumeConfigEntry::new);
+  public static final RegistryDelegate<FmvVolumeConfigEntry> FMV_VOLUME_CONFIG = CONFIG_REGISTRAR.register("fmv_volume", FmvVolumeConfigEntry::new);
+  public static final RegistryDelegate<MusicInterpolationPrecisionConfigEntry> MUSIC_INTERPOLATION_PRECISION_CONFIG = CONFIG_REGISTRAR.register("music_interpolation_precision", MusicInterpolationPrecisionConfigEntry::new);
+  public static final RegistryDelegate<MusicPitchResolutionConfigEntry> MUSIC_PITCH_RESOLUTION_CONFIG = CONFIG_REGISTRAR.register("music_pitch_resolution", MusicPitchResolutionConfigEntry::new);
+  public static final RegistryDelegate<MusicEffectsOverTimeGranularityConfigEntry> MUSIC_EFFECTS_OVER_TIME_GRANULARITY_CONFIG = CONFIG_REGISTRAR.register("music_effects_over_time_granularity", MusicEffectsOverTimeGranularityConfigEntry::new);
+  public static final RegistryDelegate<CreateCrashSaveConfigEntry> CREATE_CRASH_SAVE_CONFIG = CONFIG_REGISTRAR.register("create_crash_save", CreateCrashSaveConfigEntry::new);
+  public static final RegistryDelegate<ShowAdvancedOptionsConfigEntry> SHOW_ADVANCED_OPTIONS_CONFIG = CONFIG_REGISTRAR.register("show_advanced_options", ShowAdvancedOptionsConfigEntry::new);
+
+  public static final RegistryDelegate<LanguageConfigEntry> LANGUAGE_CONFIG = CONFIG_REGISTRAR.register("language", LanguageConfigEntry::new);
+
+  // Shader config
+  public static final RegistryDelegate<BoolConfigEntry> SHADER_ENABLE_CRT_CONFIG = CONFIG_REGISTRAR.register("shader_enable_crt", () -> new BoolConfigEntry(false, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_SCANLINES_OPACITY_CONFIG = CONFIG_REGISTRAR.register("shader_scanlines_opacity", () -> new FloatConfigEntry(0.4f, 0.05f, 0.1f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_GRILLE_OPACITY_CONFIG = CONFIG_REGISTRAR.register("shader_grille_opacity", () -> new FloatConfigEntry(0.0f, 0.05f, 0.1f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<PixelateModeConfigEntry> SHADER_PIXELATE_CONFIG = CONFIG_REGISTRAR.register("shader_pixelate", PixelateModeConfigEntry::new);
+  public static final RegistryDelegate<BoolConfigEntry> SHADER_ROLL_CONFIG = CONFIG_REGISTRAR.register("shader_roll", () -> new BoolConfigEntry(false, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_ROLL_SPEED_CONFIG = CONFIG_REGISTRAR.register("shader_roll_speed", () -> new FloatConfigEntry(8.0f, 0.25f, 1.0f, 0.0f, 100.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_ROLL_SIZE_CONFIG = CONFIG_REGISTRAR.register("shader_roll_size", () -> new FloatConfigEntry(15.0f, 0.25f, 1.0f, 0.0f, 100.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_ROLL_VARIATION_CONFIG = CONFIG_REGISTRAR.register("shader_roll_variation", () -> new FloatConfigEntry(1.8f, 0.05f, 0.1f, 0.0f, 10.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_ROLL_INTENSITY_CONFIG = CONFIG_REGISTRAR.register("shader_roll_intensity", () -> new FloatConfigEntry(0.1f, 0.05f, 0.1f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_NOISE_OPACITY_CONFIG = CONFIG_REGISTRAR.register("shader_noise_opacity", () -> new FloatConfigEntry(0.0f, 0.05f, 0.1f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_NOISE_SPEED_CONFIG = CONFIG_REGISTRAR.register("shader_noise_speed", () -> new FloatConfigEntry(20.0f, 0.25f, 1.0f, 0.0f, 100.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_STATIC_INTENSITY_CONFIG = CONFIG_REGISTRAR.register("shader_static_intensity", () -> new FloatConfigEntry(0.0f, 0.05f, 0.1f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_ABERRATION_CONFIG = CONFIG_REGISTRAR.register("shader_aberration", () -> new FloatConfigEntry(0.02f, 0.01f, 0.05f, 0.0f, 0.4f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_BRIGHTNESS_CONFIG = CONFIG_REGISTRAR.register("shader_brightness", () -> new FloatConfigEntry(1.1f, 0.1f, 0.5f, 0.0f, 10.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<BoolConfigEntry> SHADER_DISCOLOUR_CONFIG = CONFIG_REGISTRAR.register("shader_discolour", () -> new BoolConfigEntry(false, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_EDGE_WARP_CONFIG = CONFIG_REGISTRAR.register("shader_edge_warp", () -> new FloatConfigEntry(0.0f, 0.05f, 0.25f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_VIGNETTE_INTENSITY_CONFIG = CONFIG_REGISTRAR.register("shader_vignette_intensity", () -> new FloatConfigEntry(0.4f, 0.05f, 0.25f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_VIGNETTE_OPACITY_CONFIG = CONFIG_REGISTRAR.register("shader_vignette_opacity", () -> new FloatConfigEntry(0.0f, 0.05f, 0.25f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_BLOOM_INTENSITY_CONFIG = CONFIG_REGISTRAR.register("shader_bloom_intensity", () -> new FloatConfigEntry(0.4f, 0.01f, 0.1f, 0.0f, 3.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_BLOOM_THRESHOLD_CONFIG = CONFIG_REGISTRAR.register("shader_bloom_threshold", () -> new FloatConfigEntry(0.5f, 0.05f, 0.1f, 0.0f, 1.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+  public static final RegistryDelegate<FloatConfigEntry> SHADER_BLOOM_RADIUS_CONFIG = CONFIG_REGISTRAR.register("shader_bloom_radius", () -> new FloatConfigEntry(4.0f, 0.25f, 1.0f, 0.25f, 100.0f, ConfigStorageLocation.GLOBAL, ConfigCategory.POSTPROCESSING));
+
+  // Per-campaign config
+  public static final RegistryDelegate<ControllerKeybindsConfigEntry> CONTROLLER_KEYBINDS_CONFIG = CONFIG_REGISTRAR.register("controller_keybinds", ControllerKeybindsConfigEntry::new);
+  public static final RegistryDelegate<CampaignNameConfigEntry> CAMPAIGN_NAME = CONFIG_REGISTRAR.register("campaign_name", CampaignNameConfigEntry::new);
+  public static final RegistryDelegate<EnabledModsConfigEntry> ENABLED_MODS_CONFIG = CONFIG_REGISTRAR.register("enabled_mods", EnabledModsConfigEntry::new);
+  public static final RegistryDelegate<EnabledModsConfigEntry> KNOWN_MODS_CONFIG = CONFIG_REGISTRAR.register("known_mods", EnabledModsConfigEntry::new);
+  public static final RegistryDelegate<IndicatorModeConfigEntry> INDICATOR_MODE_CONFIG = CONFIG_REGISTRAR.register("indicator_mode", IndicatorModeConfigEntry::new);
+  public static final RegistryDelegate<InventorySizeConfigEntry> INVENTORY_SIZE_CONFIG = CONFIG_REGISTRAR.register("inventory_size", InventorySizeConfigEntry::new);
+  public static final RegistryDelegate<EncounterRateConfigEntry> ENCOUNTER_RATE_CONFIG = CONFIG_REGISTRAR.register("encounter_rate", EncounterRateConfigEntry::new);
+  public static final RegistryDelegate<AdditionModeConfigEntry> ADDITION_MODE_CONFIG = CONFIG_REGISTRAR.register("addition_mode", AdditionModeConfigEntry::new);
+  public static final RegistryDelegate<BoolConfigEntry> AUTO_DRAGOON_ADDITION_CONFIG = CONFIG_REGISTRAR.register("auto_dragoon_addition", () -> new BoolConfigEntry(false, ConfigStorageLocation.CAMPAIGN, ConfigCategory.GAMEPLAY));
+  public static final RegistryDelegate<AdditionOverlayConfigEntry> ADDITION_OVERLAY_CONFIG = CONFIG_REGISTRAR.register("addition_overlay_mode", AdditionOverlayConfigEntry::new);
+  public static final RegistryDelegate<AdditionOverlaySizeConfigEntry> ADDITION_OVERLAY_SIZE_CONFIG = CONFIG_REGISTRAR.register("addition_overlay_size", AdditionOverlaySizeConfigEntry::new);
+  public static final RegistryDelegate<AdditionTimingWindowConfigEntry> ADDITION_TIMING_WINDOW_CONFIG = CONFIG_REGISTRAR.register("addition_timing_window", AdditionTimingWindowConfigEntry::new);
+  public static final RegistryDelegate<TransformationModeConfigEntry> TRANSFORMATION_MODE_CONFIG = CONFIG_REGISTRAR.register("transformation_mode", TransformationModeConfigEntry::new);
+  public static final RegistryDelegate<QuickTextModeConfigEntry> QUICK_TEXT_CONFIG = CONFIG_REGISTRAR.register("quick_text", QuickTextModeConfigEntry::new);
+  public static final RegistryDelegate<BoolConfigEntry> AUTO_TEXT_CONFIG = CONFIG_REGISTRAR.register("auto_text", () -> new BoolConfigEntry(false, ConfigStorageLocation.CAMPAIGN, ConfigCategory.USER_INTERFACE));
+  public static final RegistryDelegate<AutoTextDelayConfigEntry> AUTO_TEXT_DELAY_CONFIG = CONFIG_REGISTRAR.register("auto_text_delay", AutoTextDelayConfigEntry::new);
+  public static final RegistryDelegate<SaveAnywhereConfig> SAVE_ANYWHERE_CONFIG = CONFIG_REGISTRAR.register("save_anywhere", SaveAnywhereConfig::new);
+  public static final RegistryDelegate<AutoSaveAfterBattleConfig> AUTO_SAVE_AFTER_BATTLE_CONFIG = CONFIG_REGISTRAR.register("auto_save_after_battle", AutoSaveAfterBattleConfig::new);
+  public static final RegistryDelegate<BoolConfigEntry> DISABLE_STATUS_EFFECTS_CONFIG = CONFIG_REGISTRAR.register("disable_status_effects", () -> new BoolConfigEntry(false, ConfigStorageLocation.CAMPAIGN, ConfigCategory.GAMEPLAY));
+  public static final RegistryDelegate<BoolConfigEntry> ENEMY_HP_BARS_CONFIG = CONFIG_REGISTRAR.register("enemy_hp_bars", () -> new BoolConfigEntry(false, ConfigStorageLocation.CAMPAIGN, ConfigCategory.USER_INTERFACE));
+  public static final RegistryDelegate<MashModeConfigEntry> MASH_MODE_CONFIG = CONFIG_REGISTRAR.register("mash_mode", MashModeConfigEntry::new);
+  public static final RegistryDelegate<SecondaryCharacterXpMultiplierConfigEntry> SECONDARY_CHARACTER_XP_MULTIPLIER_CONFIG = CONFIG_REGISTRAR.register("secondary_character_xp_multiplier", SecondaryCharacterXpMultiplierConfigEntry::new);
+  public static final RegistryDelegate<BattleTransitionModeConfigEntry> BATTLE_TRANSITION_MODE_CONFIG = CONFIG_REGISTRAR.register("battle_transition_mode", BattleTransitionModeConfigEntry::new);
+  public static final RegistryDelegate<UnlockPartyConfig> UNLOCK_PARTY_CONFIG = CONFIG_REGISTRAR.register("unlock_party", UnlockPartyConfig::new);
+  public static final RegistryDelegate<IconSetConfigEntry> ICON_SET = CONFIG_REGISTRAR.register("icon_set", IconSetConfigEntry::new);
+  public static final RegistryDelegate<RunByDefaultConfig> RUN_BY_DEFAULT = CONFIG_REGISTRAR.register("run_by_default", RunByDefaultConfig::new);
+  public static final RegistryDelegate<ItemGroupSortModeConfigEntry> ITEM_GROUP_SORT_MODE = CONFIG_REGISTRAR.register("item_group_sort_mode", ItemGroupSortModeConfigEntry::new);
+  public static final RegistryDelegate<ElementIconConfig> DISPLAY_ELEMENT_ICON_CONFIG = CONFIG_REGISTRAR.register("element_icon_config", ElementIconConfig::new);
+  public static final RegistryDelegate<BoolConfigEntry> EQUIP_EFFECTS_IN_DRAGOON = CONFIG_REGISTRAR.register("equip_effects_in_dragoon", EquipEffectsInDragoonConfig::new);
+  public static final RegistryDelegate<BoolConfigEntry> SHOW_FPS = CONFIG_REGISTRAR.register("show_fps", () -> new BoolConfigEntry(false, ConfigStorageLocation.GLOBAL, ConfigCategory.USER_INTERFACE));
+
+  private static final Registrar<InputAction, InputActionRegistryEvent> INPUT_ACTION_REGISTRAR = new Registrar<>(GameEngine.REGISTRIES.inputActions, MOD_ID);
+
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_UP = INPUT_ACTION_REGISTRAR.register("menu_up", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_DOWN = INPUT_ACTION_REGISTRAR.register("menu_down", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_LEFT = INPUT_ACTION_REGISTRAR.register("menu_left", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_RIGHT = INPUT_ACTION_REGISTRAR.register("menu_right", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_HOME = INPUT_ACTION_REGISTRAR.register("menu_home", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_END = INPUT_ACTION_REGISTRAR.register("menu_end", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_TOP = INPUT_ACTION_REGISTRAR.register("menu_top", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_BOTTOM = INPUT_ACTION_REGISTRAR.register("menu_bottom", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_PAGE_UP = INPUT_ACTION_REGISTRAR.register("menu_page_up", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_PAGE_DOWN = INPUT_ACTION_REGISTRAR.register("menu_page_down", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_CONFIRM = INPUT_ACTION_REGISTRAR.register("menu_confirm", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_BACK = INPUT_ACTION_REGISTRAR.register("menu_back", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_DELETE = INPUT_ACTION_REGISTRAR.register("menu_delete", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_SORT = INPUT_ACTION_REGISTRAR.register("menu_sort", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_ADVANCED = INPUT_ACTION_REGISTRAR.register("menu_advanced", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_HELP = INPUT_ACTION_REGISTRAR.register("menu_help", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_MODS = INPUT_ACTION_REGISTRAR.register("menu_mods", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_TEXTBOX_CONFIRM = INPUT_ACTION_REGISTRAR.register("menu_textbox_confirm", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_MENU_UNEQUIP = INPUT_ACTION_REGISTRAR.register("menu_unequip", InputAction::hidden);
+
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_TITLE_UPDATE = INPUT_ACTION_REGISTRAR.register("title_update", InputAction::fixed);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_TITLE_CONVERT_MEMCARD = INPUT_ACTION_REGISTRAR.register("title_convert_memcard", InputAction::fixed);
+
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FMV_SKIP = INPUT_ACTION_REGISTRAR.register("fmv_skip", InputAction::fixed);
+
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_GENERAL_TOGGLE_FULLSCREEN = INPUT_ACTION_REGISTRAR.register("general_toggle_fullscreen", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_GENERAL_SPEED_UP = INPUT_ACTION_REGISTRAR.register("general_speed_up", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_GENERAL_SLOW_DOWN = INPUT_ACTION_REGISTRAR.register("general_slow_down", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_GENERAL_TOGGLE_SPEED = INPUT_ACTION_REGISTRAR.register("general_toggle_speed", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_GENERAL_TURBO = INPUT_ACTION_REGISTRAR.register("general_turbo", InputAction::editable);
+
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FREECAM_TOGGLE = INPUT_ACTION_REGISTRAR.register("freecam_toggle", InputAction::hidden);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FREECAM_FORWARD = INPUT_ACTION_REGISTRAR.register("freecam_forward", InputAction::hidden);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FREECAM_BACKWARD = INPUT_ACTION_REGISTRAR.register("freecam_backward", InputAction::hidden);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FREECAM_LEFT = INPUT_ACTION_REGISTRAR.register("freecam_left", InputAction::hidden);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FREECAM_RIGHT = INPUT_ACTION_REGISTRAR.register("freecam_right", InputAction::hidden);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FREECAM_UP = INPUT_ACTION_REGISTRAR.register("freecam_up", InputAction::hidden);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_FREECAM_DOWN = INPUT_ACTION_REGISTRAR.register("freecam_down", InputAction::hidden);
+
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_DEBUG_OPEN_DEBUGGER = INPUT_ACTION_REGISTRAR.register("debug_open_debugger", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_DEBUG_PAUSE = INPUT_ACTION_REGISTRAR.register("debug_pause", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_DEBUG_FRAME_ADVANCE = INPUT_ACTION_REGISTRAR.register("debug_frame_advance", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_DEBUG_FRAME_ADVANCE_HOLD = INPUT_ACTION_REGISTRAR.register("debug_frame_advance_hold", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_DEBUG_TOGGLE_WIREFRAME = INPUT_ACTION_REGISTRAR.register("debug_toggle_wireframe", InputAction::editable);
+  public static final RegistryDelegate<InputAction> INPUT_ACTION_DEBUG_RELOAD_SHADERS = INPUT_ACTION_REGISTRAR.register("debug_reload_shaders", InputAction::editable);
+
+  public static final Formula<Integer, Integer> PHYSICAL_DAMAGE_FORMULA = Formula.make(PhysicalDamageFormula::calculatePhysicalDamage, builder -> builder
+    .then(PhysicalDamageFormula::applyElementalInteractions)
+    .then(PhysicalDamageFormula::applyPower)
+    .then(PhysicalDamageFormula::applyDragoonSpace)
+    .then(PhysicalDamageFormula.minimum(0))
+    .then(PhysicalDamageFormula::applyDamageMultipliers)
+    .then(PhysicalDamageFormula::applyAttackEffects)
+    .then(PhysicalDamageFormula.minimum(1))
+    .then(PhysicalDamageFormula::applyResistanceAndImmunity)
+    .then(PhysicalDamageFormula::applyElementalResistanceAndImmunity)
+  );
+
+  public static RegistryId id(final String entryId) {
+    return new RegistryId(MOD_ID, entryId);
+  }
+
+  @EventListener
+  public static void registerEngineStates(final RegisterEngineStateTypesEvent event) {
+    CoreEngineStateTypes.register(event);
+  }
+
+  @EventListener
+  public static void registerConfig(final ConfigRegistryEvent event) {
+    CONFIG_REGISTRAR.registryEvent(event);
+  }
+
+  @EventListener
+  public static void registerInputActions(final InputActionRegistryEvent event) {
+    INPUT_ACTION_REGISTRAR.registryEvent(event);
+  }
+
+  @EventListener
+  public static void registerItems(final ItemRegistryEvent event) {
+    ITEM_REGISTRAR.registryEvent(event);
+  }
+
+  @EventListener
+  public static void registerDefaultInputBindings(final RegisterDefaultInputBindingsEvent event) {
+    event
+      .add(INPUT_ACTION_MENU_UP.get(), new ButtonInputActivation(InputButton.DPAD_UP))
+      .add(INPUT_ACTION_MENU_UP.get(), new AxisInputActivation(InputAxis.LEFT_Y, InputAxisDirection.NEGATIVE))
+      .add(INPUT_ACTION_MENU_UP.get(), new ScancodeInputActivation(InputKey.UP))
+      .add(INPUT_ACTION_MENU_UP.get(), new ScancodeInputActivation(InputKey.W))
+      .add(INPUT_ACTION_MENU_DOWN.get(), new ButtonInputActivation(InputButton.DPAD_DOWN))
+      .add(INPUT_ACTION_MENU_DOWN.get(), new AxisInputActivation(InputAxis.LEFT_Y, InputAxisDirection.POSITIVE))
+      .add(INPUT_ACTION_MENU_DOWN.get(), new ScancodeInputActivation(InputKey.DOWN))
+      .add(INPUT_ACTION_MENU_DOWN.get(), new ScancodeInputActivation(InputKey.S))
+      .add(INPUT_ACTION_MENU_LEFT.get(), new ButtonInputActivation(InputButton.DPAD_LEFT))
+      .add(INPUT_ACTION_MENU_LEFT.get(), new AxisInputActivation(InputAxis.LEFT_X, InputAxisDirection.NEGATIVE))
+      .add(INPUT_ACTION_MENU_LEFT.get(), new ScancodeInputActivation(InputKey.LEFT))
+      .add(INPUT_ACTION_MENU_LEFT.get(), new ScancodeInputActivation(InputKey.A))
+      .add(INPUT_ACTION_MENU_RIGHT.get(), new ButtonInputActivation(InputButton.DPAD_RIGHT))
+      .add(INPUT_ACTION_MENU_RIGHT.get(), new AxisInputActivation(InputAxis.LEFT_X, InputAxisDirection.POSITIVE))
+      .add(INPUT_ACTION_MENU_RIGHT.get(), new ScancodeInputActivation(InputKey.RIGHT))
+      .add(INPUT_ACTION_MENU_RIGHT.get(), new ScancodeInputActivation(InputKey.D))
+      .add(INPUT_ACTION_MENU_HOME.get(), new AxisInputActivation(InputAxis.LEFT_TRIGGER, InputAxisDirection.POSITIVE))
+      .add(INPUT_ACTION_MENU_HOME.get(), new KeyInputActivation(InputKey.HOME))
+      .add(INPUT_ACTION_MENU_END.get(), new AxisInputActivation(InputAxis.RIGHT_TRIGGER, InputAxisDirection.POSITIVE))
+      .add(INPUT_ACTION_MENU_END.get(), new KeyInputActivation(InputKey.END))
+      .add(INPUT_ACTION_MENU_PAGE_UP.get(), new ButtonInputActivation(InputButton.LEFT_BUMPER))
+      .add(INPUT_ACTION_MENU_PAGE_UP.get(), new KeyInputActivation(InputKey.PAGE_UP))
+      .add(INPUT_ACTION_MENU_PAGE_DOWN.get(), new ButtonInputActivation(InputButton.RIGHT_BUMPER))
+      .add(INPUT_ACTION_MENU_PAGE_DOWN.get(), new KeyInputActivation(InputKey.PAGE_DOWN))
+      .add(INPUT_ACTION_MENU_CONFIRM.get(), new ButtonInputActivation(InputButton.A))
+      .add(INPUT_ACTION_MENU_CONFIRM.get(), new KeyInputActivation(InputKey.RETURN))
+      .add(INPUT_ACTION_MENU_CONFIRM.get(), new KeyInputActivation(InputKey.SPACE))
+      .add(INPUT_ACTION_MENU_BACK.get(), new ButtonInputActivation(InputButton.B))
+      .add(INPUT_ACTION_MENU_BACK.get(), new KeyInputActivation(InputKey.ESCAPE))
+      .add(INPUT_ACTION_MENU_DELETE.get(), new ButtonInputActivation(InputButton.X))
+      .add(INPUT_ACTION_MENU_DELETE.get(), new ScancodeInputActivation(InputKey.Q))
+      .add(INPUT_ACTION_MENU_SORT.get(), new ButtonInputActivation(InputButton.Y))
+      .add(INPUT_ACTION_MENU_SORT.get(), new KeyInputActivation(InputKey.X))
+      .add(INPUT_ACTION_MENU_ADVANCED.get(), new ButtonInputActivation(InputButton.SELECT))
+      .add(INPUT_ACTION_MENU_ADVANCED.get(), new KeyInputActivation(InputKey.V))
+      .add(INPUT_ACTION_MENU_HELP.get(), new ButtonInputActivation(InputButton.START))
+      .add(INPUT_ACTION_MENU_HELP.get(), new KeyInputActivation(InputKey.H))
+      .add(INPUT_ACTION_MENU_MODS.get(), new ButtonInputActivation(InputButton.Y))
+      .add(INPUT_ACTION_MENU_MODS.get(), new KeyInputActivation(InputKey.M))
+      .add(INPUT_ACTION_MENU_TEXTBOX_CONFIRM.get(), new ButtonInputActivation(InputButton.A))
+      .add(INPUT_ACTION_MENU_TEXTBOX_CONFIRM.get(), new KeyInputActivation(InputKey.RETURN))
+      .add(INPUT_ACTION_MENU_UNEQUIP.get(), new ButtonInputActivation(InputButton.X))
+      .add(INPUT_ACTION_MENU_UNEQUIP.get(), new KeyInputActivation(InputKey.Q))
+
+      .add(INPUT_ACTION_TITLE_UPDATE.get(), new ButtonInputActivation(InputButton.Y))
+      .add(INPUT_ACTION_TITLE_UPDATE.get(), new KeyInputActivation(InputKey.U))
+      .add(INPUT_ACTION_TITLE_CONVERT_MEMCARD.get(), new ButtonInputActivation(InputButton.X))
+      .add(INPUT_ACTION_TITLE_CONVERT_MEMCARD.get(), new KeyInputActivation(InputKey.C))
+
+      .add(INPUT_ACTION_FMV_SKIP.get(), new KeyInputActivation(InputKey.RETURN))
+      .add(INPUT_ACTION_FMV_SKIP.get(), new ButtonInputActivation(InputButton.Y))
+
+      .add(INPUT_ACTION_GENERAL_TOGGLE_FULLSCREEN.get(), new KeyInputActivation(InputKey.F1))
+      .add(INPUT_ACTION_GENERAL_SPEED_UP.get(), new ScancodeInputActivation(InputKey.EQUALS))
+      .add(INPUT_ACTION_GENERAL_SPEED_UP.get(), new KeyInputActivation(InputKey.KP_PLUS))
+      .add(INPUT_ACTION_GENERAL_SLOW_DOWN.get(), new ScancodeInputActivation(InputKey.MINUS))
+      .add(INPUT_ACTION_GENERAL_SLOW_DOWN.get(), new KeyInputActivation(InputKey.KP_MINUS))
+
+      .add(INPUT_ACTION_FREECAM_TOGGLE.get(), new KeyInputActivation(InputKey.M, InputMod.CTRL))
+      .add(INPUT_ACTION_FREECAM_FORWARD.get(), new ScancodeInputActivation(InputKey.I))
+      .add(INPUT_ACTION_FREECAM_BACKWARD.get(), new ScancodeInputActivation(InputKey.K))
+      .add(INPUT_ACTION_FREECAM_LEFT.get(), new ScancodeInputActivation(InputKey.J))
+      .add(INPUT_ACTION_FREECAM_RIGHT.get(), new ScancodeInputActivation(InputKey.L))
+      .add(INPUT_ACTION_FREECAM_UP.get(), new ScancodeInputActivation(InputKey.O))
+      .add(INPUT_ACTION_FREECAM_DOWN.get(), new ScancodeInputActivation(InputKey.U))
+
+      .add(INPUT_ACTION_DEBUG_OPEN_DEBUGGER.get(), new KeyInputActivation(InputKey.F12))
+      .add(INPUT_ACTION_DEBUG_PAUSE.get(), new KeyInputActivation(InputKey.F11))
+      .add(INPUT_ACTION_DEBUG_FRAME_ADVANCE.get(), new KeyInputActivation(InputKey.F9))
+      .add(INPUT_ACTION_DEBUG_FRAME_ADVANCE_HOLD.get(), new KeyInputActivation(InputKey.F10))
+      .add(INPUT_ACTION_DEBUG_TOGGLE_WIREFRAME.get(), new KeyInputActivation(InputKey.F2))
+      .add(INPUT_ACTION_DEBUG_RELOAD_SHADERS.get(), new KeyInputActivation(InputKey.F5))
+    ;
+  }
+
+  @EventListener
+  public static void registerPostBattleActions(final RegisterPostBattleActionsEvent event) {
+    CorePostBattleActions.register(event);
+  }
+
+  @EventListener
+  public static void gatherShopExtensions(final GatherShopExtensionsEvent event) {
+    event.addExtension(new ItemShopExtension(), 1000);
+    event.addExtension(new EquipmentShopExtension(), 1000);
+    event.addExtension(new GoodShopExtension(), 1000);
+  }
+
+  @EventListener
+  public static void onLoadGameSetInventorySize(final GameLoadedEvent event) {
+    event.gameState.items_2e9.setMaxSize(GameEngine.CONFIG.getConfig(INVENTORY_SIZE_CONFIG.get()));
+  }
+
+  @EventListener
+  public static void registerAtlasIcons(final RegisterAtlasTexturesEvent event) {
+    for(final RegistryId id : REGISTRIES.characterTemplates) {
+      final CharacterTemplate template = REGISTRIES.characterTemplates.getEntry(id).get();
+      final Image icon = template.loadPortrait();
+      event.add(id, icon);
+    }
+  }
+}

@@ -184,6 +184,161 @@
      synchronized(this) {
        if(this.client == null) {
          try {
+--- a/src/main/java/legend/core/renderer/RenderEngine.java
++++ b/src/main/java/legend/core/renderer/RenderEngine.java
+@@ -3,6 +3,7 @@
+ import javafx.application.Application;
+ import javafx.application.Platform;
+ import legend.core.Config;
++import legend.core.DebugHelper;
+ import legend.core.LitModel;
+ import legend.core.MathHelper;
+ import legend.core.QueuePool;
+@@ -53,6 +54,7 @@
+ import static legend.core.MathHelper.PI;
+ import static legend.game.EngineStates.currentEngineState_8004dd04;
+ import static legend.game.Graphics.worldToScreenMatrix_800c3548;
++import static legend.game.modding.coremod.CoreMod.AUTO_FRAME_SKIP_CONFIG;
+ import static legend.game.modding.coremod.CoreMod.DISABLE_MOUSE_INPUT_CONFIG;
+ import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE;
+ import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE_HOLD;
+@@ -318,6 +320,17 @@
+ 
+   private int frameSkipIndex;
+ 
++  // [sc-vi] auto frame skip (AUTO_FRAME_SKIP_CONFIG): a mirror of the window Action's schedule and the number of frames skipped in a row
++  private static final int MAX_LAG_SKIP = 3;
++  /** [sc-vi] test only: -Dscvi.fakeDrawMs=N makes every drawn frame N ms slower, like a phone GPU that can't keep up */
++  private static final int FAKE_DRAW_MS = Integer.getInteger("scvi.fakeDrawMs", 0);
++  private long lagSchedule;
++  private int lagSkipped;
++  // [sc-vi] skipped/total frames since lagReportTime, logged every 5 s while frames are being skipped
++  private long lagReportTime;
++  private int lagReportFrames;
++  private int lagReportSkipped;
++
+   private final Deque<Runnable> tasks = new LinkedList<>();
+ 
+   public RenderEngine() {
+@@ -596,7 +609,11 @@
+         this.resizeRenderBuffers();
+       }
+ 
+-      if(this.frameSkipIndex == 0) {
++      // [sc-vi] a late frame only runs the game logic and shows the last drawn image again (like the speed-up frame skip)
++      final boolean lagSkip = this.updateLagSkip();
++      final boolean drawFrame = this.frameSkipIndex == 0 && !lagSkip;
++
++      if(drawFrame) {
+         this.pre();
+       }
+ 
+@@ -638,7 +655,7 @@
+       }
+ 
+       if(!this.paused) {
+-        if(this.frameSkipIndex == 0) {
++        if(drawFrame) {
+           for(int i = 0; i < this.batches.size(); i++) {
+             this.batches.get(i).modelPool.ignoreQueues = false;
+             this.batches.get(i).orthoPool.ignoreQueues = false;
+@@ -670,7 +687,7 @@
+ 
+         this.renderBuffers[this.renderBufferIndex].bind();
+ 
+-        if(this.frameSkipIndex == 0) {
++        if(drawFrame) {
+           this.api.clear(true, false, false);
+ 
+           // Render batches
+@@ -680,6 +697,10 @@
+           }
+ 
+           this.renderBatch(this.mainBatch);
++
++          if(FAKE_DRAW_MS > 0) {
++            DebugHelper.sleep(FAKE_DRAW_MS);
++          }
+         }
+ 
+         this.api.wireframe(false);
+@@ -780,7 +801,8 @@
+ 
+         // draw final screen quad
+         this.api.viewport(0, 0, this.window.getWidth(), this.window.getHeight());
+-        this.renderTextures[this.renderBufferIndex].use();
++        // [sc-vi] the buffer index already moved on after the last drawn frame
++        this.renderTextures[lagSkip ? Math.floorMod(this.renderBufferIndex - 1, RENDER_BUFFER_COUNT) : this.renderBufferIndex].use();
+         postQuad.draw();
+ 
+         // If we don't unbind the framebuffer textures, window resizing will crash since it has to resize the framebuffer
+@@ -789,7 +811,7 @@
+ 
+       // If we're paused, don't reset the pool so that we keep rendering the same scene over and over again
+       if(!this.paused) {
+-        if(this.frameSkipIndex == 0) {
++        if(drawFrame) {
+           this.resetBatches();
+ 
+           // Delete stuff marked for deletion
+@@ -799,7 +821,9 @@
+           this.scissorStack.reset();
+         }
+ 
+-        if(this.frameSkip) {
++        if(lagSkip) {
++          // [sc-vi] nothing was drawn: keep frameSkipIndex at 0 and the buffer index on the next buffer to draw into
++        } else if(this.frameSkip) {
+           if(this.frameSkipIndex == Config.getGameSpeedMultiplier() - 1) {
+             this.renderBufferIndex = (this.renderBufferIndex + 1) % RENDER_BUFFER_COUNT;
+           }
+@@ -1481,4 +1505,46 @@
+   public void setFrameSkipOption(final boolean frameSkip) {
+     this.frameSkip = frameSkip;
+   }
++
++  /**
++   * [sc-vi] Auto frame skip. The game logic runs exactly once per drawn frame with no catch-up, so a GPU that can't keep up
++   * (phones at high resolution) slows the whole game down. This mirrors the window Action's schedule (Action.updateTimer,
++   * including its "more than 2 ticks behind" reset) and, when a frame starts more than one tick late, runs it without drawing,
++   * at most MAX_LAG_SKIP frames in a row. A machine that keeps up never skips.
++   */
++  private boolean updateLagSkip() {
++    final long now = System.nanoTime();
++    final long tick = 1_000_000_000L / Math.max(1, this.window.getFpsLimit());
++
++    if(this.lagSchedule == 0L) {
++      this.lagSchedule = now;
++    }
++
++    final long late = now - this.lagSchedule;
++    this.lagSchedule += tick;
++
++    if(now - this.lagSchedule > tick * 2) {
++      this.lagSchedule = now + tick;
++    }
++
++    final boolean skip = late > tick && this.lagSkipped < MAX_LAG_SKIP && this.frameSkipIndex == 0 && !this.paused && !this.togglePause && CONFIG.getConfig(AUTO_FRAME_SKIP_CONFIG.get());
++    this.lagSkipped = skip ? this.lagSkipped + 1 : 0;
++
++    this.lagReportFrames++;
++    if(skip) {
++      this.lagReportSkipped++;
++    }
++
++    if(now - this.lagReportTime >= 5_000_000_000L) {
++      if(this.lagReportSkipped != 0) {
++        LOGGER.info("[sc-vi] auto frame skip: %d of %d frames not drawn in the last %.1f s (%d Hz)", this.lagReportSkipped, this.lagReportFrames, (now - this.lagReportTime) / 1_000_000_000.0d, this.window.getFpsLimit());
++      }
++
++      this.lagReportTime = now;
++      this.lagReportFrames = 0;
++      this.lagReportSkipped = 0;
++    }
++
++    return skip;
++  }
+ }
 --- /dev/null
 +++ b/src/main/java/legend/game/i18n/HardcodedTranslations.java
 @@ -0,0 +1,260 @@
@@ -1052,12 +1207,178 @@
 +    }
 +  }
 +}
+--- a/src/main/java/legend/game/modding/coremod/CoreMod.java
++++ b/src/main/java/legend/game/modding/coremod/CoreMod.java
+@@ -24,6 +24,8 @@
+ import legend.game.inventory.ItemRegistryEvent;
+ import legend.game.inventory.screens.GatherShopExtensionsEvent;
+ import legend.game.modding.coremod.config.AdditionModeConfigEntry;
++import legend.game.modding.coremod.config.AutoFrameSkipConfigEntry;
++import legend.game.modding.coremod.config.GameSpeedConfigEntry;
+ import legend.game.modding.coremod.config.AdditionOverlayConfigEntry;
+ import legend.game.modding.coremod.config.AdditionOverlaySizeConfigEntry;
+ import legend.game.modding.coremod.config.AdditionTimingWindowConfigEntry;
+@@ -119,6 +121,10 @@
+   public static final RegistryDelegate<ReduceMotionFlashingConfigEntry> REDUCE_MOTION_FLASHING_CONFIG = CONFIG_REGISTRAR.register("reduce_motion_flashing", ReduceMotionFlashingConfigEntry::new);
+   public static final RegistryDelegate<RetailFontConfigEntry> RETAIL_FONT_CONFIG = CONFIG_REGISTRAR.register("retail_font", RetailFontConfigEntry::new);
+   public static final RegistryDelegate<FrameSkipConfigEntry> FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("frame_skip", FrameSkipConfigEntry::new);
++  /** [sc-vi] Tự bỏ khung hình khi máy vẽ không kịp (RenderEngine): game giữ đúng tốc độ thay vì chậm lại như quay chậm */
++  public static final RegistryDelegate<AutoFrameSkipConfigEntry> AUTO_FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("auto_frame_skip", AutoFrameSkipConfigEntry::new);
++  /** [sc-vi] Tốc độ game trong Tùy chọn (Config.gameSpeedMultiplier, bản gốc chỉ đổi được bằng phím tắt) */
++  public static final RegistryDelegate<GameSpeedConfigEntry> GAME_SPEED_CONFIG = CONFIG_REGISTRAR.register("game_speed", GameSpeedConfigEntry::new);
+ 
+   public static final RegistryDelegate<AudioDeviceConfig> AUDIO_DEVICE_CONFIG = CONFIG_REGISTRAR.register("audio_device", AudioDeviceConfig::new);
+   public static final RegistryDelegate<MasterVolumeConfigEntry> MASTER_VOLUME_CONFIG = CONFIG_REGISTRAR.register("master_volume", MasterVolumeConfigEntry::new);
+--- /dev/null
++++ b/src/main/java/legend/game/modding/coremod/config/AutoFrameSkipConfigEntry.java
+@@ -0,0 +1,21 @@
++package legend.game.modding.coremod.config;
++
++import legend.game.saves.BoolConfigEntry;
++import legend.game.saves.ConfigCategory;
++import legend.game.saves.ConfigStorageLocation;
++
++/**
++ * [sc-vi] Tự bỏ khung hình khi máy chậm. Logic game của Severed Chains chạy đúng một lần mỗi khung hình vẽ ra, không bù giờ:
++ * máy (nhất là điện thoại) không vẽ kịp 60 khung/giây thì cả game chậm lại như quay chậm. Khi bật, RenderEngine theo dõi lịch
++ * chạy và bỏ vẽ những khung bị trễ (vẫn chạy logic) để game giữ đúng tốc độ. Máy đủ mạnh không bao giờ bị bỏ khung.
++ */
++public class AutoFrameSkipConfigEntry extends BoolConfigEntry {
++  public AutoFrameSkipConfigEntry() {
++    super(true, ConfigStorageLocation.GLOBAL, ConfigCategory.GRAPHICS);
++  }
++
++  @Override
++  public boolean hasHelp() {
++    return true;
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/game/modding/coremod/config/GameSpeedConfigEntry.java
+@@ -0,0 +1,50 @@
++package legend.game.modding.coremod.config;
++
++import legend.core.Config;
++import legend.game.saves.ConfigCategory;
++import legend.game.saves.ConfigCollection;
++import legend.game.saves.ConfigStorageLocation;
++import legend.game.saves.EnumConfigEntry;
++
++/**
++ * [sc-vi] Tốc độ game trong Tùy chọn. Severed Chains có sẵn hệ số tốc độ (Config.gameSpeedMultiplier: logic, hoạt cảnh và
++ * giới hạn FPS cùng nhân lên, nhạc nền giữ nguyên) nhưng bản gốc chỉ đổi được bằng phím tắt (+/-) hoặc trình gỡ lỗi. Mục này
++ * lưu trong config.dcnf (chung cho mọi lượt chơi) và được áp lại sau khi nạp cấu hình (ConfigStorage). Nhãn:
++ * lod_core.config.game_speed.X1..X4.
++ */
++public class GameSpeedConfigEntry extends EnumConfigEntry<GameSpeedConfigEntry.Speed> {
++  public enum Speed {
++    X1(1),
++    X2(2),
++    X3(3),
++    X4(4),
++    ;
++
++    public final int multiplier;
++
++    Speed(final int multiplier) {
++      this.multiplier = multiplier;
++    }
++  }
++
++  public GameSpeedConfigEntry() {
++    super(Speed.class, Speed.X1, ConfigStorageLocation.GLOBAL, ConfigCategory.GAMEPLAY);
++  }
++
++  @Override
++  public boolean hasHelp() {
++    return true;
++  }
++
++  @Override
++  public void onChange(final ConfigCollection configCollection, final Speed oldValue, final Speed newValue) {
++    super.onChange(configCollection, oldValue, newValue);
++    apply(newValue);
++  }
++
++  /** Đặt hệ số tốc độ đang chạy và hệ số "đã nạp" (phím đổi tốc độ / nút tua nhanh trả về giá trị này khi tắt). */
++  public static void apply(final Speed speed) {
++    Config.setGameSpeedMultiplier(speed.multiplier);
++    Config.setLoadedGameSpeedMultiplier(speed.multiplier);
++  }
++}
 --- a/src/main/java/legend/game/saves/ConfigStorage.java
 +++ b/src/main/java/legend/game/saves/ConfigStorage.java
-@@ -118,6 +118,12 @@
+@@ -8,7 +8,9 @@
+ import legend.core.tags.RawTag;
+ import legend.core.tags.RegistryIdTag;
+ import legend.core.tags.StringTag;
++import legend.core.renderer.Resolution;
+ import legend.game.modding.coremod.CoreMod;
++import legend.game.modding.coremod.config.GameSpeedConfigEntry;
+ import legend.game.modding.events.config.ConfigLoadedEvent;
+ import legend.game.ui.GameOverlay;
+ import legend.game.unpacker.FileData;
+@@ -39,6 +41,7 @@
+ 
+     if(!Files.exists(file)) {
+       configs.clearConfig(location);
++      androidFirstRunDefaults(configs, location, file);
+       return;
+     }
+ 
+@@ -50,6 +53,46 @@
+     } catch(final Throwable e) {
+       LOGGER.warn("Failed to load config file %s", file);
+       LOGGER.warn("Exception", e);
++    }
++
++    androidFirstRunDefaults(configs, location, file);
++  }
++
++  /**
++   * [sc-vi] Android, once per install (marker file next to config.dcnf): a phone screen at "Theo cửa sổ" renders about
++   * 3200x1200, more than most phone GPUs can draw at 60 FPS, so the game ran in slow motion. Lower the default to 720p; the
++   * player can raise it again in Options and that choice is kept (the marker stops this from running again).
++   */
++  private static void androidFirstRunDefaults(final ConfigCollection configs, final ConfigStorageLocation location, final Path file) {
++    if(!Boolean.getBoolean("scvi.android") || location != ConfigStorageLocation.GLOBAL || configs != CONFIG) {
++      return;
++    }
++
++    final Path marker = file.toAbsolutePath().resolveSibling("scvi-android-defaults-1");
++
++    if(Files.exists(marker)) {
++      return;
++    }
++
++    if(configs.getConfig(CoreMod.RESOLUTION_CONFIG.get()) == Resolution.NATIVE) {
++      LOGGER.info("[sc-vi] Android: render resolution NATIVE -> 720p");
++      configs.setConfigQuietly(CoreMod.RESOLUTION_CONFIG.get(), Resolution._720);
++      saveConfig(configs, location, file);
++    }
++
++    try {
++      Files.writeString(marker, "resolution 720p applied once (sc-vi ConfigStorage)\n");
++    } catch(final IOException e) {
++      LOGGER.warn("Failed to write %s", marker, e);
++    }
++  }
++
++  /** [sc-vi] apply the global configs that live outside the config system once they are loaded */
++  private static void applyLoadedConfig(final ConfigCollection configs, final ConfigStorageLocation storageLocation) {
++    RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
++
++    if(storageLocation == ConfigStorageLocation.GLOBAL && configs == CONFIG) {
++      GameSpeedConfigEntry.apply(CONFIG.getConfig(CoreMod.GAME_SPEED_CONFIG.get()));
+     }
+   }
+ 
+@@ -117,7 +160,13 @@
+     }
  
      EVENTS.postEvent(new ConfigLoadedEvent(configs, storageLocation));
-     RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
+-    RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
++    applyLoadedConfig(configs, storageLocation);
 +
 +    // [sc-vi] On startup bootMods() loads the lang files before config.dcnf is read, so a saved language other than the
 +    // system one was only applied after a campaign booted the mods again. Reload the lang once the global config is in.
@@ -1067,6 +1388,15 @@
    }
  
    public static void saveConfig(final ConfigCollection configs, final ConfigStorageLocation storageLocation, final FileData data, final IntRef offset) {
+@@ -183,7 +232,7 @@
+     }
+ 
+     EVENTS.postEvent(new ConfigLoadedEvent(configs, storageLocation));
+-    RENDERER.setFrameSkipOption(CONFIG.getConfig(CoreMod.FRAME_SKIP_CONFIG.get()));
++    applyLoadedConfig(configs, storageLocation);
+   }
+ 
+   private static <T> void loadConfigValue(final ConfigCollection configs, final ConfigEntry<T> configEntry, final MapTag configTag, final boolean requireSchema) {
 --- a/src/main/java/legend/game/unpacker/Loader.java
 +++ b/src/main/java/legend/game/unpacker/Loader.java
 @@ -29,6 +29,25 @@

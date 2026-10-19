@@ -478,7 +478,40 @@ public class SdlWindow extends Window {
 
   private void tick() {
     SDL_GL_SwapWindow(this.window);
+
+    if(ANDROID) {
+      this.pollFastForward();
+    }
+
     this.events().onDraw();
     this.manager.clearPressed();
+  }
+
+  /** [sc-android] last value read from the fast-forward button of the touch overlay (0 = off) */
+  private int fastForward;
+  private boolean noFastForwardBridge;
+
+  /**
+   * [sc-android] Fast-forward button of the touch overlay (vn.lodsc.TouchPad -> libsclauncher -> AndroidBridge): while it is
+   * on the game runs at its speed, off restores the speed chosen in Options (Config.getLoadedGameSpeedMultiplier).
+   */
+  private void pollFastForward() {
+    if(this.noFastForwardBridge) {
+      return;
+    }
+
+    final int ff;
+    try {
+      ff = AndroidBridge.fastForward();
+    } catch(final UnsatisfiedLinkError e) {
+      LOGGER.warn("[sc-android] libsclauncher has no fast-forward bridge", e);
+      this.noFastForwardBridge = true;
+      return;
+    }
+
+    if(ff != this.fastForward) {
+      this.fastForward = ff;
+      Config.setGameSpeedMultiplier(ff >= 2 ? ff : Config.getLoadedGameSpeedMultiplier());
+    }
   }
 }

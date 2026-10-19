@@ -29,3 +29,4 @@ work/*.apk
 work/anr*.txt
 work/bt*.txt
 work/ui.xml
+work/lodroot/
