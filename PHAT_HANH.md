@@ -32,6 +32,7 @@ Severed Chains (VN)/
   config.dcnf              2 mục: lod_core:language = vi, lod_core:retail_font = vietnamese.json (mục khác SC tự đặt)
   HUONG_DAN_VIET_HOA.txt   hướng dẫn tiếng Việt (UTF-8 BOM)
   lang/lod.vi.lang, lang/scvi.vi.lang, lang/core.vi.lang, lang/unpacker.vi.lang, lang/turnorder.vi.lang,
+  lang/scvi_ui.vi.lang (v0.3: mục Tốc độ game, Tự bỏ khung hình; KHÔNG kèm .en.lang vì bộ nạp SC gộp en sau vi),
   lang/dialogue.vi.tsv
   gfx/fonts/vietnamese.json, vietnamese.png
   gfx/ui/title_menu.vi.png, title_menu.vi.widths   menu màn tựa tiếng Việt (v0.2; tên riêng, không đè ảnh gốc của SC)
@@ -44,6 +45,8 @@ Severed Chains (VN)/
 Lớp sửa trong `vi/sc-vi.jar` (v0.2, 8 lớp, diff `sc-vi/patches/sc-core-affcef0.diff`): `LodString`, `Text`, `SMap`,
 `ConfigStorage`, `Loader` (lớp phủ `vi/files`), `Updater` (tắt cập nhật) + lớp mới `ScriptTextTranslations`,
 `HardcodedTranslations` (bảng viết cứng, câu viết thẳng, địa danh trên thẻ lưu cũ, ảnh menu màn tựa theo ngôn ngữ).
+Từ v0.3 thêm `RenderEngine` (tự bỏ khung hình khi máy chậm), `CoreMod` (đăng ký 2 mục tùy chọn) + lớp mới
+`GameSpeedConfigEntry`, `AutoFrameSkipConfigEntry`; `ConfigStorage` áp tốc độ sau khi nạp và (Android) hạ 720p một lần.
 
 Không chứa: ảnh đĩa, BIOS, JDK, `files/`.
 
@@ -85,7 +88,20 @@ Lỗi tìm ra nhờ thử cài sạch và đã sửa trước khi phát hành:
 | Cài sạch `test_cai.ps1 -Choi` | lên màn tựa 114 s (gồm giải nén), classpath đúng, không lỗi trong log; menu tựa tiếng Việt + dòng ghi công, Tùy chọn, thoại mở đầu, menu "Chương 1: Chiến Sự Serdio", Vàng/Bụi Sao, vật phẩm (`docs/anh/31`) |
 | Trong game (thư mục `game`) | menu tựa Việt → English → Việt, vào/ra Giới thiệu (`docs/anh/28`); thẻ lưu cũ "Chương 4: Trăng & Số Mệnh" (`29`); trận + màn kết quả (`30`) |
 
-## Đã kiểm (v0.3 — gói THỬ, dựng 17/10/2026 từ HEAD 60bc3ff + D:\LOD main 40e91b8 = PS1 v1.12; CHƯA tải lên GitHub)
+## Đã kiểm (v0.3 — gói phát hành 19/10/2026, dựng từ 2e8a8bc + D:\LOD main 40e91b8 = PS1 v1.12)
+
+Gói thử ngày 17/10 (từ 60bc3ff, SHA `135fbb47…`) không phát hành; bản phát hành thêm tùy chọn Tốc độ game, Tự bỏ khung hình
+(sửa chứng quay chậm), hướng dẫn trong gói có mục TỐC ĐỘ VÀ HIỆU NĂNG. Dữ liệu dịch như gói thử.
+
+| Kiểm (19/10) | Kết quả |
+|---|---|
+| Dựng 2 lần (`LOD_ROOT` = bản sao nối tới D:\LOD, `LOD_COMMIT` = 40e91b8) | cùng SHA-256 `2e278f7951cfbbeee13332782c005aab612999a892877b4dea39501dbeb75d49` (132.904.722 byte); `vi/VERSION.txt` lod_sc_commit 2e8a8bc, lod_commit 40e91b8 |
+| Cài sạch `test_cai.ps1 -Dia <game/isos> -Choi` | lên game 128 s, classpath `vi/sc-vi.jar` đầu, log không lỗi; kịch bản `-Choi` lệch nhịp (phím rơi vào màn tùy chọn lượt chơi mới) nên điều khiển tay tiếp: Lượt chơi mới → Bắt đầu → phim → "Rồng Nanh Xanh, Feyrbrand." |
+| Tốc độ game (thư mục `game`) | Nhanh gấp 2: màn tựa 60/60 (30 Hz × 2), cảnh 120/120; giữ sau khi mở lại game; trợ giúp vừa khung (`docs/anh/38`) |
+| Tự bỏ khung hình | PC giả lập `-Dscvi.fakeDrawMs=25`: tắt 35,6/60 FPS, bật 59,3/60 (log 130/300 khung không vẽ mỗi 5 s, `docs/anh/35`); máy thường chỉ bỏ 1–3 khung/5 s lúc nạp cảnh |
+| APK x86_64 (giả lập Android 15) | log "Android: render resolution NATIVE -> 720p" một lần; ▶▶ đổi phim 15 → 30 FPS và trở lại; hộp ⚙ (độ đậm, cỡ phím, Mặc định) (`docs/anh/36–37`) |
+
+Kiểm của gói thử 17/10 (dữ liệu dịch giống hệt):
 
 Thay đổi so với v0.2 chỉ ở dữ liệu: `sc_dialogue.py` đã theo quy tắc `build.py` v1.11 từ 34abba5 (trước v0.2: `speaker_line`,
 `clause_like`, `APPOS`, `vi_speakers`, bản nối dòng cho câu `{B0xx}` ≈ `reflow(force=True)`), nên dựng lại từ D:\LOD main mới chỉ
@@ -128,7 +144,8 @@ sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng 
   zip 132.807.079 byte, SHA `834384aa…`; tải lại từ GitHub khớp), v0.2-android-sc-affcef0 (19/10/2026, tag → 47bef50,
   APK arm64 200.075.870 byte, SHA `2f5e6f13…`, kèm `SHA256SUMS-android.txt`, ghi chú `release_notes/v0.2-android-sc-affcef0.md`;
   tải lại từ GitHub khớp; tải được khi không đăng nhập).
-- v0.3-sc-affcef0: gói thử đã dựng (`release/`, SHA `135fbb47…`, ghi chú nháp `release_notes/v0.3-sc-affcef0.md`), **chưa phát hành**
-  — chờ người dùng bảo. Khi phát hành: chạy cài sạch trước, gắn tag vào commit đã dựng gói (60bc3ff; dựng lại từ commit khác thì
+- v0.3-sc-affcef0 (19/10/2026, theo lời người dùng "Hãy phát hành v0.3"; tag → 2e8a8bc, zip 132.904.722 byte, SHA `2e278f79…`)
+  và v0.3-android-sc-affcef0 (tag → 2e8a8bc, APK arm64 200.178.270 byte, SHA `d979c602…`, versionCode 3001, dựng từ zip v0.3;
+  ghi chú `release_notes/v0.3-android-sc-affcef0.md`). Gắn tag vào commit đã dựng gói (dựng lại từ commit khác thì
   `lod_sc_commit` trong `vi/VERSION.txt` đổi → SHA đổi).
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
