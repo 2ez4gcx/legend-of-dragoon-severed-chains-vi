@@ -23,6 +23,7 @@ import org.lwjgl.BufferUtils;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 
 import static legend.core.GameEngine.PLATFORM;
@@ -49,6 +50,17 @@ public class Gpu {
   public Texture vramTexture15;
   private Texture vramTexture24;
   private boolean vramDirty;
+  // [sc-vi] the part of VRAM written since the last upload (x0..x1, y0..y1 exclusive); only that part goes to the GPU
+  private int dirtyX0 = Integer.MAX_VALUE;
+  private int dirtyY0 = Integer.MAX_VALUE;
+  private int dirtyX1;
+  private int dirtyY1;
+  private int[] uploadBuffer = new int[0];
+  /** [sc-vi] -Dscvi.vramStats=true logs the VRAM uploads every 10 s (count, uploaded vs full-size bytes) */
+  private static final boolean VRAM_STATS = Boolean.getBoolean("scvi.vramStats");
+  private long statsTime;
+  private int statsUploads;
+  private long statsBytes;
 
   private Shader<SimpleShaderOptions> vramShader;
   private SimpleShaderOptions vramShaderOptions;
@@ -71,6 +83,8 @@ public class Gpu {
 
   private int zMax;
   private List<GpuCommand>[] zQueues;
+  /** [sc-vi] z indices holding commands: a frame queues a handful of commands into a 16384-entry ordering table */
+  private final BitSet usedZ = new BitSet();
 
   private boolean displayChanged;
 
@@ -111,14 +125,91 @@ public class Gpu {
       builder.dataType(TextureDataType.UINT);
     });
     this.vramTexture15.persistent = true;
+
+    // [sc-vi] a new texture holds undefined data: its first upload sends all of VRAM, as the retail code always did
+    synchronized(this.vramLock) {
+      this.markVramDirty(0, 0, this.vramWidth, this.vramHeight);
+    }
   }
 
   public void updateVramTexture() {
     synchronized(this.vramLock) {
       if(this.vramDirty) {
-        this.vramTexture15.data(0, 0, 1024, 512, TextureDataType.UINT, this.vram15);
+        // [sc-vi] upload only the part written since the last upload. Models with animated textures and save points copy a few
+        // small VRAM rects every frame; the retail code sent all 2 MB of VRAM to the GPU for that (up to 60 times a second).
+        final int x = this.dirtyX0;
+        final int y = this.dirtyY0;
+        final int w = this.dirtyX1 - x;
+        final int h = this.dirtyY1 - y;
+
+        if(w == this.vramWidth && h == this.vramHeight) {
+          this.vramTexture15.data(0, 0, 1024, 512, TextureDataType.UINT, this.vram15);
+        } else if(w > 0 && h > 0) {
+          if(this.uploadBuffer.length < w * h) {
+            this.uploadBuffer = new int[w * h];
+          }
+
+          for(int row = 0; row < h; row++) {
+            System.arraycopy(this.vram15, (y + row) * this.vramWidth + x, this.uploadBuffer, row * w, w);
+          }
+
+          this.vramTexture15.data(x, y, w, h, TextureDataType.UINT, this.uploadBuffer);
+        }
+
+        if(VRAM_STATS) {
+          this.vramStats(w * h * 4L);
+        }
+
         this.vramDirty = false;
+        this.dirtyX0 = Integer.MAX_VALUE;
+        this.dirtyY0 = Integer.MAX_VALUE;
+        this.dirtyX1 = 0;
+        this.dirtyY1 = 0;
       }
+    }
+  }
+
+  /**
+   * [sc-vi] Adds a written rect to the part of VRAM to upload. setVramPixel does not wrap: a rect running past the right edge
+   * goes on at the start of the next row, so such a rect dirties whole rows.
+   */
+  private void markVramDirty(final int x, final int y, final int w, final int h) {
+    this.vramDirty = true;
+
+    if(w <= 0 || h <= 0) {
+      return;
+    }
+
+    int x0 = x;
+    int x1 = x + w;
+    int y0 = y;
+    int y1 = y + h;
+
+    if(x0 < 0 || x1 > this.vramWidth) {
+      y0 = Math.floorDiv(y0 * this.vramWidth + x0, this.vramWidth);
+      y1 = Math.floorDiv((y1 - 1) * this.vramWidth + x1 - 1, this.vramWidth) + 1;
+      x0 = 0;
+      x1 = this.vramWidth;
+    }
+
+    this.dirtyX0 = Math.min(this.dirtyX0, x0);
+    this.dirtyY0 = Math.min(this.dirtyY0, Math.max(0, y0));
+    this.dirtyX1 = Math.max(this.dirtyX1, x1);
+    this.dirtyY1 = Math.max(this.dirtyY1, Math.min(this.vramHeight, y1));
+  }
+
+  private void vramStats(final long bytes) {
+    this.statsUploads++;
+    this.statsBytes += bytes;
+
+    final long now = System.nanoTime();
+    if(this.statsTime == 0L) {
+      this.statsTime = now;
+    } else if(now - this.statsTime >= 10_000_000_000L) {
+      LOGGER.info("[sc-vi] VRAM uploads: %d in %.1f s, %d KB (whole VRAM each time: %d KB)", this.statsUploads, (now - this.statsTime) / 1e9, this.statsBytes / 1024, this.statsUploads * 2048L);
+      this.statsTime = now;
+      this.statsUploads = 0;
+      this.statsBytes = 0;
     }
   }
 
@@ -189,7 +280,8 @@ public class Gpu {
     }
 
     if(this.zQueues != null) {
-      for(int z = this.zQueues.length - 1; z >= 0; z--) {
+      // [sc-vi] same order as the retail loop over every z (high to low), but only over the z that hold commands
+      for(int z = this.usedZ.previousSetBit(this.zQueues.length - 1); z >= 0; z = this.usedZ.previousSetBit(z - 1)) {
         final List<GpuCommand> queue = this.zQueues[z];
 
         for(int i = queue.size() - 1; i >= 0; i--) {
@@ -197,6 +289,7 @@ public class Gpu {
         }
 
         queue.clear();
+        this.usedZ.clear(z);
       }
     }
 
@@ -223,6 +316,7 @@ public class Gpu {
     }
 
     synchronized(this.vramLock) {
+      this.markVramDirty(rectX, rectY, rectW, rectH); // [sc-vi] before writing: a write cut short still reaches the GPU (the retail whole-VRAM uploads sent it)
       int i = 0;
       for(int y = rectY; y < rectY + rectH; y++) {
         for(int x = rectX; x < rectX + rectW; x++) {
@@ -239,8 +333,6 @@ public class Gpu {
           i += 2;
         }
       }
-
-      this.vramDirty = true;
     }
   }
 
@@ -258,6 +350,7 @@ public class Gpu {
     }
 
     synchronized(this.vramLock) {
+      this.markVramDirty(rectX, rectY, rectW, rectH); // [sc-vi] before writing: a write cut short still reaches the GPU (the retail whole-VRAM uploads sent it)
       int i = 0;
       for(int y = rectY; y < rectY + rectH; y++) {
         for(int x = rectX; x < rectX + rectW; x++) {
@@ -265,8 +358,6 @@ public class Gpu {
           i++;
         }
       }
-
-      this.vramDirty = true;
     }
   }
 
@@ -325,6 +416,7 @@ public class Gpu {
     }
 
     synchronized(this.vramLock) {
+      this.markVramDirty(destX, destY, width, height); // [sc-vi] before writing: a write cut short still reaches the GPU (the retail whole-VRAM uploads sent it)
       for(int y = 0; y < height; y++) {
         for(int x = 0; x < width; x++) {
           int colour15 = this.getPixel15(sourceX + x, sourceY + y);
@@ -342,8 +434,6 @@ public class Gpu {
           this.setVramPixel(destX + x, destY + y, colour24, colour15);
         }
       }
-
-      this.vramDirty = true;
     }
   }
 
@@ -353,6 +443,7 @@ public class Gpu {
 
   public void queueCommand(final int z, final GpuCommand command) {
     this.zQueues[z].add(command);
+    this.usedZ.set(z); // [sc-vi]
   }
 
   /**
@@ -360,10 +451,13 @@ public class Gpu {
    */
   public void resetCommandBuffer() {
     if(this.zQueues != null) {
-      for(int z = this.zQueues.length - 1; z >= 0; z--) {
+      // [sc-vi] only the z that hold commands
+      for(int z = this.usedZ.previousSetBit(this.zQueues.length - 1); z >= 0; z = this.usedZ.previousSetBit(z - 1)) {
         this.zQueues[z].clear();
       }
     }
+
+    this.usedZ.clear();
   }
 
   /**
@@ -421,6 +515,7 @@ public class Gpu {
     final List<GpuCommand>[] list = new ArrayList[size];
     Arrays.setAll(list, key -> new ArrayList<>());
 
+    this.usedZ.clear(); // [sc-vi] the old lists and their commands are dropped
     this.zMax = size;
     this.zQueues = list;
   }

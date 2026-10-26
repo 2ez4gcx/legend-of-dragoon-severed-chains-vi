@@ -52,6 +52,8 @@ khoá `lod_core.config.battery_saver.*` trong `lang/scvi_ui.vi.lang`) và cho c�
 `Gpu` (chỉ tải VRAM lên GPU ở khung có vẽ); lớp sửa mới `SdlWindow` (PC: chỉ swap khung có vẽ, không vẽ khi cửa sổ thu nhỏ,
 biểu tượng cửa sổ `gfx/textures/icon.vi.png` = tranh chú rồng). Gói thêm `gfx/textures/icon.vi.png` (sinh bằng
 `android/gen_icon.py --windows` trong `build_sc_vi.ps1`; `make_release.py` xuất thêm `android/gen_icon.py` + `icon_rong.webp`).
+Đợt 2: `Gpu` chỉ tải phần VRAM đã đổi và chỉ duyệt ô có lệnh của bảng thứ tự; lớp sửa mới `ConfigCollection` (giá trị mặc định
+chỉ tính khi thiếu — trước đây mỗi lần vẽ chữ duyệt thư mục `lang`) và `Spu` (chip âm thanh hiệu ứng nghỉ khi im lặng).
 
 Không chứa: ảnh đĩa, BIOS, JDK, `files/`.
 

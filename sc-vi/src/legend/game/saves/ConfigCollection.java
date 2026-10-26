@@ -1,0 +1,137 @@
+package legend.game.saves;
+
+import legend.core.lang.I18nText;
+import legend.core.lang.TextComponent;
+import legend.game.i18n.I18n;
+import legend.game.modding.events.config.ConfigUpdatedEvent;
+import org.legendofdragoon.modloader.registries.RegistryDelegate;
+import org.legendofdragoon.modloader.registries.RegistryId;
+
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static legend.core.GameEngine.EVENTS;
+import static legend.core.GameEngine.MODS;
+import static legend.core.GameEngine.REGISTRIES;
+
+public class ConfigCollection {
+  private final boolean notifyChanges;
+  private final Map<RegistryId, Object> configValues = new HashMap<>();
+  private final Map<RegistryId, Set<String>> locked = new HashMap<>();
+  @Nullable
+  private ConfigPresetState presetState;
+  private long revision;
+
+  public ConfigCollection() {
+    this(true);
+  }
+
+  /** Use false for detached edits that must not change runtime state or post events. */
+  public ConfigCollection(final boolean notifyChanges) {
+    this.notifyChanges = notifyChanges;
+  }
+
+  public <T> T getConfig(final ConfigEntry<T> config) {
+    // [sc-vi] same result as getOrDefault(id, config.getDefaultValue()), but the default is only worked out when there is no
+    // value: LanguageConfigEntry's default walks the lang directory, and the language is read every time text is drawn
+    // (HardcodedTranslations.onRender), i.e. dozens of directory walks a frame on the game thread
+    final RegistryId id = config.getRegistryId();
+    final Object value = this.configValues.get(id);
+
+    if(value != null || this.configValues.containsKey(id)) {
+      //noinspection unchecked
+      return (T)value;
+    }
+
+    return config.getDefaultValue();
+  }
+
+  public <T> void setConfig(final ConfigEntry<T> config, final T value) {
+    final T oldValue = this.getConfig(config);
+    this.setConfigQuietly(config, value);
+    if(this.notifyChanges) {
+      config.onChange(this, oldValue, value);
+      EVENTS.postEvent(new ConfigUpdatedEvent(config));
+    }
+  }
+
+  /** Doesn't trigger onChange */
+  <T> void setConfigQuietly(final ConfigEntry<T> config, final T value) {
+    this.configValues.put(config.getRegistryId(), value);
+    this.revision++;
+  }
+
+  /** Records the successfully applied preset without changing values or firing callbacks. */
+  public void setPreset(final TextComponent name) {
+    this.presetState = new ConfigPresetState(name, this, this.revision);
+  }
+
+  @Nullable
+  public TextComponent getPresetName() {
+    return this.presetState != null ? this.presetState.name : null;
+  }
+
+  public boolean isPresetModified() {
+    return this.presetState != null && this.presetState.isModified(this, this.revision);
+  }
+
+  public TextComponent getPresetDisplayName() {
+    if(this.presetState == null) return new I18nText("lod_core.config_presets.custom");
+    if(this.isPresetModified()) return new I18nText("lod_core.config_presets.modified", this.presetState.name);
+    return this.presetState.name;
+  }
+
+  /** Rechecks mutable values and registry defaults after returning from an editor or mod reload. */
+  public void refreshPreset() {
+    this.revision++;
+  }
+
+  public boolean hasConfig(final ConfigEntry<?> config) {
+    return this.configValues.containsKey(config.getRegistryId());
+  }
+
+  public void clearConfig() {
+    this.configValues.clear();
+    this.presetState = null;
+  }
+
+  public void clearConfig(final ConfigStorageLocation storageLocation) {
+    this.presetState = null;
+    this.configValues.keySet().removeIf(id -> {
+      final RegistryDelegate<ConfigEntry<?>> delegate = REGISTRIES.config.getEntry(id);
+      return !delegate.isValid() || delegate.get().storageLocation == storageLocation;
+    });
+  }
+
+  public void copyConfigFrom(final ConfigCollection other) {
+    this.configValues.putAll(other.configValues);
+    this.presetState = null;
+  }
+
+  public void copyConfigFrom(final ConfigCollection other, final Set<ConfigStorageLocation> locations) {
+    for(final var entry : other.configValues.entrySet()) {
+      final RegistryId id = entry.getKey();
+      final ConfigEntry<?> config = REGISTRIES.config.getEntry(id).get();
+
+      if(locations.contains(config.storageLocation)) {
+        this.configValues.put(id, entry.getValue());
+      }
+    }
+
+    this.presetState = null;
+  }
+
+  public void lockConfig(final ConfigEntry<?> config) {
+    final Class<?> caller = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass();
+    final Set<String> modIds = MODS.getModsByClass(caller);
+    final Set<String> locked = this.locked.computeIfAbsent(config.getRegistryId(), k -> new HashSet<>());
+    modIds.stream().map(id -> I18n.translate(id + ".name")).sorted().forEach(locked::add);
+  }
+
+  public Set<String> getLocked(final ConfigEntry<?> config) {
+    return this.locked.computeIfAbsent(config.getRegistryId(), k -> new HashSet<>());
+  }
+}

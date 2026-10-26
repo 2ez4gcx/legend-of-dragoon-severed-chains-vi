@@ -44,6 +44,8 @@ public final class HardcodedTranslations {
   private static final Map<String, String> PLACE_NAMES = new java.util.HashMap<>();
   private static Locale appliedLocale;
   private static boolean failed;
+  private static Locale renderLocale;
+  private static long renderLocaleTime;
 
   private static Object titleState;
   private static Object titleTex;
@@ -133,9 +135,20 @@ public final class HardcodedTranslations {
 
   /** Called at the start of Text.renderText: applies the tables once per language and translates UI literals */
   public static String onRender(final String text) {
-    Locale locale = null;
+    // This runs for every text drawn (dozens a frame). A saved language is a map lookup; without one the config works out its
+    // default by walking the lang directory, so that is done at most twice a second.
+    Locale locale = renderLocale;
     try {
-      locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
+      if(CONFIG.hasConfig(CoreMod.LANGUAGE_CONFIG.get())) {
+        locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
+      } else {
+        final long now = System.nanoTime();
+        if(locale == null || now - renderLocaleTime >= 500_000_000L) {
+          locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
+          renderLocale = locale;
+          renderLocaleTime = now;
+        }
+      }
     } catch(final Throwable t) {
       // Config/registries not ready yet: try again on the next call
     }

@@ -186,7 +186,133 @@
          try {
 --- a/src/main/java/legend/core/gpu/Gpu.java
 +++ b/src/main/java/legend/core/gpu/Gpu.java
-@@ -123,7 +123,11 @@
+@@ -23,6 +23,7 @@
+ import java.nio.FloatBuffer;
+ import java.util.ArrayList;
+ import java.util.Arrays;
++import java.util.BitSet;
+ import java.util.List;
+ 
+ import static legend.core.GameEngine.PLATFORM;
+@@ -49,6 +50,17 @@
+   public Texture vramTexture15;
+   private Texture vramTexture24;
+   private boolean vramDirty;
++  // [sc-vi] the part of VRAM written since the last upload (x0..x1, y0..y1 exclusive); only that part goes to the GPU
++  private int dirtyX0 = Integer.MAX_VALUE;
++  private int dirtyY0 = Integer.MAX_VALUE;
++  private int dirtyX1;
++  private int dirtyY1;
++  private int[] uploadBuffer = new int[0];
++  /** [sc-vi] -Dscvi.vramStats=true logs the VRAM uploads every 10 s (count, uploaded vs full-size bytes) */
++  private static final boolean VRAM_STATS = Boolean.getBoolean("scvi.vramStats");
++  private long statsTime;
++  private int statsUploads;
++  private long statsBytes;
+ 
+   private Shader<SimpleShaderOptions> vramShader;
+   private SimpleShaderOptions vramShaderOptions;
+@@ -71,6 +83,8 @@
+ 
+   private int zMax;
+   private List<GpuCommand>[] zQueues;
++  /** [sc-vi] z indices holding commands: a frame queues a handful of commands into a 16384-entry ordering table */
++  private final BitSet usedZ = new BitSet();
+ 
+   private boolean displayChanged;
+ 
+@@ -111,19 +125,100 @@
+       builder.dataType(TextureDataType.UINT);
+     });
+     this.vramTexture15.persistent = true;
++
++    // [sc-vi] a new texture holds undefined data: its first upload sends all of VRAM, as the retail code always did
++    synchronized(this.vramLock) {
++      this.markVramDirty(0, 0, this.vramWidth, this.vramHeight);
++    }
+   }
+ 
+   public void updateVramTexture() {
+     synchronized(this.vramLock) {
+       if(this.vramDirty) {
+-        this.vramTexture15.data(0, 0, 1024, 512, TextureDataType.UINT, this.vram15);
++        // [sc-vi] upload only the part written since the last upload. Models with animated textures and save points copy a few
++        // small VRAM rects every frame; the retail code sent all 2 MB of VRAM to the GPU for that (up to 60 times a second).
++        final int x = this.dirtyX0;
++        final int y = this.dirtyY0;
++        final int w = this.dirtyX1 - x;
++        final int h = this.dirtyY1 - y;
++
++        if(w == this.vramWidth && h == this.vramHeight) {
++          this.vramTexture15.data(0, 0, 1024, 512, TextureDataType.UINT, this.vram15);
++        } else if(w > 0 && h > 0) {
++          if(this.uploadBuffer.length < w * h) {
++            this.uploadBuffer = new int[w * h];
++          }
++
++          for(int row = 0; row < h; row++) {
++            System.arraycopy(this.vram15, (y + row) * this.vramWidth + x, this.uploadBuffer, row * w, w);
++          }
++
++          this.vramTexture15.data(x, y, w, h, TextureDataType.UINT, this.uploadBuffer);
++        }
++
++        if(VRAM_STATS) {
++          this.vramStats(w * h * 4L);
++        }
++
+         this.vramDirty = false;
+-      }
++        this.dirtyX0 = Integer.MAX_VALUE;
++        this.dirtyY0 = Integer.MAX_VALUE;
++        this.dirtyX1 = 0;
++        this.dirtyY1 = 0;
++      }
++    }
++  }
++
++  /**
++   * [sc-vi] Adds a written rect to the part of VRAM to upload. setVramPixel does not wrap: a rect running past the right edge
++   * goes on at the start of the next row, so such a rect dirties whole rows.
++   */
++  private void markVramDirty(final int x, final int y, final int w, final int h) {
++    this.vramDirty = true;
++
++    if(w <= 0 || h <= 0) {
++      return;
++    }
++
++    int x0 = x;
++    int x1 = x + w;
++    int y0 = y;
++    int y1 = y + h;
++
++    if(x0 < 0 || x1 > this.vramWidth) {
++      y0 = Math.floorDiv(y0 * this.vramWidth + x0, this.vramWidth);
++      y1 = Math.floorDiv((y1 - 1) * this.vramWidth + x1 - 1, this.vramWidth) + 1;
++      x0 = 0;
++      x1 = this.vramWidth;
++    }
++
++    this.dirtyX0 = Math.min(this.dirtyX0, x0);
++    this.dirtyY0 = Math.min(this.dirtyY0, Math.max(0, y0));
++    this.dirtyX1 = Math.max(this.dirtyX1, x1);
++    this.dirtyY1 = Math.max(this.dirtyY1, Math.min(this.vramHeight, y1));
++  }
++
++  private void vramStats(final long bytes) {
++    this.statsUploads++;
++    this.statsBytes += bytes;
++
++    final long now = System.nanoTime();
++    if(this.statsTime == 0L) {
++      this.statsTime = now;
++    } else if(now - this.statsTime >= 10_000_000_000L) {
++      LOGGER.info("[sc-vi] VRAM uploads: %d in %.1f s, %d KB (whole VRAM each time: %d KB)", this.statsUploads, (now - this.statsTime) / 1e9, this.statsBytes / 1024, this.statsUploads * 2048L);
++      this.statsTime = now;
++      this.statsUploads = 0;
++      this.statsBytes = 0;
+     }
    }
  
    public void startFrame() {
@@ -199,6 +325,106 @@
  
      if(this.zMax != orderingTableSize_1f8003c8) {
        this.updateOrderingTableSize(orderingTableSize_1f8003c8);
+@@ -185,7 +280,8 @@
+     }
+ 
+     if(this.zQueues != null) {
+-      for(int z = this.zQueues.length - 1; z >= 0; z--) {
++      // [sc-vi] same order as the retail loop over every z (high to low), but only over the z that hold commands
++      for(int z = this.usedZ.previousSetBit(this.zQueues.length - 1); z >= 0; z = this.usedZ.previousSetBit(z - 1)) {
+         final List<GpuCommand> queue = this.zQueues[z];
+ 
+         for(int i = queue.size() - 1; i >= 0; i--) {
+@@ -193,6 +289,7 @@
+         }
+ 
+         queue.clear();
++        this.usedZ.clear(z);
+       }
+     }
+ 
+@@ -219,6 +316,7 @@
+     }
+ 
+     synchronized(this.vramLock) {
++      this.markVramDirty(rectX, rectY, rectW, rectH); // [sc-vi] before writing: a write cut short still reaches the GPU (the retail whole-VRAM uploads sent it)
+       int i = 0;
+       for(int y = rectY; y < rectY + rectH; y++) {
+         for(int x = rectX; x < rectX + rectW; x++) {
+@@ -235,8 +333,6 @@
+           i += 2;
+         }
+       }
+-
+-      this.vramDirty = true;
+     }
+   }
+ 
+@@ -254,6 +350,7 @@
+     }
+ 
+     synchronized(this.vramLock) {
++      this.markVramDirty(rectX, rectY, rectW, rectH); // [sc-vi] before writing: a write cut short still reaches the GPU (the retail whole-VRAM uploads sent it)
+       int i = 0;
+       for(int y = rectY; y < rectY + rectH; y++) {
+         for(int x = rectX; x < rectX + rectW; x++) {
+@@ -261,8 +358,6 @@
+           i++;
+         }
+       }
+-
+-      this.vramDirty = true;
+     }
+   }
+ 
+@@ -321,6 +416,7 @@
+     }
+ 
+     synchronized(this.vramLock) {
++      this.markVramDirty(destX, destY, width, height); // [sc-vi] before writing: a write cut short still reaches the GPU (the retail whole-VRAM uploads sent it)
+       for(int y = 0; y < height; y++) {
+         for(int x = 0; x < width; x++) {
+           int colour15 = this.getPixel15(sourceX + x, sourceY + y);
+@@ -338,8 +434,6 @@
+           this.setVramPixel(destX + x, destY + y, colour24, colour15);
+         }
+       }
+-
+-      this.vramDirty = true;
+     }
+   }
+ 
+@@ -349,6 +443,7 @@
+ 
+   public void queueCommand(final int z, final GpuCommand command) {
+     this.zQueues[z].add(command);
++    this.usedZ.set(z); // [sc-vi]
+   }
+ 
+   /**
+@@ -356,10 +451,13 @@
+    */
+   public void resetCommandBuffer() {
+     if(this.zQueues != null) {
+-      for(int z = this.zQueues.length - 1; z >= 0; z--) {
++      // [sc-vi] only the z that hold commands
++      for(int z = this.usedZ.previousSetBit(this.zQueues.length - 1); z >= 0; z = this.usedZ.previousSetBit(z - 1)) {
+         this.zQueues[z].clear();
+       }
+     }
++
++    this.usedZ.clear();
+   }
+ 
+   /**
+@@ -417,6 +515,7 @@
+     final List<GpuCommand>[] list = new ArrayList[size];
+     Arrays.setAll(list, key -> new ArrayList<>());
+ 
++    this.usedZ.clear(); // [sc-vi] the old lists and their commands are dropped
+     this.zMax = size;
+     this.zQueues = list;
+   }
 --- a/src/main/java/legend/core/platform/SdlWindow.java
 +++ b/src/main/java/legend/core/platform/SdlWindow.java
 @@ -4,6 +4,7 @@
@@ -558,9 +784,102 @@
 +    windowHidden = hidden;
 +  }
  }
+--- a/src/main/java/legend/core/spu/Spu.java
++++ b/src/main/java/legend/core/spu/Spu.java
+@@ -7,6 +7,8 @@
+ import org.apache.logging.log4j.Logger;
+ import org.apache.logging.log4j.Marker;
+ import org.apache.logging.log4j.MarkerManager;
++
++import java.util.Arrays;
+ 
+ import static legend.core.GameEngine.AUDIO_THREAD;
+ import static legend.core.GameEngine.CONFIG;
+@@ -81,8 +83,40 @@
+   private short reverbL;
+   private short reverbR;
+ 
++  /**
++   * [sc-vi] Idle: no voice has been playing and the reverb has given nothing but zero for {@link #IDLE_AFTER_TICKS} ticks. tick()
++   * then only hands silence to OpenAL until a voice is keyed on or off, instead of mixing 24 silent voices and running the
++   * reverb 44100 times a second (most of the time on fields, menus and the world map). A running reverb with both output
++   * volumes up has died out by then (the longest echo delay of the retail presets is about 45 ticks) and its work area is
++   * cleared; a stopped reverb keeps its work area (nothing writes it), and the address and the noise generator move on as if
++   * every sample had been mixed, so waking up continues where the retail code would be. A running reverb turned down to
++   * zero never goes idle.
++   */
++  private static final int IDLE_AFTER_TICKS = 60;
++  private int silentTicks;
++  private boolean idle;
++
+   public void tick() {
+     synchronized(Spu.class) {
++      // [sc-vi] idle: nothing to mix until a voice is keyed on or off (a key off puts even a stopped voice into its release
++      // phase, which the normal path handles)
++      if(this.idle && this.keyOn == 0 && this.keyOff == 0) {
++        for(int i = 0; i < SAMPLES_PER_TICK; i++) {
++          this.tickNoiseGenerator();
++        }
++
++        this.reverbCurrentAddress = this.reverbCurrentAddress + SAMPLES_PER_TICK & this.reverbWorkArea.length - 1;
++
++        if(this.source.canBuffer()) {
++          this.source.bufferOutput(this.spuOutput); // all zero since going idle
++        }
++
++        return;
++      }
++
++      this.idle = false;
++      boolean silent = true; // [sc-vi] no voice playing and no reverb output for the whole tick
++
+       int dataIndex = 0;
+       for(int i = 0; i < SAMPLES_PER_TICK; i++) {
+         int sumLeft = 0;
+@@ -125,6 +159,7 @@
+             continue;
+           }
+ 
++          silent = false; // [sc-vi]
+           short sample;
+           if((this.channelNoiseMode & 0x1L << voiceIndex) == 0) {
+             sample = this.sampleVoice(voiceIndex);
+@@ -154,6 +189,10 @@
+ 
+         this.processReverb(sumLeftReverb, sumRightReverb);
+ 
++        if(this.reverbL != 0 || this.reverbR != 0) {
++          silent = false; // [sc-vi] reverb tail still audible
++        }
++
+         sumLeft += this.reverbL;
+         sumRight += this.reverbR;
+ 
+@@ -168,6 +207,21 @@
+ 
+       if(this.source.canBuffer()) {
+         this.source.bufferOutput(this.spuOutput);
++      }
++
++      // [sc-vi] a silent tick wrote only zeros to spuOutput, which idle ticks hand on as they are. A running reverb turned down
++      // to zero keeps changing its work area unheard, so it never lets the SPU go idle.
++      final boolean reverbAudible = this.reverbOutputVolumeL != 0 && this.reverbOutputVolumeR != 0;
++      this.silentTicks = silent && (!this.reverbEnabled || reverbAudible) ? this.silentTicks + 1 : 0;
++
++      if(this.silentTicks >= IDLE_AFTER_TICKS) {
++        this.silentTicks = 0;
++        this.idle = true;
++
++        // a running, audible reverb that gave only zeros has died out; a stopped one keeps its work area as it is
++        if(this.reverbEnabled) {
++          Arrays.fill(this.reverbWorkArea, 0.0f);
++        }
+       }
+     }
+   }
 --- /dev/null
 +++ b/src/main/java/legend/game/i18n/HardcodedTranslations.java
-@@ -0,0 +1,260 @@
+@@ -0,0 +1,273 @@
 +package legend.game.i18n;
 +
 +import legend.game.SItem;
@@ -607,6 +926,8 @@
 +  private static final Map<String, String> PLACE_NAMES = new java.util.HashMap<>();
 +  private static Locale appliedLocale;
 +  private static boolean failed;
++  private static Locale renderLocale;
++  private static long renderLocaleTime;
 +
 +  private static Object titleState;
 +  private static Object titleTex;
@@ -696,9 +1017,20 @@
 +
 +  /** Called at the start of Text.renderText: applies the tables once per language and translates UI literals */
 +  public static String onRender(final String text) {
-+    Locale locale = null;
++    // This runs for every text drawn (dozens a frame). A saved language is a map lookup; without one the config works out its
++    // default by walking the lang directory, so that is done at most twice a second.
++    Locale locale = renderLocale;
 +    try {
-+      locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
++      if(CONFIG.hasConfig(CoreMod.LANGUAGE_CONFIG.get())) {
++        locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
++      } else {
++        final long now = System.nanoTime();
++        if(locale == null || now - renderLocaleTime >= 500_000_000L) {
++          locale = CONFIG.getConfig(CoreMod.LANGUAGE_CONFIG.get());
++          renderLocale = locale;
++          renderLocaleTime = now;
++        }
++      }
 +    } catch(final Throwable t) {
 +      // Config/registries not ready yet: try again on the next call
 +    }
@@ -1552,6 +1884,29 @@
 +    Config.setLoadedGameSpeedMultiplier(speed.multiplier);
 +  }
 +}
+--- a/src/main/java/legend/game/saves/ConfigCollection.java
++++ b/src/main/java/legend/game/saves/ConfigCollection.java
+@@ -35,8 +35,18 @@
+   }
+ 
+   public <T> T getConfig(final ConfigEntry<T> config) {
+-    //noinspection unchecked
+-    return (T)this.configValues.getOrDefault(config.getRegistryId(), config.getDefaultValue());
++    // [sc-vi] same result as getOrDefault(id, config.getDefaultValue()), but the default is only worked out when there is no
++    // value: LanguageConfigEntry's default walks the lang directory, and the language is read every time text is drawn
++    // (HardcodedTranslations.onRender), i.e. dozens of directory walks a frame on the game thread
++    final RegistryId id = config.getRegistryId();
++    final Object value = this.configValues.get(id);
++
++    if(value != null || this.configValues.containsKey(id)) {
++      //noinspection unchecked
++      return (T)value;
++    }
++
++    return config.getDefaultValue();
+   }
+ 
+   public <T> void setConfig(final ConfigEntry<T> config, final T value) {
 --- a/src/main/java/legend/game/saves/ConfigStorage.java
 +++ b/src/main/java/legend/game/saves/ConfigStorage.java
 @@ -8,7 +8,9 @@

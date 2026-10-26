@@ -57,6 +57,26 @@ Tiết kiệm pin (26/10, sau v0.3):
   bật tiết kiệm pin ×1 19,3 W / 15%, ×4 19,3 W / 31%. PC (OpenGL) thu nhỏ cửa sổ ở cảnh trên 20 s: 18,5 W (bằng nền) / CPU
   10%, mở lại chơi tiếp bình thường. Giả lập Android 15: dừng/chạy lại âm thanh khi xuống nền/lên lại, ▶▶ vẽ đúng.
 
+Đợt 2 (26/10, tìm bằng Java Flight Recorder: `jcmd <pid> JFR.start settings=profile duration=20s filename=x.jfr` khi đang ở
+cảnh, rồi `jfr print --json --events jdk.ExecutionSample,jdk.NativeMethodSample`):
+
+- `Gpu` (sc-vi) chỉ tải lên GPU phần VRAM đã đổi. Mô hình có texture động và điểm lưu chép vài ô VRAM nhỏ mỗi khung; bản gốc vì thế
+  tải lại cả VRAM 1024×512 (2 MB) gần như mỗi khung vẽ — chiếm gần hết thời gian native của luồng game ở cảnh bản đồ. Ở cảnh đầu
+  chương 4: 485 lần tải trong 10 s, 3,4 MB thay vì ~970 MB (`-Dscvi.vramStats=true` ghi thống kê mỗi 10 s).
+- `Gpu` chỉ duyệt các ô có lệnh của bảng thứ tự 16384 ô (bản gốc duyệt và `clear()` cả 16384 danh sách mỗi khung).
+- `ConfigCollection` (sc-vi) chỉ tính giá trị mặc định khi chưa có giá trị: `getOrDefault(id, config.getDefaultValue())` luôn
+  tính mặc định, mà mặc định của mục ngôn ngữ là duyệt thư mục `lang`; `HardcodedTranslations.onRender` đọc ngôn ngữ ở mỗi lần
+  vẽ chữ → hàng chục lần duyệt thư mục mỗi khung trên luồng game (lỗi của bản Việt hoá). `onRender` nay cũng chỉ đọc ngôn ngữ
+  tối đa 2 lần/giây.
+- `Spu` (sc-vi, chip âm thanh hiệu ứng giả lập, luồng `SFX`): không giọng nào kêu và tiếng vang đã về 0 trong 1 s thì nghỉ (chỉ
+  đưa im lặng cho OpenAL) tới khi có key on/key off, thay vì trộn 24 giọng tắt + chạy bộ lọc vang 44100 lần/giây. Lúc nghỉ địa
+  chỉ vang và bộ tạo tiếng ồn vẫn chạy như bản gốc; vang đang bật thì xoá bộ đệm (đã tắt hẳn), vang tắt thì giữ nguyên; vang bật
+  mà âm lượng ra bằng 0 thì không nghỉ. Texture VRAM mới tạo (`initVram`) luôn được tải đầy đủ lần đầu như bản gốc.
+- Đo lại cùng cảnh, cùng thời điểm sau khi nạp (PC đường ES; nền 18,5 W không đổi giữa các lần đo trong ngày nhưng dao động
+  ±0,5 W): bản đồ ×1 v0.3 CPU 28,4% / 19,0 W → 17–24% / 17,9–18,7 W; ×4 77% / 26,3 W → 28% / 18,1 W; trận đánh (đang chờ lệnh)
+  13,0% / 17,6 W → 8–10% / 16,4–17,5 W. Phần còn lại chủ yếu là trộn nhạc (luồng `OPEN_AL`) và JIT. Đã thử: bản đồ, trận, đòn
+  đánh có tiếng, đổi ngôn ngữ Anh ↔ Việt (màn tựa đổi ngay), PC OpenGL; giả lập Android 15: màn tựa, lượt chơi mới, cảnh đầu, ▶▶.
+
 Biểu tượng ứng dụng: `python android/gen_icon.py` sinh từ tranh `android/icon_rong.webp` (biểu tượng thường bo góc + biểu tượng
 thích ứng Android 8+ `mipmap-anydpi-v26/ic_launcher.xml`: tranh 72dp ở lớp trước, chính tranh làm mờ ở lớp sau) và biểu tượng
 cửa sổ game trên máy tính `out/gfx/textures/icon.vi.png` (64×64; `--windows` chỉ sinh tệp này).
