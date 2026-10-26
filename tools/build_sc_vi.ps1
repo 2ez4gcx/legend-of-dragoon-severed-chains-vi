@@ -10,6 +10,7 @@ Các bước:
      python tools/sc_lang_check.py (khoá có trong bản Anh, tham số %s/%d khớp; liệt kê dòng có thể tràn)
      python tools/sc_gfx.py --game <Game> -> out/vi_files/ (ảnh tiếng Việt đã duyệt của bản PS1, phủ lên files/ của SC)
      python tools/sc_title_menu.py   -> out/gfx/ui/title_menu.vi.png/.widths (menu màn tựa riêng của SC, tiếng Việt)
+     python android/gen_icon.py --windows -> out/gfx/textures/icon.vi.png (biểu tượng cửa sổ game, tranh chú rồng)
   4. javac (JDK 25 trong <Game>\jdk25) các lớp sc-vi/src với classpath = jar + libs của bản build SC -> out/classes
      Lớp ghi đè PHẢI khớp đúng commit SC của bản build (tên jar lod-game-<commit>.jar; bản thử: affcef0).
   5. tự kiểm sc-vi/test/TagRoundTrip.java (khoá tag, ngắt dòng theo ô và theo điểm ảnh font Việt, bố cục như trong game:
@@ -32,6 +33,7 @@ python tools/sc_font.py; if ($LASTEXITCODE) { exit 1 }
 python tools/sc_lang_check.py; if ($LASTEXITCODE) { Write-Output 'LOI FILE NGON NGU'; exit 1 }
 python tools/sc_gfx.py --game $Game; if ($LASTEXITCODE) { Write-Output 'LOI DO HOA'; exit 1 }
 python tools/sc_title_menu.py; if ($LASTEXITCODE) { Write-Output 'LOI MENU TUA'; exit 1 }
+python android/gen_icon.py --windows; if ($LASTEXITCODE) { Write-Output 'LOI BIEU TUONG'; exit 1 }
 
 $jar = Get-ChildItem $Game -Filter 'lod-game-*.jar' | Where-Object { $_.Name -notlike '*-sources.jar' } | Select-Object -First 1
 if (-not $jar) { throw "khong thay lod-game-*.jar trong $Game" }

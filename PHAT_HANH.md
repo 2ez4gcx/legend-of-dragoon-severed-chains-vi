@@ -48,8 +48,10 @@ Lớp sửa trong `vi/sc-vi.jar` (v0.2, 8 lớp, diff `sc-vi/patches/sc-core-aff
 Từ v0.3 thêm `RenderEngine` (tự bỏ khung hình khi máy chậm), `CoreMod` (đăng ký 2 mục tùy chọn) + lớp mới
 `GameSpeedConfigEntry`, `AutoFrameSkipConfigEntry`; `ConfigStorage` áp tốc độ sau khi nạp và (Android) hạ 720p một lần.
 Sau v0.3 (chưa phát hành, 26/10): `RenderEngine` thêm mục "Tiết kiệm pin (30 khung/giây)" (lớp mới `BatterySaverConfigEntry`,
-khoá `lod_core.config.battery_saver.*` trong `lang/scvi_ui.vi.lang`) và cho cửa sổ Android bỏ swap ở khung không vẽ; lớp sửa mới
-`Gpu` (chỉ tải VRAM lên GPU ở khung có vẽ).
+khoá `lod_core.config.battery_saver.*` trong `lang/scvi_ui.vi.lang`) và cho cửa sổ bỏ swap ở khung không vẽ; lớp sửa mới
+`Gpu` (chỉ tải VRAM lên GPU ở khung có vẽ); lớp sửa mới `SdlWindow` (PC: chỉ swap khung có vẽ, không vẽ khi cửa sổ thu nhỏ,
+biểu tượng cửa sổ `gfx/textures/icon.vi.png` = tranh chú rồng). Gói thêm `gfx/textures/icon.vi.png` (sinh bằng
+`android/gen_icon.py --windows` trong `build_sc_vi.ps1`; `make_release.py` xuất thêm `android/gen_icon.py` + `icon_rong.webp`).
 
 Không chứa: ảnh đĩa, BIOS, JDK, `files/`.
 

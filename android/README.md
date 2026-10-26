@@ -49,12 +49,17 @@ Tiết kiệm pin (26/10, sau v0.3):
 - App xuống nền (Home, tắt màn): SDL chặn luồng chính nhưng OpenAL không phải âm thanh của SDL nên nhạc vẫn phát và luồng âm
   thanh vẫn trộn; nay `SdlWindow` tạm dừng thiết bị OpenAL (logcat `[sc-android] app in the background: audio paused`).
 - Màn 90/120 Hz: `VnGameActivity` xin chế độ màn 60 Hz cùng độ phân giải (`preferredDisplayModeId`).
+- Bản PC dùng chung phần `RenderEngine`/`Gpu`; `SdlWindow` của sc-vi (PC) cũng chỉ swap khung có vẽ và không vẽ khi cửa sổ thu
+  nhỏ (game và nhạc vẫn chạy). Khung không vẽ vẫn dọn hàng đợi, đối tượng chờ xoá và scissor stack như khung vẽ (cảnh bản đồ đẩy
+  scissor mỗi nhịp, tối đa 100: không dọn thì thu nhỏ ~1,7 s là crash).
 - Đo trên PC, đường ES (`run_sc -Gles`, RTX 3060 Laptop, cảnh hội thoại đầu chương 4, công suất GPU theo `nvidia-smi`, nền
   18,5 W khi không chạy game): v0.3 ×1 20,0 W / CPU 30% một nhân, ×4 26,7 W / 94%; bản mới ×1 20,4 W / 34%, ×4 21,2 W / 49%;
-  bật tiết kiệm pin ×1 19,3 W / 15%, ×4 19,3 W / 31%. Giả lập Android 15: dừng/chạy lại âm thanh khi xuống nền/lên lại, ▶▶ vẽ đúng.
+  bật tiết kiệm pin ×1 19,3 W / 15%, ×4 19,3 W / 31%. PC (OpenGL) thu nhỏ cửa sổ ở cảnh trên 20 s: 18,5 W (bằng nền) / CPU
+  10%, mở lại chơi tiếp bình thường. Giả lập Android 15: dừng/chạy lại âm thanh khi xuống nền/lên lại, ▶▶ vẽ đúng.
 
 Biểu tượng ứng dụng: `python android/gen_icon.py` sinh từ tranh `android/icon_rong.webp` (biểu tượng thường bo góc + biểu tượng
-thích ứng Android 8+ `mipmap-anydpi-v26/ic_launcher.xml`: tranh 72dp ở lớp trước, chính tranh làm mờ ở lớp sau).
+thích ứng Android 8+ `mipmap-anydpi-v26/ic_launcher.xml`: tranh 72dp ở lớp trước, chính tranh làm mờ ở lớp sau) và biểu tượng
+cửa sổ game trên máy tính `out/gfx/textures/icon.vi.png` (64×64; `--windows` chỉ sinh tệp này).
 
 ## Dựng
 

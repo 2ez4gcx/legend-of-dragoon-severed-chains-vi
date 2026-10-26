@@ -199,6 +199,99 @@
  
      if(this.zMax != orderingTableSize_1f8003c8) {
        this.updateOrderingTableSize(orderingTableSize_1f8003c8);
+--- a/src/main/java/legend/core/platform/SdlWindow.java
++++ b/src/main/java/legend/core/platform/SdlWindow.java
+@@ -4,6 +4,7 @@
+ import legend.core.platform.input.InputClass;
+ import legend.core.platform.input.InputMod;
+ import legend.core.renderer.RenderApi;
++import legend.core.renderer.RenderEngine;
+ import legend.core.renderer.opengl.GlApi;
+ import legend.core.renderer.opengles.GlesApi;
+ import legend.game.modding.coremod.CoreMod;
+@@ -20,6 +21,7 @@
+ 
+ import java.nio.ByteBuffer;
+ import java.nio.IntBuffer;
++import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.util.EnumSet;
+ import java.util.Set;
+@@ -37,7 +39,7 @@
+ import static org.lwjgl.sdl.SDLMouse.SDL_SetCursor;
+ import static org.lwjgl.sdl.SDLMouse.SDL_SetWindowRelativeMouseMode;
+ import static org.lwjgl.sdl.SDLMouse.SDL_ShowCursor;
+-import static org.lwjgl.sdl.SDLPixels.SDL_PIXELFORMAT_ARGB8888;
++import static org.lwjgl.sdl.SDLPixels.SDL_PIXELFORMAT_RGBA32;
+ import static org.lwjgl.sdl.SDLSurface.SDL_CreateSurfaceFrom;
+ import static org.lwjgl.sdl.SDLSurface.SDL_DestroySurface;
+ import static org.lwjgl.sdl.SDLVideo.SDL_CreateWindow;
+@@ -59,6 +61,7 @@
+ import static org.lwjgl.sdl.SDLVideo.SDL_GetDisplayBounds;
+ import static org.lwjgl.sdl.SDLVideo.SDL_GetDisplays;
+ import static org.lwjgl.sdl.SDLVideo.SDL_GetPrimaryDisplay;
++import static org.lwjgl.sdl.SDLVideo.SDL_GetWindowFlags;
+ import static org.lwjgl.sdl.SDLVideo.SDL_GetWindowSize;
+ import static org.lwjgl.sdl.SDLVideo.SDL_RestoreWindow;
+ import static org.lwjgl.sdl.SDLVideo.SDL_SetWindowBordered;
+@@ -70,6 +73,7 @@
+ import static org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle;
+ import static org.lwjgl.sdl.SDLVideo.SDL_ShowWindow;
+ import static org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIDDEN;
++import static org.lwjgl.sdl.SDLVideo.SDL_WINDOW_MINIMIZED;
+ import static org.lwjgl.sdl.SDLVideo.SDL_WINDOW_OPENGL;
+ import static org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE;
+ import static org.lwjgl.stb.STBImage.stbi_failure_reason;
+@@ -140,6 +144,9 @@
+     this.pointerCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
+ 
+     this.render = this.manager.addAction(new Action(this::tick, 60));
++
++    // [sc-vi] this window skips the swap of a frame that drew nothing new, see tick()
++    RenderEngine.enableIdlePresentSkip();
+   }
+ 
+   private void createOpenGlWindow(final String title, final int width, final int height, final long[] windowRef, final long[] contextRef) {
+@@ -413,7 +420,12 @@
+   }
+ 
+   @Override
+-  public void setWindowIcon(final Path path) {
++  public void setWindowIcon(final Path retailPath) {
++    // [sc-vi] the Vietnamese package ships its own window icon next to the retail one (gfx/textures/icon.vi.png)
++    final String name = retailPath.getFileName().toString();
++    final Path viPath = retailPath.resolveSibling(name.replaceFirst("\\.png$", ".vi.png"));
++    final Path path = Files.isRegularFile(viPath) ? viPath : retailPath;
++
+     try(final MemoryStack stack = stackPush()) {
+       final IntBuffer w = stack.mallocInt(1);
+       final IntBuffer h = stack.mallocInt(1);
+@@ -425,7 +437,8 @@
+         return;
+       }
+ 
+-      final SDL_Surface surface = SDL_CreateSurfaceFrom(w.get(0), h.get(0), SDL_PIXELFORMAT_ARGB8888, data, w.get(0) * 4);
++      // [sc-vi] stb_image gives R, G, B, A bytes: RGBA32 (the retail ARGB8888 swapped red and blue, unseen on its grey icon)
++      final SDL_Surface surface = SDL_CreateSurfaceFrom(w.get(0), h.get(0), SDL_PIXELFORMAT_RGBA32, data, w.get(0) * 4);
+ 
+       if(surface != null) {
+         SDL_SetWindowIcon(this.window, surface);
+@@ -449,7 +462,14 @@
+   }
+ 
+   private void tick() {
+-    SDL_GL_SwapWindow(this.window);
++    // [sc-vi] at x4 speed only one tick in four draws a new image: swap only those
++    if(RenderEngine.isFramePresented()) {
++      SDL_GL_SwapWindow(this.window);
++    }
++
++    // [sc-vi] nothing is drawn while the window is minimized; the game itself and its music keep running
++    RenderEngine.setWindowHidden((SDL_GetWindowFlags(this.window) & SDL_WINDOW_MINIMIZED) != 0);
++
+     this.events().onDraw();
+     this.manager.clearPressed();
+   }
 --- a/src/main/java/legend/core/renderer/RenderEngine.java
 +++ b/src/main/java/legend/core/renderer/RenderEngine.java
 @@ -3,6 +3,7 @@
@@ -218,7 +311,7 @@
  import static legend.game.modding.coremod.CoreMod.DISABLE_MOUSE_INPUT_CONFIG;
  import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE;
  import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE_HOLD;
-@@ -318,6 +321,27 @@
+@@ -318,6 +321,29 @@
  
    private int frameSkipIndex;
  
@@ -233,29 +326,36 @@
 +  private int lagReportFrames;
 +  private int lagReportSkipped;
 +
-+  // [sc-vi] battery saver (BATTERY_SAVER_CONFIG): at most 30 drawn frames per second, timed from the last drawn frame
++  // [sc-vi] battery saver (BATTERY_SAVER_CONFIG): at most 30 drawn frames per second, counted in ticks since the last drawn frame
 +  private static final long SAVER_FRAME_NANOS = 1_000_000_000L / 30;
-+  private long saverLastDraw;
++  private int ticksSinceDraw;
 +
-+  // [sc-vi] a window that can leave out a swap (sc-android SdlWindow) is not given a copy of an image it already shows
++  // [sc-vi] a window that can leave out a swap (SdlWindow of sc-vi and sc-android) is not given a copy of an image it already shows
 +  private static volatile boolean idlePresentSkip;
 +  private static volatile boolean framePresented = true;
 +  // [sc-vi] whether the frame being run will be drawn (Gpu.startFrame uploads VRAM only then)
 +  private static volatile boolean drawingFrame = true;
++  // [sc-vi] the window is minimized (PC SdlWindow): frames run the game but draw nothing
++  private static volatile boolean windowHidden;
 +
    private final Deque<Runnable> tasks = new LinkedList<>();
  
    public RenderEngine() {
-@@ -596,7 +620,16 @@
+@@ -596,7 +622,21 @@
          this.resizeRenderBuffers();
        }
  
 -      if(this.frameSkipIndex == 0) {
 +      // [sc-vi] a late frame only runs the game logic and shows the last drawn image again (like the speed-up frame skip)
 +      final boolean lagSkip = this.updateLagSkip();
-+      // [sc-vi] the battery saver leaves out frames the same way
-+      final boolean noDraw = lagSkip || this.updateBatterySaverSkip();
++      // [sc-vi] the battery saver and a minimized window leave out frames the same way
++      this.ticksSinceDraw++;
++      final boolean noDraw = lagSkip || windowHidden && !this.paused || this.updateBatterySaverSkip();
 +      final boolean drawFrame = this.frameSkipIndex == 0 && !noDraw;
++
++      if(drawFrame) {
++        this.ticksSinceDraw = 0;
++      }
 +      // [sc-vi] with a window that skips swaps, a frame that drew nothing does not copy the last image to the screen again
 +      final boolean present = drawFrame || !idlePresentSkip || legacyMode != 0;
 +      drawingFrame = drawFrame || legacyMode != 0;
@@ -264,7 +364,23 @@
          this.pre();
        }
  
-@@ -638,7 +671,7 @@
+@@ -617,6 +657,7 @@
+ 
+           this.scissorStack.reset();
+         } else {
++          this.queueModels(); // [sc-vi] the frame before may have been left out with the queues ignored
+           this.renderFrame();
+         }
+       }
+@@ -630,6 +671,7 @@
+ 
+         this.renderBufferIndex = (this.renderBufferIndex + 1) % RENDER_BUFFER_COUNT;
+         this.resetBatches();
++        this.queueModels(); // [sc-vi]
+         this.renderFrame();
+ 
+         if(this.frameAdvanceSingle) {
+@@ -638,7 +680,7 @@
        }
  
        if(!this.paused) {
@@ -273,7 +389,7 @@
            for(int i = 0; i < this.batches.size(); i++) {
              this.batches.get(i).modelPool.ignoreQueues = false;
              this.batches.get(i).orthoPool.ignoreQueues = false;
-@@ -661,7 +694,13 @@
+@@ -661,7 +703,13 @@
          GameOverlay.drawFps();
        }
  
@@ -288,7 +404,7 @@
          // Gross hack bro
          if(currentEngineState_8004dd04 instanceof final Battle battle && battle._800c6930 != null) {
            this.battleTmdShader.use();
-@@ -670,7 +709,7 @@
+@@ -670,7 +718,7 @@
  
          this.renderBuffers[this.renderBufferIndex].bind();
  
@@ -297,7 +413,7 @@
            this.api.clear(true, false, false);
  
            // Render batches
-@@ -680,6 +719,10 @@
+@@ -680,6 +728,10 @@
            }
  
            this.renderBatch(this.mainBatch);
@@ -308,7 +424,7 @@
          }
  
          this.api.wireframe(false);
-@@ -780,16 +823,19 @@
+@@ -780,16 +832,21 @@
  
          // draw final screen quad
          this.api.viewport(0, 0, this.window.getWidth(), this.window.getHeight());
@@ -326,11 +442,13 @@
        // If we're paused, don't reset the pool so that we keep rendering the same scene over and over again
        if(!this.paused) {
 -        if(this.frameSkipIndex == 0) {
-+        if(drawFrame) {
++        // [sc-vi] also after a frame left out: a minimized window leaves out every frame, and the pools, the objects to delete
++        // and the scissor stack (fields push one entry per tick, 100 max) would grow until a crash. Nothing was queued then.
++        if(drawFrame || noDraw) {
            this.resetBatches();
  
            // Delete stuff marked for deletion
-@@ -799,7 +845,9 @@
+@@ -799,7 +856,9 @@
            this.scissorStack.reset();
          }
  
@@ -341,7 +459,7 @@
            if(this.frameSkipIndex == Config.getGameSpeedMultiplier() - 1) {
              this.renderBufferIndex = (this.renderBufferIndex + 1) % RENDER_BUFFER_COUNT;
            }
-@@ -1481,4 +1529,88 @@
+@@ -1481,4 +1540,98 @@
    public void setFrameSkipOption(final boolean frameSkip) {
      this.frameSkip = frameSkip;
    }
@@ -389,29 +507,34 @@
 +  }
 +
 +  /**
-+   * [sc-vi] Battery saver: at most 30 drawn frames per second, the game logic still runs every tick. A frame that starts less
-+   * than 1/30 s after the last drawn one (half a tick of slack for timer jitter) is not drawn. 60 Hz scenes (fields, world
-+   * map, menus) and fast forward draw every other frame; battles (20-30 Hz) are untouched. A frame left out by the auto
-+   * frame skip does not count as drawn, so the frame after it is always drawn.
++   * [sc-vi] Battery saver: at most 30 drawn frames per second, the game logic still runs every tick. A frame is not drawn
++   * while less than 1/30 s of ticks (minus half a tick) has passed since the last drawn one; counting scheduled ticks rather
++   * than the clock keeps a slow swap on a phone from turning skipped frames into drawn ones. 60 Hz scenes (fields, world
++   * map, menus) and fast forward draw every other frame; battles (20-30 Hz) are untouched. Frames left out by the auto
++   * frame skip count too, so the frame after them is always drawn.
 +   */
 +  private boolean updateBatterySaverSkip() {
 +    if(this.frameSkipIndex != 0 || this.paused || this.togglePause || !CONFIG.getConfig(BATTERY_SAVER_CONFIG.get())) {
 +      return false;
 +    }
 +
-+    final long now = System.nanoTime();
 +    final long tick = 1_000_000_000L / Math.max(1, this.window.getFpsLimit());
++    return this.ticksSinceDraw * tick < SAVER_FRAME_NANOS - tick / 2;
++  }
 +
-+    if(now - this.saverLastDraw < SAVER_FRAME_NANOS - tick / 2) {
-+      return true;
++  /** [sc-vi] queue models again (debug pause/frame advance run the game right after a frame that may have ignored the queues) */
++  private void queueModels() {
++    for(int i = 0; i < this.batches.size(); i++) {
++      this.batches.get(i).modelPool.ignoreQueues = false;
++      this.batches.get(i).orthoPool.ignoreQueues = false;
 +    }
 +
-+    this.saverLastDraw = now;
-+    return false;
++    this.mainBatch.modelPool.ignoreQueues = false;
++    this.mainBatch.orthoPool.ignoreQueues = false;
 +  }
 +
 +  /**
-+   * [sc-vi] Called by a window that can leave out SDL_GL_SwapWindow (sc-android SdlWindow). From then on a frame that drew
++   * [sc-vi] Called by a window that can leave out SDL_GL_SwapWindow (SdlWindow of sc-vi and sc-android). From then on a frame that drew
 +   * nothing new (game speed frame skip, auto frame skip, battery saver) does not copy the last image to the back buffer
 +   * again, and {@link #isFramePresented()} tells the window not to swap: at x4 speed the screen is copied and swapped 60
 +   * times a second instead of 240, and a phone GPU that is behind gets those ticks off.
@@ -428,6 +551,11 @@
 +  /** [sc-vi] false while running the logic of a frame that will not be drawn (its VRAM upload can wait for the next drawn one) */
 +  public static boolean isDrawingFrame() {
 +    return drawingFrame;
++  }
++
++  /** [sc-vi] set by the PC window every tick: while minimized nothing is drawn or swapped (laptops on battery) */
++  public static void setWindowHidden(final boolean hidden) {
++    windowHidden = hidden;
 +  }
  }
 --- /dev/null

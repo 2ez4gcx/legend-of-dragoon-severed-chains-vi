@@ -34,6 +34,7 @@ if ($Install) {
   New-Item -ItemType Directory -Force (Join-Path $Game 'vi') | Out-Null
   Copy-Item (Join-Path $root 'out/vi_files') $vf -Recurse -Force
   Copy-Item (Join-Path $root 'out/gfx/ui/title_menu.vi.*') (Join-Path $Game 'gfx/ui') -Force
+  Copy-Item (Join-Path $root 'out/gfx/textures/icon.vi.png') (Join-Path $Game 'gfx/textures') -Force
   Write-Output "Da cai lang/font/sc-vi.jar vao $Game"
 }
 

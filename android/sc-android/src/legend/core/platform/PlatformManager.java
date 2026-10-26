@@ -110,6 +110,7 @@ public abstract class PlatformManager {
       if(IS_WINDOWS) {
         DebugHelper.sleep(Math.max(0, wait / 1_000_000));
       } else if(wait > 0) {
+        Thread.interrupted(); // a set interrupt flag would make parkNanos return at once on every turn (Thread.sleep cleared it)
         LockSupport.parkNanos(wait);
       }
     }

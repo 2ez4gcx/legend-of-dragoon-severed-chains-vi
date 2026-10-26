@@ -10,8 +10,9 @@ Gói ra: release/LoD-SC-VN-v<ver>-sc-<commit7>-windows.zip (+ release/SHA256SUMS
     - vi/sc-vi.jar (lớp sửa lõi), vi/NGUON/ (mã nguồn sc-vi + diff + tự kiểm + công cụ sinh dữ liệu, theo AGPL-3.0),
       vi/VERSION.txt (commit D:\\LOD-SC, D:\\LOD, SC), vi/LICENSE (AGPL-3.0 của SC).
     - lang/lod.vi.lang, lang/scvi.vi.lang, lang/core.vi.lang, lang/unpacker.vi.lang, lang/turnorder.vi.lang,
-      lang/scvi_ui.vi.lang (mục tùy chọn sc-vi thêm: Tốc độ game, Tự bỏ khung hình),
+      lang/scvi_ui.vi.lang (mục tùy chọn sc-vi thêm: Tốc độ game, Tự bỏ khung hình, Tiết kiệm pin),
       lang/dialogue.vi.tsv, gfx/fonts/vietnamese.json/.png, gfx/ui/title_menu.vi.png/.widths (menu màn tựa),
+      gfx/textures/icon.vi.png (biểu tượng cửa sổ game, tranh chú rồng; không đè icon.png của SC),
       vi/files/ (lớp phủ đồ hoạ tiếng Việt: ảnh đã duyệt của bản PS1, Loader đọc thay files/)
     - config.dcnf tối giản: ngôn ngữ = vi, phông chữ = vietnamese.json (mọi mục khác để SC tự đặt mặc định)
     - launch-vi.bat (sinh từ launch.bat của bản build: tự tải JDK 25 như bản gốc, kiểm đúng jar commit, thêm vi/sc-vi.jar
@@ -41,6 +42,10 @@ SC_ZIP_SHA = '88abbfb28492400168070fdc03ddfdff4b4e4781277d2de0195d17445bbf0800'
 SC_JAR = 'lod-game-%s.jar' % SC_COMMIT
 PKG = 'Severed Chains (VN)'
 FIXED_TIME = (2026, 10, 16, 0, 0, 0)
+
+
+# biểu tượng cửa sổ game: build_sc_vi.ps1 chạy android/gen_icon.py --windows trên bản xuất từ HEAD
+ICON_SRC = ('android/gen_icon.py', 'android/icon_rong.webp')
 
 
 def sha256(path):
@@ -222,16 +227,16 @@ def main():
         lod_commit = git('rev-parse', os.environ['LOD_COMMIT'], cwd=os.path.join(ROOT, '..', 'LOD')).decode().strip()
     else:
         sys.exit('LOI: %s khong phai goc repo git (ban sao?) — dat LOD_COMMIT = commit cua D:\\LOD' % LOD)
-    dirty =git('status', '--porcelain', '--', 'sc-vi', 'tools', 'tr_sc').decode().strip()
+    dirty =git('status', '--porcelain', '--', 'sc-vi', 'tools', 'tr_sc', *ICON_SRC).decode().strip()
     if dirty:
-        print('canh bao: co thay doi chua commit trong sc-vi/tools/tr_sc — goi dung tu HEAD %s, KHONG gom thay doi do' % src_commit[:7])
+        print('canh bao: co thay doi chua commit trong sc-vi/tools/tr_sc/icon — goi dung tu HEAD %s, KHONG gom thay doi do' % src_commit[:7])
 
     rel = os.path.join(ROOT, 'out', 'rel')
     src = os.path.join(rel, 'src')
     if not a.no_build:
         shutil.rmtree(rel, ignore_errors=True)
         os.makedirs(src)
-        tar = git('archive', '--format=tar', 'HEAD', 'sc-vi', 'tools', 'tr_sc')
+        tar = git('archive', '--format=tar', 'HEAD', 'sc-vi', 'tools', 'tr_sc', *ICON_SRC)
         with tarfile.open(fileobj=io.BytesIO(tar)) as t:
             t.extractall(src, filter='data')
         env = dict(os.environ, LOD_ROOT=os.path.abspath(LOD), SC_ROOT=sc_src, PYTHONIOENCODING='utf-8')
@@ -261,6 +266,10 @@ def main():
     files.append(('gfx/fonts/vietnamese.png', open(os.path.join(out, 'fonts', 'vietnamese.png'), 'rb').read()))
     for f in ('title_menu.vi.png', 'title_menu.vi.widths'):
         files.append(('gfx/ui/' + f, open(os.path.join(out, 'gfx', 'ui', f), 'rb').read()))
+    # biểu tượng cửa sổ game (SdlWindow của sc-vi dùng thay gfx/textures/icon.png của SC)
+    files.append(('gfx/textures/icon.vi.png', open(os.path.join(out, 'gfx', 'textures', 'icon.vi.png'), 'rb').read()))
+    for f in ('gen_icon.py', 'icon_rong.webp'):
+        files.append(('vi/NGUON/android/' + f, open(os.path.join(src, 'android', f), 'rb').read()))
     files.append(('config.dcnf', config_dcnf()))
     files.append(('vi/VERSION.txt', ('viet_hoa=%s\nlod_sc_commit=%s\nlod_commit=%s\nsc_commit=%s\nsc_zip_sha256=%s\n' % (
         a.version, src_commit, lod_commit, SC_COMMIT, SC_ZIP_SHA)).encode()))

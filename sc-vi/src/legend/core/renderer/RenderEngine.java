@@ -332,15 +332,17 @@ public class RenderEngine {
   private int lagReportFrames;
   private int lagReportSkipped;
 
-  // [sc-vi] battery saver (BATTERY_SAVER_CONFIG): at most 30 drawn frames per second, timed from the last drawn frame
+  // [sc-vi] battery saver (BATTERY_SAVER_CONFIG): at most 30 drawn frames per second, counted in ticks since the last drawn frame
   private static final long SAVER_FRAME_NANOS = 1_000_000_000L / 30;
-  private long saverLastDraw;
+  private int ticksSinceDraw;
 
-  // [sc-vi] a window that can leave out a swap (sc-android SdlWindow) is not given a copy of an image it already shows
+  // [sc-vi] a window that can leave out a swap (SdlWindow of sc-vi and sc-android) is not given a copy of an image it already shows
   private static volatile boolean idlePresentSkip;
   private static volatile boolean framePresented = true;
   // [sc-vi] whether the frame being run will be drawn (Gpu.startFrame uploads VRAM only then)
   private static volatile boolean drawingFrame = true;
+  // [sc-vi] the window is minimized (PC SdlWindow): frames run the game but draw nothing
+  private static volatile boolean windowHidden;
 
   private final Deque<Runnable> tasks = new LinkedList<>();
 
@@ -622,9 +624,14 @@ public class RenderEngine {
 
       // [sc-vi] a late frame only runs the game logic and shows the last drawn image again (like the speed-up frame skip)
       final boolean lagSkip = this.updateLagSkip();
-      // [sc-vi] the battery saver leaves out frames the same way
-      final boolean noDraw = lagSkip || this.updateBatterySaverSkip();
+      // [sc-vi] the battery saver and a minimized window leave out frames the same way
+      this.ticksSinceDraw++;
+      final boolean noDraw = lagSkip || windowHidden && !this.paused || this.updateBatterySaverSkip();
       final boolean drawFrame = this.frameSkipIndex == 0 && !noDraw;
+
+      if(drawFrame) {
+        this.ticksSinceDraw = 0;
+      }
       // [sc-vi] with a window that skips swaps, a frame that drew nothing does not copy the last image to the screen again
       final boolean present = drawFrame || !idlePresentSkip || legacyMode != 0;
       drawingFrame = drawFrame || legacyMode != 0;
@@ -650,6 +657,7 @@ public class RenderEngine {
 
           this.scissorStack.reset();
         } else {
+          this.queueModels(); // [sc-vi] the frame before may have been left out with the queues ignored
           this.renderFrame();
         }
       }
@@ -663,6 +671,7 @@ public class RenderEngine {
 
         this.renderBufferIndex = (this.renderBufferIndex + 1) % RENDER_BUFFER_COUNT;
         this.resetBatches();
+        this.queueModels(); // [sc-vi]
         this.renderFrame();
 
         if(this.frameAdvanceSingle) {
@@ -835,7 +844,9 @@ public class RenderEngine {
 
       // If we're paused, don't reset the pool so that we keep rendering the same scene over and over again
       if(!this.paused) {
-        if(drawFrame) {
+        // [sc-vi] also after a frame left out: a minimized window leaves out every frame, and the pools, the objects to delete
+        // and the scissor stack (fields push one entry per tick, 100 max) would grow until a crash. Nothing was queued then.
+        if(drawFrame || noDraw) {
           this.resetBatches();
 
           // Delete stuff marked for deletion
@@ -1573,29 +1584,34 @@ public class RenderEngine {
   }
 
   /**
-   * [sc-vi] Battery saver: at most 30 drawn frames per second, the game logic still runs every tick. A frame that starts less
-   * than 1/30 s after the last drawn one (half a tick of slack for timer jitter) is not drawn. 60 Hz scenes (fields, world
-   * map, menus) and fast forward draw every other frame; battles (20-30 Hz) are untouched. A frame left out by the auto
-   * frame skip does not count as drawn, so the frame after it is always drawn.
+   * [sc-vi] Battery saver: at most 30 drawn frames per second, the game logic still runs every tick. A frame is not drawn
+   * while less than 1/30 s of ticks (minus half a tick) has passed since the last drawn one; counting scheduled ticks rather
+   * than the clock keeps a slow swap on a phone from turning skipped frames into drawn ones. 60 Hz scenes (fields, world
+   * map, menus) and fast forward draw every other frame; battles (20-30 Hz) are untouched. Frames left out by the auto
+   * frame skip count too, so the frame after them is always drawn.
    */
   private boolean updateBatterySaverSkip() {
     if(this.frameSkipIndex != 0 || this.paused || this.togglePause || !CONFIG.getConfig(BATTERY_SAVER_CONFIG.get())) {
       return false;
     }
 
-    final long now = System.nanoTime();
     final long tick = 1_000_000_000L / Math.max(1, this.window.getFpsLimit());
+    return this.ticksSinceDraw * tick < SAVER_FRAME_NANOS - tick / 2;
+  }
 
-    if(now - this.saverLastDraw < SAVER_FRAME_NANOS - tick / 2) {
-      return true;
+  /** [sc-vi] queue models again (debug pause/frame advance run the game right after a frame that may have ignored the queues) */
+  private void queueModels() {
+    for(int i = 0; i < this.batches.size(); i++) {
+      this.batches.get(i).modelPool.ignoreQueues = false;
+      this.batches.get(i).orthoPool.ignoreQueues = false;
     }
 
-    this.saverLastDraw = now;
-    return false;
+    this.mainBatch.modelPool.ignoreQueues = false;
+    this.mainBatch.orthoPool.ignoreQueues = false;
   }
 
   /**
-   * [sc-vi] Called by a window that can leave out SDL_GL_SwapWindow (sc-android SdlWindow). From then on a frame that drew
+   * [sc-vi] Called by a window that can leave out SDL_GL_SwapWindow (SdlWindow of sc-vi and sc-android). From then on a frame that drew
    * nothing new (game speed frame skip, auto frame skip, battery saver) does not copy the last image to the back buffer
    * again, and {@link #isFramePresented()} tells the window not to swap: at x4 speed the screen is copied and swapped 60
    * times a second instead of 240, and a phone GPU that is behind gets those ticks off.
@@ -1612,5 +1628,10 @@ public class RenderEngine {
   /** [sc-vi] false while running the logic of a frame that will not be drawn (its VRAM upload can wait for the next drawn one) */
   public static boolean isDrawingFrame() {
     return drawingFrame;
+  }
+
+  /** [sc-vi] set by the PC window every tick: while minimized nothing is drawn or swapped (laptops on battery) */
+  public static void setWindowHidden(final boolean hidden) {
+    windowHidden = hidden;
   }
 }
