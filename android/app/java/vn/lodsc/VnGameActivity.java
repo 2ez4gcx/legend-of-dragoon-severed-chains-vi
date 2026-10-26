@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Process;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowInsets;
@@ -86,11 +87,30 @@ public class VnGameActivity extends SDLActivity {
   protected void onCreate(final Bundle state) {
     super.onCreate(state);
     this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    this.preferSixtyHz();
     if(mLayout != null) {
       this.pad = new TouchPad(this);
       mLayout.addView(this.pad);
     }
     this.hideSystemBars();
+  }
+
+  /**
+   * Màn 90/120 Hz: SC vẽ tối đa 60 khung/giây (tua nhanh cũng chỉ vẽ 60), màn quét nhanh hơn chỉ tốn pin. Xin hệ thống chế độ
+   * màn 60 Hz cùng độ phân giải (preferredDisplayModeId); máy không có chế độ đó thì để hệ thống tự chọn.
+   */
+  private void preferSixtyHz() {
+    final Display display = this.getWindowManager().getDefaultDisplay();
+    final Display.Mode current = display.getMode();
+    for(final Display.Mode mode : display.getSupportedModes()) {
+      if(mode.getPhysicalWidth() == current.getPhysicalWidth() && mode.getPhysicalHeight() == current.getPhysicalHeight()
+        && Math.abs(mode.getRefreshRate() - 60.0f) < 1.0f) {
+        final WindowManager.LayoutParams lp = this.getWindow().getAttributes();
+        lp.preferredDisplayModeId = mode.getModeId();
+        this.getWindow().setAttributes(lp);
+        return;
+      }
+    }
   }
 
   @Override

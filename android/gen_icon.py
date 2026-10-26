@@ -1,52 +1,90 @@
-"""Vẽ biểu tượng ứng dụng (không dùng logo/thương hiệu của Sony): nền nâu đỏ bo góc, chữ "LoD" vàng, dải "VN".
+"""Biểu tượng ứng dụng từ tranh chú rồng (android/icon_rong.webp, 1024x1024: tranh trong khung bo góc, viền sáng bên ngoài).
 
-Cách gọi:  python android/gen_icon.py   -> android/app/res/mipmap-*/ic_launcher.png + out/android/icon_preview.png
+Cách gọi:  python android/gen_icon.py
+  -> android/app/res/mipmap-*/ic_launcher.png             biểu tượng thường: tranh vuông bo góc, ngoài khung trong suốt
+     android/app/res/mipmap-*/ic_launcher_foreground.png  biểu tượng thích ứng (Android 8+), lớp trước: tranh 72dp giữa lớp 108dp
+     android/app/res/mipmap-*/ic_launcher_background.png  lớp sau: chính tranh đó phóng to, làm mờ (lộ ra khi launcher xê dịch lớp trước)
+     android/app/res/mipmap-anydpi-v26/ic_launcher.xml    ghép hai lớp
+     out/android/icon_preview.png                          xem thử: biểu tượng thường, mặt nạ tròn, mặt nạ bo góc
+Launcher chỉ hiện vùng 72dp giữa lớp 108dp và cắt theo hình riêng của nó (tròn, bo góc...), nên tranh chiếm đúng vùng 72dp.
 """
 import os
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-SIZES = {'mdpi': 48, 'hdpi': 72, 'xhdpi': 96, 'xxhdpi': 144, 'xxxhdpi': 192}
-SERIF = 'C:/Windows/Fonts/cambriab.ttf'
-SANS = 'C:/Windows/Fonts/arialbd.ttf'
+SRC = os.path.join(ROOT, 'android', 'icon_rong.webp')
+# Phần trời bên trong khung (bỏ viền sáng và quầng ngoài); khung trong ảnh gốc là 91..933 x 91..949, hơi cao hơn rộng
+ART = (99, 107, 924, 932)
+CORNER = 0.2   # bán kính bo góc của khung trong ảnh gốc, tính theo cạnh
+LEGACY = {'mdpi': 48, 'hdpi': 72, 'xhdpi': 96, 'xxhdpi': 144, 'xxxhdpi': 192}
+ADAPTIVE_XML = '''<?xml version="1.0" encoding="utf-8"?>
+<!-- Sinh bởi android/gen_icon.py -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>
+'''
 
 
-def draw(n=1024):
-    im = Image.new('RGBA', (n, n), (0, 0, 0, 0))
-    bg = Image.new('RGBA', (n, n))
-    d = ImageDraw.Draw(bg)
-    for y in range(n):
-        t = y / n
-        d.line([(0, y), (n, y)], fill=(int(120 - 70 * t), int(28 - 14 * t), int(18 - 8 * t), 255))
-    mask = Image.new('L', (n, n), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, n - 1, n - 1], radius=n // 5, fill=255)
-    im.paste(bg, (0, 0), mask)
-    d = ImageDraw.Draw(im)
-    f = ImageFont.truetype(SERIF, int(n * 0.40))
-    w = d.textlength('LoD', font=f)
-    glow = Image.new('RGBA', (n, n), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).text(((n - w) / 2, n * 0.18), 'LoD', font=f, fill=(255, 150, 40, 255))
-    im.alpha_composite(glow.filter(ImageFilter.GaussianBlur(n * 0.02)))
-    d.text(((n - w) / 2, n * 0.18), 'LoD', font=f, fill=(255, 222, 140, 255))
-    band = [n * 0.12, n * 0.70, n * 0.88, n * 0.86]
-    d.rounded_rectangle(band, radius=n * 0.05, fill=(250, 214, 120, 255))
-    g = ImageFont.truetype(SANS, int(n * 0.12))
-    t = 'TIẾNG VIỆT'
-    tw = d.textlength(t, font=g)
-    d.text(((n - tw) / 2, n * 0.715), t, font=g, fill=(90, 20, 12, 255))
+def rounded(im, radius):
+    mask = Image.new('L', im.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, im.width - 1, im.height - 1], radius=radius, fill=255)
+    out = im.convert('RGBA')
+    out.putalpha(mask)
+    return out
+
+
+def layers(art, n):
+    """Hai lớp n x n (n = 108dp): tranh 72dp ở giữa lớp trước, tranh phóng to làm mờ phủ kín lớp sau"""
+    inner = round(n * 72 / 108)
+    fg = Image.new('RGBA', (n, n), (0, 0, 0, 0))
+    fg.paste(art.resize((inner, inner), Image.LANCZOS), ((n - inner) // 2, (n - inner) // 2))
+    bg = art.resize((n, n), Image.LANCZOS).filter(ImageFilter.GaussianBlur(n / 24))
+    return fg, bg
+
+
+def masked(fg, bg, shape):
+    n = fg.width
+    inner = round(n * 72 / 108)
+    off = (n - inner) // 2
+    im = bg.convert('RGBA')
+    im.alpha_composite(fg)
+    im = im.crop((off, off, off + inner, off + inner))
+    mask = Image.new('L', im.size, 0)
+    d = ImageDraw.Draw(mask)
+    if shape == 'circle':
+        d.ellipse([0, 0, inner - 1, inner - 1], fill=255)
+    else:
+        d.rounded_rectangle([0, 0, inner - 1, inner - 1], radius=inner // 4, fill=255)
+    im.putalpha(mask)
     return im
 
 
 def main():
-    big = draw()
-    for k, s in SIZES.items():
-        d = os.path.join(ROOT, 'android', 'app', 'res', 'mipmap-' + k)
+    art = Image.open(SRC).convert('RGB').crop(ART)
+    res = os.path.join(ROOT, 'android', 'app', 'res')
+    legacy = rounded(art, round(art.width * CORNER))
+    for k, s in LEGACY.items():
+        d = os.path.join(res, 'mipmap-' + k)
         os.makedirs(d, exist_ok=True)
-        big.resize((s, s), Image.LANCZOS).save(os.path.join(d, 'ic_launcher.png'))
+        legacy.resize((s, s), Image.LANCZOS).save(os.path.join(d, 'ic_launcher.png'))
+        fg, bg = layers(art, s * 108 // 48)
+        fg.save(os.path.join(d, 'ic_launcher_foreground.png'))
+        bg.save(os.path.join(d, 'ic_launcher_background.png'))
+    d = os.path.join(res, 'mipmap-anydpi-v26')
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, 'ic_launcher.xml'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write(ADAPTIVE_XML)
+
+    fg, bg = layers(art, 432)
+    tiles = [legacy.resize((288, 288), Image.LANCZOS), masked(fg, bg, 'circle'), masked(fg, bg, 'squircle')]
+    preview = Image.new('RGBA', (3 * 320, 320), (40, 40, 48, 255))
+    for i, t in enumerate(tiles):
+        preview.alpha_composite(t.resize((288, 288), Image.LANCZOS), (i * 320 + 16, 16))
     os.makedirs(os.path.join(ROOT, 'out', 'android'), exist_ok=True)
-    big.resize((256, 256), Image.LANCZOS).save(os.path.join(ROOT, 'out', 'android', 'icon_preview.png'))
-    print('icon -> android/app/res/mipmap-*')
+    preview.save(os.path.join(ROOT, 'out', 'android', 'icon_preview.png'))
+    print('icon -> android/app/res/mipmap-* (thuong + thich ung), xem thu: out/android/icon_preview.png')
 
 
 if __name__ == '__main__':

@@ -184,6 +184,21 @@
      synchronized(this) {
        if(this.client == null) {
          try {
+--- a/src/main/java/legend/core/gpu/Gpu.java
++++ b/src/main/java/legend/core/gpu/Gpu.java
+@@ -123,7 +123,11 @@
+   }
+ 
+   public void startFrame() {
+-    this.updateVramTexture();
++    // [sc-vi] VRAM (2 MB) goes to the GPU only for a frame that draws. A frame left out (speed-up or auto frame skip, battery
++    // saver) keeps it dirty for the next drawn one, so what is drawn is the same; at x4 speed that is 60 uploads a second, not 240.
++    if(RenderEngine.isDrawingFrame()) {
++      this.updateVramTexture();
++    }
+ 
+     if(this.zMax != orderingTableSize_1f8003c8) {
+       this.updateOrderingTableSize(orderingTableSize_1f8003c8);
 --- a/src/main/java/legend/core/renderer/RenderEngine.java
 +++ b/src/main/java/legend/core/renderer/RenderEngine.java
 @@ -3,6 +3,7 @@
@@ -194,15 +209,16 @@
  import legend.core.LitModel;
  import legend.core.MathHelper;
  import legend.core.QueuePool;
-@@ -53,6 +54,7 @@
+@@ -53,6 +54,8 @@
  import static legend.core.MathHelper.PI;
  import static legend.game.EngineStates.currentEngineState_8004dd04;
  import static legend.game.Graphics.worldToScreenMatrix_800c3548;
 +import static legend.game.modding.coremod.CoreMod.AUTO_FRAME_SKIP_CONFIG;
++import static legend.game.modding.coremod.CoreMod.BATTERY_SAVER_CONFIG;
  import static legend.game.modding.coremod.CoreMod.DISABLE_MOUSE_INPUT_CONFIG;
  import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE;
  import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE_HOLD;
-@@ -318,6 +320,17 @@
+@@ -318,6 +321,27 @@
  
    private int frameSkipIndex;
  
@@ -217,23 +233,38 @@
 +  private int lagReportFrames;
 +  private int lagReportSkipped;
 +
++  // [sc-vi] battery saver (BATTERY_SAVER_CONFIG): at most 30 drawn frames per second, timed from the last drawn frame
++  private static final long SAVER_FRAME_NANOS = 1_000_000_000L / 30;
++  private long saverLastDraw;
++
++  // [sc-vi] a window that can leave out a swap (sc-android SdlWindow) is not given a copy of an image it already shows
++  private static volatile boolean idlePresentSkip;
++  private static volatile boolean framePresented = true;
++  // [sc-vi] whether the frame being run will be drawn (Gpu.startFrame uploads VRAM only then)
++  private static volatile boolean drawingFrame = true;
++
    private final Deque<Runnable> tasks = new LinkedList<>();
  
    public RenderEngine() {
-@@ -596,7 +609,11 @@
+@@ -596,7 +620,16 @@
          this.resizeRenderBuffers();
        }
  
 -      if(this.frameSkipIndex == 0) {
 +      // [sc-vi] a late frame only runs the game logic and shows the last drawn image again (like the speed-up frame skip)
 +      final boolean lagSkip = this.updateLagSkip();
-+      final boolean drawFrame = this.frameSkipIndex == 0 && !lagSkip;
++      // [sc-vi] the battery saver leaves out frames the same way
++      final boolean noDraw = lagSkip || this.updateBatterySaverSkip();
++      final boolean drawFrame = this.frameSkipIndex == 0 && !noDraw;
++      // [sc-vi] with a window that skips swaps, a frame that drew nothing does not copy the last image to the screen again
++      final boolean present = drawFrame || !idlePresentSkip || legacyMode != 0;
++      drawingFrame = drawFrame || legacyMode != 0;
 +
 +      if(drawFrame) {
          this.pre();
        }
  
-@@ -638,7 +655,7 @@
+@@ -638,7 +671,7 @@
        }
  
        if(!this.paused) {
@@ -242,7 +273,22 @@
            for(int i = 0; i < this.batches.size(); i++) {
              this.batches.get(i).modelPool.ignoreQueues = false;
              this.batches.get(i).orthoPool.ignoreQueues = false;
-@@ -670,7 +687,7 @@
+@@ -661,7 +694,13 @@
+         GameOverlay.drawFps();
+       }
+ 
+-      if(legacyMode == 0) {
++      if(legacyMode == 0 && !present) {
++        // [sc-vi] nothing to draw or show: only leave the GL state as a presented frame does (the next pre() clears the back buffer)
++        this.api.wireframe(false);
++        this.api.disableDepthTest();
++        this.api.translucency(null);
++        this.api.unbindFramebuffer();
++      } else if(legacyMode == 0) {
+         // Gross hack bro
+         if(currentEngineState_8004dd04 instanceof final Battle battle && battle._800c6930 != null) {
+           this.battleTmdShader.use();
+@@ -670,7 +709,7 @@
  
          this.renderBuffers[this.renderBufferIndex].bind();
  
@@ -251,7 +297,7 @@
            this.api.clear(true, false, false);
  
            // Render batches
-@@ -680,6 +697,10 @@
+@@ -680,6 +719,10 @@
            }
  
            this.renderBatch(this.mainBatch);
@@ -262,18 +308,21 @@
          }
  
          this.api.wireframe(false);
-@@ -780,7 +801,8 @@
+@@ -780,16 +823,19 @@
  
          // draw final screen quad
          this.api.viewport(0, 0, this.window.getWidth(), this.window.getHeight());
 -        this.renderTextures[this.renderBufferIndex].use();
 +        // [sc-vi] the buffer index already moved on after the last drawn frame
-+        this.renderTextures[lagSkip ? Math.floorMod(this.renderBufferIndex - 1, RENDER_BUFFER_COUNT) : this.renderBufferIndex].use();
++        this.renderTextures[noDraw ? Math.floorMod(this.renderBufferIndex - 1, RENDER_BUFFER_COUNT) : this.renderBufferIndex].use();
          postQuad.draw();
  
          // If we don't unbind the framebuffer textures, window resizing will crash since it has to resize the framebuffer
-@@ -789,7 +811,7 @@
+         this.api.unbindTexture();
+       }
  
++      framePresented = present; // [sc-vi]
++
        // If we're paused, don't reset the pool so that we keep rendering the same scene over and over again
        if(!this.paused) {
 -        if(this.frameSkipIndex == 0) {
@@ -281,18 +330,18 @@
            this.resetBatches();
  
            // Delete stuff marked for deletion
-@@ -799,7 +821,9 @@
+@@ -799,7 +845,9 @@
            this.scissorStack.reset();
          }
  
 -        if(this.frameSkip) {
-+        if(lagSkip) {
++        if(noDraw) {
 +          // [sc-vi] nothing was drawn: keep frameSkipIndex at 0 and the buffer index on the next buffer to draw into
 +        } else if(this.frameSkip) {
            if(this.frameSkipIndex == Config.getGameSpeedMultiplier() - 1) {
              this.renderBufferIndex = (this.renderBufferIndex + 1) % RENDER_BUFFER_COUNT;
            }
-@@ -1481,4 +1505,46 @@
+@@ -1481,4 +1529,88 @@
    public void setFrameSkipOption(final boolean frameSkip) {
      this.frameSkip = frameSkip;
    }
@@ -337,6 +386,48 @@
 +    }
 +
 +    return skip;
++  }
++
++  /**
++   * [sc-vi] Battery saver: at most 30 drawn frames per second, the game logic still runs every tick. A frame that starts less
++   * than 1/30 s after the last drawn one (half a tick of slack for timer jitter) is not drawn. 60 Hz scenes (fields, world
++   * map, menus) and fast forward draw every other frame; battles (20-30 Hz) are untouched. A frame left out by the auto
++   * frame skip does not count as drawn, so the frame after it is always drawn.
++   */
++  private boolean updateBatterySaverSkip() {
++    if(this.frameSkipIndex != 0 || this.paused || this.togglePause || !CONFIG.getConfig(BATTERY_SAVER_CONFIG.get())) {
++      return false;
++    }
++
++    final long now = System.nanoTime();
++    final long tick = 1_000_000_000L / Math.max(1, this.window.getFpsLimit());
++
++    if(now - this.saverLastDraw < SAVER_FRAME_NANOS - tick / 2) {
++      return true;
++    }
++
++    this.saverLastDraw = now;
++    return false;
++  }
++
++  /**
++   * [sc-vi] Called by a window that can leave out SDL_GL_SwapWindow (sc-android SdlWindow). From then on a frame that drew
++   * nothing new (game speed frame skip, auto frame skip, battery saver) does not copy the last image to the back buffer
++   * again, and {@link #isFramePresented()} tells the window not to swap: at x4 speed the screen is copied and swapped 60
++   * times a second instead of 240, and a phone GPU that is behind gets those ticks off.
++   */
++  public static void enableIdlePresentSkip() {
++    idlePresentSkip = true;
++  }
++
++  /** [sc-vi] false when the last frame left the back buffer untouched, so the window must not swap it to the screen */
++  public static boolean isFramePresented() {
++    return framePresented;
++  }
++
++  /** [sc-vi] false while running the logic of a frame that will not be drawn (its VRAM upload can wait for the next drawn one) */
++  public static boolean isDrawingFrame() {
++    return drawingFrame;
 +  }
  }
 --- /dev/null
@@ -1209,21 +1300,24 @@
 +}
 --- a/src/main/java/legend/game/modding/coremod/CoreMod.java
 +++ b/src/main/java/legend/game/modding/coremod/CoreMod.java
-@@ -24,6 +24,8 @@
+@@ -24,6 +24,9 @@
  import legend.game.inventory.ItemRegistryEvent;
  import legend.game.inventory.screens.GatherShopExtensionsEvent;
  import legend.game.modding.coremod.config.AdditionModeConfigEntry;
 +import legend.game.modding.coremod.config.AutoFrameSkipConfigEntry;
++import legend.game.modding.coremod.config.BatterySaverConfigEntry;
 +import legend.game.modding.coremod.config.GameSpeedConfigEntry;
  import legend.game.modding.coremod.config.AdditionOverlayConfigEntry;
  import legend.game.modding.coremod.config.AdditionOverlaySizeConfigEntry;
  import legend.game.modding.coremod.config.AdditionTimingWindowConfigEntry;
-@@ -119,6 +121,10 @@
+@@ -119,6 +122,12 @@
    public static final RegistryDelegate<ReduceMotionFlashingConfigEntry> REDUCE_MOTION_FLASHING_CONFIG = CONFIG_REGISTRAR.register("reduce_motion_flashing", ReduceMotionFlashingConfigEntry::new);
    public static final RegistryDelegate<RetailFontConfigEntry> RETAIL_FONT_CONFIG = CONFIG_REGISTRAR.register("retail_font", RetailFontConfigEntry::new);
    public static final RegistryDelegate<FrameSkipConfigEntry> FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("frame_skip", FrameSkipConfigEntry::new);
 +  /** [sc-vi] Tự bỏ khung hình khi máy vẽ không kịp (RenderEngine): game giữ đúng tốc độ thay vì chậm lại như quay chậm */
 +  public static final RegistryDelegate<AutoFrameSkipConfigEntry> AUTO_FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("auto_frame_skip", AutoFrameSkipConfigEntry::new);
++  /** [sc-vi] Tiết kiệm pin: vẽ tối đa 30 khung/giây (RenderEngine), logic game vẫn chạy đủ nhịp */
++  public static final RegistryDelegate<BatterySaverConfigEntry> BATTERY_SAVER_CONFIG = CONFIG_REGISTRAR.register("battery_saver", BatterySaverConfigEntry::new);
 +  /** [sc-vi] Tốc độ game trong Tùy chọn (Config.gameSpeedMultiplier, bản gốc chỉ đổi được bằng phím tắt) */
 +  public static final RegistryDelegate<GameSpeedConfigEntry> GAME_SPEED_CONFIG = CONFIG_REGISTRAR.register("game_speed", GameSpeedConfigEntry::new);
  
@@ -1246,6 +1340,30 @@
 +public class AutoFrameSkipConfigEntry extends BoolConfigEntry {
 +  public AutoFrameSkipConfigEntry() {
 +    super(true, ConfigStorageLocation.GLOBAL, ConfigCategory.GRAPHICS);
++  }
++
++  @Override
++  public boolean hasHelp() {
++    return true;
++  }
++}
+--- /dev/null
++++ b/src/main/java/legend/game/modding/coremod/config/BatterySaverConfigEntry.java
+@@ -0,0 +1,21 @@
++package legend.game.modding.coremod.config;
++
++import legend.game.saves.BoolConfigEntry;
++import legend.game.saves.ConfigCategory;
++import legend.game.saves.ConfigStorageLocation;
++
++/**
++ * [sc-vi] Tiết kiệm pin. Khi bật, RenderEngine vẽ tối đa 30 khung hình mỗi giây; logic game vẫn chạy đủ nhịp nên tốc độ game
++ * không đổi. Cảnh vẽ 60 Hz (đi lại trong các khu vực, bản đồ thế giới, menu) và lúc tua nhanh chỉ vẽ một nửa số khung: GPU làm
++ * ít hơn, máy đỡ nóng, đỡ tốn pin; trận đánh (20–30 Hz) không đổi gì. Mặc định tắt.
++ */
++public class BatterySaverConfigEntry extends BoolConfigEntry {
++  public BatterySaverConfigEntry() {
++    super(false, ConfigStorageLocation.GLOBAL, ConfigCategory.GRAPHICS);
 +  }
 +
 +  @Override

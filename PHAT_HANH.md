@@ -47,6 +47,9 @@ Lớp sửa trong `vi/sc-vi.jar` (v0.2, 8 lớp, diff `sc-vi/patches/sc-core-aff
 `HardcodedTranslations` (bảng viết cứng, câu viết thẳng, địa danh trên thẻ lưu cũ, ảnh menu màn tựa theo ngôn ngữ).
 Từ v0.3 thêm `RenderEngine` (tự bỏ khung hình khi máy chậm), `CoreMod` (đăng ký 2 mục tùy chọn) + lớp mới
 `GameSpeedConfigEntry`, `AutoFrameSkipConfigEntry`; `ConfigStorage` áp tốc độ sau khi nạp và (Android) hạ 720p một lần.
+Sau v0.3 (chưa phát hành, 26/10): `RenderEngine` thêm mục "Tiết kiệm pin (30 khung/giây)" (lớp mới `BatterySaverConfigEntry`,
+khoá `lod_core.config.battery_saver.*` trong `lang/scvi_ui.vi.lang`) và cho cửa sổ Android bỏ swap ở khung không vẽ; lớp sửa mới
+`Gpu` (chỉ tải VRAM lên GPU ở khung có vẽ).
 
 Không chứa: ảnh đĩa, BIOS, JDK, `files/`.
 

@@ -24,7 +24,8 @@ Lớp đè chỉ dùng cho Android (`sc-android/`, đứng đầu classpath, mã
 
 | Lớp | Sửa |
 |---|---|
-| `legend.core.platform.SdlWindow` | Android không có OpenGL desktop: vào thẳng ES 3.2; **không** xin ngữ cảnh debug (driver điện thoại báo cảnh báo vô hại mức HIGH, ví dụ "unable to generate a triangle primitive because there are less than 3 vertices", `GlesApi` hiện lên màn hình thành "GL ERROR …" và ghi log kèm stack trace mỗi lần — chậm); bật lại bằng `-Dscvi.gldebug=true` |
+| `legend.core.platform.SdlWindow` | Android không có OpenGL desktop: vào thẳng ES 3.2; **không** xin ngữ cảnh debug (driver điện thoại báo cảnh báo vô hại mức HIGH, ví dụ "unable to generate a triangle primitive because there are less than 3 vertices", `GlesApi` hiện lên màn hình thành "GL ERROR …" và ghi log kèm stack trace mỗi lần — chậm); bật lại bằng `-Dscvi.gldebug=true`. Tiết kiệm pin: không swap khung không vẽ gì mới (hỏi `RenderEngine.isFramePresented()` của sc-vi); app xuống nền thì tạm dừng thiết bị OpenAL (`SDL_AddEventWatch`, `alcDevicePauseSOFT`), lên lại thì chạy tiếp |
+| `legend.core.platform.PlatformManager` | Chờ tới nhịp kế bằng `LockSupport.parkNanos` (bản gốc ngủ theo mili-giây rồi quay vòng `Thread.sleep(0)` suốt mili-giây cuối, giữ một nhân CPU thức trước mỗi khung); trên Windows (`run_sc -Gles`) giữ cách gốc |
 | `legend.core.renderer.ShaderManager` | Dùng shader GLSL ES dịch sẵn `gfx/shaders_es` (sinh trên PC bằng `ShaderCacheTool`, shaderc + SPIRV-Cross) — không mang shaderc/SPIRV-Cross lên máy |
 | `legend.core.renderer.opengles.GlesTexture` | Texture độ sâu dùng `GL_DEPTH_COMPONENT32F` (ES 3 không nhận `GL_DEPTH_COMPONENT` + `GL_FLOAT`: "Render buffer is not complete!") |
 | `legend.game.unpacker.IsoReader` | Đọc đĩa từ fd đã mở sẵn (mở lại `/proc/self/fd/N` bị kiểm quyền chủ tệp `media_rw`) |
@@ -37,6 +38,23 @@ không kịp thì cả game chậm như quay chậm. `RenderEngine` (sc-vi) tự
 hình khi máy chậm", mặc định bật; logcat ghi `[sc-vi] auto frame skip: X of Y frames not drawn`), và lần chạy đầu trên
 Android `ConfigStorage` hạ độ phân giải "Theo cửa sổ" (máy 2400×1080 vẽ 3200×1200) xuống 720p (1920×720) một lần (dấu
 `game/scvi-android-defaults-1`); người chơi đổi lại trong Tùy chọn thì giữ lựa chọn đó.
+
+Tiết kiệm pin (26/10, sau v0.3):
+
+- Khung không vẽ gì mới (tua nhanh ▶▶/Tốc độ game: chỉ 1/N nhịp vẽ; tự bỏ khung; tiết kiệm pin) thì không chép ảnh cũ ra màn
+  và không swap (`RenderEngine.enableIdlePresentSkip`, chỉ bật khi cửa sổ là `SdlWindow` của sc-android), không tải VRAM
+  (`Gpu.startFrame`, sc-vi). Ở ×4: 60 lần chép/swap và tải VRAM mỗi giây thay vì 240.
+- Tùy chọn → Đồ họa → "Tiết kiệm pin (30 khung/giây)" (mặc định tắt): vẽ tối đa 30 khung/giây, logic vẫn đủ nhịp. Có tác dụng ở
+  cảnh vẽ 60 Hz (đi lại, bản đồ thế giới, menu); trận đánh 20–30 Hz không đổi.
+- App xuống nền (Home, tắt màn): SDL chặn luồng chính nhưng OpenAL không phải âm thanh của SDL nên nhạc vẫn phát và luồng âm
+  thanh vẫn trộn; nay `SdlWindow` tạm dừng thiết bị OpenAL (logcat `[sc-android] app in the background: audio paused`).
+- Màn 90/120 Hz: `VnGameActivity` xin chế độ màn 60 Hz cùng độ phân giải (`preferredDisplayModeId`).
+- Đo trên PC, đường ES (`run_sc -Gles`, RTX 3060 Laptop, cảnh hội thoại đầu chương 4, công suất GPU theo `nvidia-smi`, nền
+  18,5 W khi không chạy game): v0.3 ×1 20,0 W / CPU 30% một nhân, ×4 26,7 W / 94%; bản mới ×1 20,4 W / 34%, ×4 21,2 W / 49%;
+  bật tiết kiệm pin ×1 19,3 W / 15%, ×4 19,3 W / 31%. Giả lập Android 15: dừng/chạy lại âm thanh khi xuống nền/lên lại, ▶▶ vẽ đúng.
+
+Biểu tượng ứng dụng: `python android/gen_icon.py` sinh từ tranh `android/icon_rong.webp` (biểu tượng thường bo góc + biểu tượng
+thích ứng Android 8+ `mipmap-anydpi-v26/ic_launcher.xml`: tranh 72dp ở lớp trước, chính tranh làm mờ ở lớp sau).
 
 ## Dựng
 

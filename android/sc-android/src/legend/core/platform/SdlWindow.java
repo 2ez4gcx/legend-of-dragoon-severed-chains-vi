@@ -4,6 +4,7 @@ import legend.core.Config;
 import legend.core.platform.input.InputClass;
 import legend.core.platform.input.InputMod;
 import legend.core.renderer.RenderApi;
+import legend.core.renderer.RenderEngine;
 import legend.core.renderer.opengl.GlApi;
 import legend.core.renderer.opengles.GlesApi;
 import legend.game.modding.coremod.CoreMod;
@@ -14,10 +15,15 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengles.GLES;
 import org.lwjgl.opengles.GLESCapabilities;
 import org.lwjgl.sdl.SDL_DisplayMode;
+import org.lwjgl.sdl.SDL_Event;
+import org.lwjgl.sdl.SDL_EventFilter;
 import org.lwjgl.sdl.SDL_Rect;
 import org.lwjgl.sdl.SDL_Surface;
 import org.lwjgl.system.MemoryStack;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.Path;
@@ -26,7 +32,14 @@ import java.util.Set;
 
 import static legend.core.GameEngine.CONFIG;
 import static legend.core.GameEngine.IS_WINDOWS;
+import static org.lwjgl.openal.ALC10.alcGetContextsDevice;
+import static org.lwjgl.openal.ALC10.alcGetCurrentContext;
+import static org.lwjgl.openal.SOFTPauseDevice.alcDevicePauseSOFT;
+import static org.lwjgl.openal.SOFTPauseDevice.alcDeviceResumeSOFT;
 import static org.lwjgl.sdl.SDLError.SDL_GetError;
+import static org.lwjgl.sdl.SDLEvents.SDL_AddEventWatch;
+import static org.lwjgl.sdl.SDLEvents.SDL_EVENT_DID_ENTER_BACKGROUND;
+import static org.lwjgl.sdl.SDLEvents.SDL_EVENT_DID_ENTER_FOREGROUND;
 import static org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput;
 import static org.lwjgl.sdl.SDLKeyboard.SDL_StopTextInput;
 import static org.lwjgl.sdl.SDLMouse.SDL_CreateSystemCursor;
@@ -114,6 +127,17 @@ public class SdlWindow extends Window {
    */
   private boolean noDebugContext = ANDROID && !Boolean.getBoolean("scvi.gldebug");
 
+  /**
+   * [sc-android] RenderEngine.isFramePresented() / enableIdlePresentSkip() of sc-vi: a frame that drew nothing new (speed-up
+   * frame skip, auto frame skip, battery saver) leaves the back buffer as it was and tick() does not swap it. null with an
+   * older sc-vi.jar: every frame is swapped, as in the retail code.
+   */
+  private static final MethodHandle FRAME_PRESENTED = ANDROID ? renderEngineMethod("isFramePresented", boolean.class) : null;
+  private static final MethodHandle ENABLE_IDLE_PRESENT_SKIP = ANDROID ? renderEngineMethod("enableIdlePresentSkip", void.class) : null;
+
+  /** [sc-android] keeps the app event watch alive (SDL only holds its native address) */
+  private SDL_EventFilter backgroundWatch;
+
   public SdlWindow(final SdlPlatformManager manager, final String title, final int width, final int height) {
     this.manager = manager;
     this.monitor = this.getMonitorFromConfig();
@@ -153,6 +177,92 @@ public class SdlWindow extends Window {
     this.pointerCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
 
     this.render = this.manager.addAction(new Action(this::tick, 60));
+
+    if(ANDROID) {
+      enableIdlePresentSkip();
+      this.watchBackground();
+    }
+  }
+
+  private static MethodHandle renderEngineMethod(final String name, final Class<?> returnType) {
+    try {
+      return MethodHandles.publicLookup().findStatic(RenderEngine.class, name, MethodType.methodType(returnType));
+    } catch(final ReflectiveOperationException e) {
+      LOGGER.warn("[sc-android] sc-vi RenderEngine has no %s(): every frame is swapped", name);
+      return null;
+    }
+  }
+
+  private static void enableIdlePresentSkip() {
+    if(FRAME_PRESENTED == null || ENABLE_IDLE_PRESENT_SKIP == null) {
+      return;
+    }
+
+    try {
+      ENABLE_IDLE_PRESENT_SKIP.invokeExact();
+    } catch(final Throwable t) {
+      LOGGER.warn("[sc-android] could not enable idle present skip", t);
+    }
+  }
+
+  /** [sc-android] false when the last frame left the back buffer as it was: swapping would show the same image again */
+  private static boolean framePresented() {
+    if(FRAME_PRESENTED == null) {
+      return true;
+    }
+
+    try {
+      return (boolean)FRAME_PRESENTED.invokeExact();
+    } catch(final Throwable t) {
+      return true;
+    }
+  }
+
+  /**
+   * [sc-android] While the app is in the background SDL blocks this thread in SDL_PollEvent (SDL_HINT_ANDROID_BLOCK_ON_PAUSE)
+   * and pauses its own audio devices, but the game plays through OpenAL Soft: the music went on with the screen off or
+   * another app in front, and the audio thread kept mixing. SDL raises the app events on this thread right before it
+   * blocks and after it wakes up; an event watch sees them at once (the queue is only read after the app is back) and
+   * pauses/resumes the OpenAL device there (ALC_SOFT_pause_device also stops the AAudio/OpenSL stream).
+   */
+  private void watchBackground() {
+    this.backgroundWatch = SDL_EventFilter.create((userdata, event) -> {
+      final int type = SDL_Event.ntype(event);
+
+      if(type == SDL_EVENT_DID_ENTER_BACKGROUND) {
+        pauseAudio(true);
+      } else if(type == SDL_EVENT_DID_ENTER_FOREGROUND) {
+        pauseAudio(false);
+      }
+
+      return true;
+    });
+
+    if(!SDL_AddEventWatch(this.backgroundWatch, NULL)) {
+      LOGGER.warn("[sc-android] could not watch app events: %s", SDL_GetError());
+    }
+  }
+
+  private static void pauseAudio(final boolean pause) {
+    try {
+      final long context = alcGetCurrentContext();
+
+      if(context == NULL) {
+        return;
+      }
+
+      final long device = alcGetContextsDevice(context);
+
+      if(pause) {
+        alcDevicePauseSOFT(device);
+      } else {
+        alcDeviceResumeSOFT(device);
+      }
+
+      LOGGER.info("[sc-android] app %s: audio %s", pause ? "in the background" : "in front again", pause ? "paused" : "resumed");
+    } catch(final Throwable t) {
+      LOGGER.warn("[sc-android] could not %s the audio device", pause ? "pause" : "resume", t);
+    }
   }
 
   private void createOpenGlWindow(final String title, final int width, final int height, final long[] windowRef, final long[] contextRef) {
@@ -477,7 +587,10 @@ public class SdlWindow extends Window {
   }
 
   private void tick() {
-    SDL_GL_SwapWindow(this.window);
+    // [sc-android] at x4 speed only one tick in four draws a new image: swap only those
+    if(framePresented()) {
+      SDL_GL_SwapWindow(this.window);
+    }
 
     if(ANDROID) {
       this.pollFastForward();

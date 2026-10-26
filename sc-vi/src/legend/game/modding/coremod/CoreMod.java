@@ -25,6 +25,7 @@ import legend.game.inventory.ItemRegistryEvent;
 import legend.game.inventory.screens.GatherShopExtensionsEvent;
 import legend.game.modding.coremod.config.AdditionModeConfigEntry;
 import legend.game.modding.coremod.config.AutoFrameSkipConfigEntry;
+import legend.game.modding.coremod.config.BatterySaverConfigEntry;
 import legend.game.modding.coremod.config.GameSpeedConfigEntry;
 import legend.game.modding.coremod.config.AdditionOverlayConfigEntry;
 import legend.game.modding.coremod.config.AdditionOverlaySizeConfigEntry;
@@ -123,6 +124,8 @@ public class CoreMod {
   public static final RegistryDelegate<FrameSkipConfigEntry> FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("frame_skip", FrameSkipConfigEntry::new);
   /** [sc-vi] Tự bỏ khung hình khi máy vẽ không kịp (RenderEngine): game giữ đúng tốc độ thay vì chậm lại như quay chậm */
   public static final RegistryDelegate<AutoFrameSkipConfigEntry> AUTO_FRAME_SKIP_CONFIG = CONFIG_REGISTRAR.register("auto_frame_skip", AutoFrameSkipConfigEntry::new);
+  /** [sc-vi] Tiết kiệm pin: vẽ tối đa 30 khung/giây (RenderEngine), logic game vẫn chạy đủ nhịp */
+  public static final RegistryDelegate<BatterySaverConfigEntry> BATTERY_SAVER_CONFIG = CONFIG_REGISTRAR.register("battery_saver", BatterySaverConfigEntry::new);
   /** [sc-vi] Tốc độ game trong Tùy chọn (Config.gameSpeedMultiplier, bản gốc chỉ đổi được bằng phím tắt) */
   public static final RegistryDelegate<GameSpeedConfigEntry> GAME_SPEED_CONFIG = CONFIG_REGISTRAR.register("game_speed", GameSpeedConfigEntry::new);
 

@@ -55,6 +55,7 @@ import static legend.core.MathHelper.PI;
 import static legend.game.EngineStates.currentEngineState_8004dd04;
 import static legend.game.Graphics.worldToScreenMatrix_800c3548;
 import static legend.game.modding.coremod.CoreMod.AUTO_FRAME_SKIP_CONFIG;
+import static legend.game.modding.coremod.CoreMod.BATTERY_SAVER_CONFIG;
 import static legend.game.modding.coremod.CoreMod.DISABLE_MOUSE_INPUT_CONFIG;
 import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE;
 import static legend.game.modding.coremod.CoreMod.INPUT_ACTION_DEBUG_FRAME_ADVANCE_HOLD;
@@ -330,6 +331,16 @@ public class RenderEngine {
   private long lagReportTime;
   private int lagReportFrames;
   private int lagReportSkipped;
+
+  // [sc-vi] battery saver (BATTERY_SAVER_CONFIG): at most 30 drawn frames per second, timed from the last drawn frame
+  private static final long SAVER_FRAME_NANOS = 1_000_000_000L / 30;
+  private long saverLastDraw;
+
+  // [sc-vi] a window that can leave out a swap (sc-android SdlWindow) is not given a copy of an image it already shows
+  private static volatile boolean idlePresentSkip;
+  private static volatile boolean framePresented = true;
+  // [sc-vi] whether the frame being run will be drawn (Gpu.startFrame uploads VRAM only then)
+  private static volatile boolean drawingFrame = true;
 
   private final Deque<Runnable> tasks = new LinkedList<>();
 
@@ -611,7 +622,12 @@ public class RenderEngine {
 
       // [sc-vi] a late frame only runs the game logic and shows the last drawn image again (like the speed-up frame skip)
       final boolean lagSkip = this.updateLagSkip();
-      final boolean drawFrame = this.frameSkipIndex == 0 && !lagSkip;
+      // [sc-vi] the battery saver leaves out frames the same way
+      final boolean noDraw = lagSkip || this.updateBatterySaverSkip();
+      final boolean drawFrame = this.frameSkipIndex == 0 && !noDraw;
+      // [sc-vi] with a window that skips swaps, a frame that drew nothing does not copy the last image to the screen again
+      final boolean present = drawFrame || !idlePresentSkip || legacyMode != 0;
+      drawingFrame = drawFrame || legacyMode != 0;
 
       if(drawFrame) {
         this.pre();
@@ -678,7 +694,13 @@ public class RenderEngine {
         GameOverlay.drawFps();
       }
 
-      if(legacyMode == 0) {
+      if(legacyMode == 0 && !present) {
+        // [sc-vi] nothing to draw or show: only leave the GL state as a presented frame does (the next pre() clears the back buffer)
+        this.api.wireframe(false);
+        this.api.disableDepthTest();
+        this.api.translucency(null);
+        this.api.unbindFramebuffer();
+      } else if(legacyMode == 0) {
         // Gross hack bro
         if(currentEngineState_8004dd04 instanceof final Battle battle && battle._800c6930 != null) {
           this.battleTmdShader.use();
@@ -802,12 +824,14 @@ public class RenderEngine {
         // draw final screen quad
         this.api.viewport(0, 0, this.window.getWidth(), this.window.getHeight());
         // [sc-vi] the buffer index already moved on after the last drawn frame
-        this.renderTextures[lagSkip ? Math.floorMod(this.renderBufferIndex - 1, RENDER_BUFFER_COUNT) : this.renderBufferIndex].use();
+        this.renderTextures[noDraw ? Math.floorMod(this.renderBufferIndex - 1, RENDER_BUFFER_COUNT) : this.renderBufferIndex].use();
         postQuad.draw();
 
         // If we don't unbind the framebuffer textures, window resizing will crash since it has to resize the framebuffer
         this.api.unbindTexture();
       }
+
+      framePresented = present; // [sc-vi]
 
       // If we're paused, don't reset the pool so that we keep rendering the same scene over and over again
       if(!this.paused) {
@@ -821,7 +845,7 @@ public class RenderEngine {
           this.scissorStack.reset();
         }
 
-        if(lagSkip) {
+        if(noDraw) {
           // [sc-vi] nothing was drawn: keep frameSkipIndex at 0 and the buffer index on the next buffer to draw into
         } else if(this.frameSkip) {
           if(this.frameSkipIndex == Config.getGameSpeedMultiplier() - 1) {
@@ -1546,5 +1570,47 @@ public class RenderEngine {
     }
 
     return skip;
+  }
+
+  /**
+   * [sc-vi] Battery saver: at most 30 drawn frames per second, the game logic still runs every tick. A frame that starts less
+   * than 1/30 s after the last drawn one (half a tick of slack for timer jitter) is not drawn. 60 Hz scenes (fields, world
+   * map, menus) and fast forward draw every other frame; battles (20-30 Hz) are untouched. A frame left out by the auto
+   * frame skip does not count as drawn, so the frame after it is always drawn.
+   */
+  private boolean updateBatterySaverSkip() {
+    if(this.frameSkipIndex != 0 || this.paused || this.togglePause || !CONFIG.getConfig(BATTERY_SAVER_CONFIG.get())) {
+      return false;
+    }
+
+    final long now = System.nanoTime();
+    final long tick = 1_000_000_000L / Math.max(1, this.window.getFpsLimit());
+
+    if(now - this.saverLastDraw < SAVER_FRAME_NANOS - tick / 2) {
+      return true;
+    }
+
+    this.saverLastDraw = now;
+    return false;
+  }
+
+  /**
+   * [sc-vi] Called by a window that can leave out SDL_GL_SwapWindow (sc-android SdlWindow). From then on a frame that drew
+   * nothing new (game speed frame skip, auto frame skip, battery saver) does not copy the last image to the back buffer
+   * again, and {@link #isFramePresented()} tells the window not to swap: at x4 speed the screen is copied and swapped 60
+   * times a second instead of 240, and a phone GPU that is behind gets those ticks off.
+   */
+  public static void enableIdlePresentSkip() {
+    idlePresentSkip = true;
+  }
+
+  /** [sc-vi] false when the last frame left the back buffer untouched, so the window must not swap it to the screen */
+  public static boolean isFramePresented() {
+    return framePresented;
+  }
+
+  /** [sc-vi] false while running the logic of a frame that will not be drawn (its VRAM upload can wait for the next drawn one) */
+  public static boolean isDrawingFrame() {
+    return drawingFrame;
   }
 }
