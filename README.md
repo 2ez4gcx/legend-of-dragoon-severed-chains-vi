@@ -40,7 +40,8 @@ nút cập nhật đã được tắt).
 3. Mở **LoD tiếng Việt**, bấm **CHỌN 4 ĐĨA GỐC (.BIN)** và chọn cùng lúc cả 4 file (nhấn giữ file đầu để chọn nhiều), rồi
    bấm **CHƠI**. Lần đầu game giải nén tài nguyên từ đĩa mất vài phút.
 4. Điều khiển bằng tay cầm ảo trên màn hình hoặc tay cầm Bluetooth; nút Quay lại của Android là ○. Hàng nút giữa phía trên:
-   **⚙** chỉnh độ đậm, cỡ phím, rung khi bấm; **▼** ẩn/hiện phím; **▶▶** tua nhanh (bấm lần nữa để về tốc độ thường).
+   **⚙** chỉnh độ đậm, cỡ phím, rung khi bấm, tốc độ tua nhanh (×2, ×3, ×4); **▼** ẩn/hiện phím; **▶▶** tua nhanh (bấm lần
+   nữa để về tốc độ thường).
 
 Khuyến nghị máy có từ 6 GB RAM. Đừng di chuyển hay xoá file đĩa sau khi đã chọn. Đang có bản cũ thì cài đè, đĩa và bản lưu
 được giữ. Chi tiết và lưu ý: ghi chú của
@@ -55,6 +56,9 @@ Khuyến nghị máy có từ 6 GB RAM. Đừng di chuyển hay xoá file đĩa 
 - **Tự bỏ khung hình khi máy chậm** (Đồ họa, mặc định bật): Severed Chains chạy logic game một lần mỗi khung vẽ ra, nên máy vẽ
   không kịp thì cả game chậm như quay chậm; tùy chọn này bỏ bớt khung vẽ bị trễ để game giữ đúng tốc độ.
 - **Độ phân giải** (Đồ họa): điện thoại tự đặt 720p ở lần chạy đầu của bản v0.3; máy yếu chọn 480p.
+- **Bản sau v0.3 (đã có trong mã nguồn, chưa phát hành)**: tùy chọn Đồ họa → "Tiết kiệm pin (30 khung/giây)"; game tốn ít
+  pin hơn khi tua nhanh, khi im lặng và khi thu nhỏ cửa sổ; Android dừng nhạc khi ứng dụng xuống nền; biểu tượng mới hình chú
+  rồng.
 
 ![Tắt và bật tự bỏ khung hình trên máy vẽ chậm](docs/anh/35_tu_bo_khung_hinh.png)
 
@@ -77,6 +81,8 @@ trong phim.
 - **Game báo "Please place US ISOs/BINs in "isos" directory"**: chưa có đủ 4 đĩa bản Mỹ trong `isos` (Windows) hoặc chưa chọn
   đủ 4 file (Android). Đĩa bản châu Âu/Nhật và đĩa đã vá tiếng Việt bản PS1 không dùng được.
 - **Muốn chọn lại đĩa trên Android**: Cài đặt → Ứng dụng → LoD tiếng Việt → Bộ nhớ → Xoá dữ liệu (sẽ giải nén lại từ đầu).
+  **Thao tác này xoá luôn bản lưu và tùy chọn** vì chúng nằm trong dữ liệu ứng dụng. Nếu chỉ đổi chỗ hoặc đổi tên file đĩa
+  thì không cần xoá: khi không đọc được đĩa cũ, ứng dụng báo lỗi và cho bấm **CHỌN 4 ĐĨA GỐC (.BIN)** lại.
 - **Game chạy chậm như quay chậm, giật**: dùng bản v0.3 trở lên, giữ bật "Tự bỏ khung hình khi máy chậm" và hạ Độ phân giải
   (Tùy chọn → Tùy chọn chung → Đồ họa) xuống 720p hoặc 480p. Bật "Hiện FPS" (Giao diện) để xem số khung hình mỗi giây.
 - **Bản lưu chuyển từ thẻ nhớ PS1 bị đen màn khi nạp**: Severed Chains gốc cũng bị như vậy, không do bản Việt hoá.
@@ -92,8 +98,8 @@ trong phim.
 - `sc-vi/`: các lớp sửa mã Severed Chains (diff ở `sc-vi/patches/sc-core-affcef0.diff`); `tools/`: công cụ dựng dữ liệu tiếng
   Việt; `release_notes/`: ghi chú từng bản; `docs/anh/`: ảnh chụp trong game.
 
-Dựng bản thử (cần thư mục `game` là bản dựng Severed Chains commit `affcef0` + JDK 25, và dự án bản vá PS1 `D:\LOD` đặt cạnh
-thư mục này):
+Dựng bản thử (cần thư mục `game` là bản dựng Severed Chains commit `affcef0` + JDK 25, Python 3 có Pillow, và dự án bản vá
+PS1 trong thư mục `LOD` đặt cạnh thư mục repo, hoặc chỉ tới nó bằng biến môi trường `LOD_ROOT`):
 
 ```bash
 powershell -ExecutionPolicy Bypass -File tools/build_sc_vi.ps1
