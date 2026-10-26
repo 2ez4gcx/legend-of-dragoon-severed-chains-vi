@@ -14,15 +14,15 @@ Chains. Có bản cho **Windows** và bản thử nghiệm cho **Android**.
 
 | Nền tảng | Bản | Tệp | Ghi chú |
 |---|---|---|---|
-| Windows 64-bit | [v0.3](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.3-sc-affcef0) | `LoD-SC-VN-v0.3-sc-affcef0-windows.zip` (133 MB) | Đã gồm Severed Chains |
-| Android 10+ (arm64) | [v0.3 Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.3-android-sc-affcef0) | `LoD-SC-VN-v0.3-android-arm64.apk` (200 MB) | Thử nghiệm, cần OpenGL ES 3.2 |
+| Windows 64-bit | [v0.4](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4-sc-affcef0) | `LoD-SC-VN-v0.4-sc-affcef0-windows.zip` (133 MB) | Đã gồm Severed Chains |
+| Android 10+ (arm64) | [v0.4 Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4-android-sc-affcef0) | `LoD-SC-VN-v0.4-android-arm64.apk` (201 MB) | Thử nghiệm, cần OpenGL ES 3.2 |
 
 Mã kiểm tra SHA-256 nằm trong tệp `SHA256SUMS*.txt` đính kèm mỗi bản phát hành. Cả hai bản đều ghim Severed Chains commit
 `affcef0` (devbuild 3.0.0-1816).
 
 ## Cài đặt trên Windows
 
-1. Tải `LoD-SC-VN-v0.3-sc-affcef0-windows.zip` và giải nén cả thư mục `Severed Chains (VN)`. Đường dẫn không chứa dấu `;`,
+1. Tải `LoD-SC-VN-v0.4-sc-affcef0-windows.zip` và giải nén cả thư mục `Severed Chains (VN)`. Đường dẫn không chứa dấu `;`,
    không để trong `Program Files`.
 2. Chép 4 file `.bin` đĩa gốc vào thư mục `isos`.
 3. Chạy **`launch-vi.bat`**. Lần đầu, Severed Chains tự tải Java 25 (khoảng 220 MB) và giải nén tài nguyên từ đĩa (khoảng 1,4 GB).
@@ -36,7 +36,7 @@ nút cập nhật đã được tắt).
 ![Màn tựa tiếng Việt trên Android với tay cầm ảo](docs/anh/34_android_man_tua.png)
 
 1. Chép 4 file `.bin` vào điện thoại (ví dụ thư mục Download). Cần khoảng 2,4 GB cho đĩa và khoảng 2 GB cho ứng dụng.
-2. Cài `LoD-SC-VN-v0.3-android-arm64.apk` (cho phép "cài ứng dụng không rõ nguồn" nếu máy hỏi).
+2. Cài `LoD-SC-VN-v0.4-android-arm64.apk` (cho phép "cài ứng dụng không rõ nguồn" nếu máy hỏi).
 3. Mở **LoD tiếng Việt**, bấm **CHỌN 4 ĐĨA GỐC (.BIN)** và chọn cùng lúc cả 4 file (nhấn giữ file đầu để chọn nhiều), rồi
    bấm **CHƠI**. Lần đầu game giải nén tài nguyên từ đĩa mất vài phút.
 4. Điều khiển bằng tay cầm ảo trên màn hình hoặc tay cầm Bluetooth; nút Quay lại của Android là ○. Hàng nút giữa phía trên:
@@ -45,7 +45,7 @@ nút cập nhật đã được tắt).
 
 Khuyến nghị máy có từ 6 GB RAM. Đừng di chuyển hay xoá file đĩa sau khi đã chọn. Đang có bản cũ thì cài đè, đĩa và bản lưu
 được giữ. Chi tiết và lưu ý: ghi chú của
-[bản Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.3-android-sc-affcef0).
+[bản Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4-android-sc-affcef0).
 
 ![Tay cầm ảo: nút cài đặt ⚙ và tua nhanh ▶▶](docs/anh/36_android_cai_dat_tay_cam.png)
 
@@ -55,10 +55,11 @@ Khuyến nghị máy có từ 6 GB RAM. Đừng di chuyển hay xoá file đĩa 
   nguyên).
 - **Tự bỏ khung hình khi máy chậm** (Đồ họa, mặc định bật): Severed Chains chạy logic game một lần mỗi khung vẽ ra, nên máy vẽ
   không kịp thì cả game chậm như quay chậm; tùy chọn này bỏ bớt khung vẽ bị trễ để game giữ đúng tốc độ.
-- **Độ phân giải** (Đồ họa): điện thoại tự đặt 720p ở lần chạy đầu của bản v0.3; máy yếu chọn 480p.
-- **Bản sau v0.3 (đã có trong mã nguồn, chưa phát hành)**: tùy chọn Đồ họa → "Tiết kiệm pin (30 khung/giây)"; game tốn ít
-  pin hơn khi tua nhanh, khi im lặng và khi thu nhỏ cửa sổ; Android dừng nhạc khi ứng dụng xuống nền; biểu tượng mới hình chú
-  rồng.
+- **Độ phân giải** (Đồ họa): điện thoại tự đặt 720p ở lần chạy đầu của bản v0.3 trở lên; máy yếu chọn 480p.
+- **Tiết kiệm pin (30 khung/giây)** (Đồ họa, từ v0.4, mặc định tắt): chỉ vẽ tối đa 30 khung hình mỗi giây, game vẫn đúng tốc
+  độ; đi lại kém mượt hơn một chút.
+- Từ v0.4 game tốn ít máy hơn khi tua nhanh, khi im lặng và khi thu nhỏ cửa sổ (Windows); trên Android nhạc dừng khi ứng dụng
+  xuống nền.
 
 ![Tắt và bật tự bỏ khung hình trên máy vẽ chậm](docs/anh/35_tu_bo_khung_hinh.png)
 

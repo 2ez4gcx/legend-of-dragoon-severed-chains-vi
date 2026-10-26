@@ -47,7 +47,7 @@ Lớp sửa trong `vi/sc-vi.jar` (v0.2, 8 lớp, diff `sc-vi/patches/sc-core-aff
 `HardcodedTranslations` (bảng viết cứng, câu viết thẳng, địa danh trên thẻ lưu cũ, ảnh menu màn tựa theo ngôn ngữ).
 Từ v0.3 thêm `RenderEngine` (tự bỏ khung hình khi máy chậm), `CoreMod` (đăng ký 2 mục tùy chọn) + lớp mới
 `GameSpeedConfigEntry`, `AutoFrameSkipConfigEntry`; `ConfigStorage` áp tốc độ sau khi nạp và (Android) hạ 720p một lần.
-Sau v0.3 (chưa phát hành, 26/10): `RenderEngine` thêm mục "Tiết kiệm pin (30 khung/giây)" (lớp mới `BatterySaverConfigEntry`,
+Từ v0.4 (26/10/2026): `RenderEngine` thêm mục "Tiết kiệm pin (30 khung/giây)" (lớp mới `BatterySaverConfigEntry`,
 khoá `lod_core.config.battery_saver.*` trong `lang/scvi_ui.vi.lang`) và cho cửa sổ bỏ swap ở khung không vẽ; lớp sửa mới
 `Gpu` (chỉ tải VRAM lên GPU ở khung có vẽ); lớp sửa mới `SdlWindow` (PC: chỉ swap khung có vẽ, không vẽ khi cửa sổ thu nhỏ,
 biểu tượng cửa sổ `gfx/textures/icon.vi.png` = tranh chú rồng). Gói thêm `gfx/textures/icon.vi.png` (sinh bằng
@@ -126,6 +126,21 @@ script SC đọc đúng "Greham{n}…" = khoá S04080 (vốn kiểu N).
 | Trong game (thư mục `game`, save chương 4 LV31 + Debugger F12) | Donau cảnh 201: S12610 (NPC sobj 5, giai đoạn 2 = flags2 62, 66 bật / 6d tắt, flags1 c9 = 1) "Ước mơ của tôi là phủ xanh cả / Tiberoa giống như Donau. Người / ta có nói gì đi nữa, tôi cũng / sẽ làm được!" — hết chữ lẻ; S12641 (sobj 5, giai đoạn 6 = 62…8d bật / b5 tắt, c9 = 0) "Nghe nói nàng Công chúa Emille ngỗ ngược kia là / đồ giả mạo." — không còn bị coi là dòng tên; biển cảnh 133 (điểm 180,10,29 bán kính 30): S02241 "Trái: Lối tắt tới vùng Bale!"; trận 0 → màn kết quả "Vàng / EXP. / Vật phẩm" (`docs/anh/33`) |
 | Chưa kiểm | Cài sạch `test_cai.ps1 -Choi` từ zip v0.3; trong game: Gorgaga (cảnh 638, chuỗi sự kiện Đại hội Lohan — warp vào chỉ thấy đấu trường trống), S04523 (trận), S13479/S13651 (cảnh cắt đĩa 3–4) |
 
+## Đã kiểm (v0.4 — gói phát hành 26/10/2026, dựng từ 657a3b2 + E:\LOD main 40e91b8 = PS1 v1.12)
+
+Dữ liệu dịch giống hệt v0.3 (dựng từ cùng commit PS1). So với gói v0.3 chỉ khác `vi/sc-vi.jar` (tiết kiệm pin, xem trên),
+`lang/scvi_ui.vi.lang` (mục Tiết kiệm pin), `HUONG_DAN_VIET_HOA.txt`, `vi/VERSION.txt`, thêm `gfx/textures/icon.vi.png`.
+Dự án bản vá PS1 giờ ở `E:\LOD` (bản sao git thật, cạnh repo này → không cần `LOD_ROOT`/`LOD_COMMIT`); đĩa 1 giải nén vào đúng
+đường dẫn trong `E:\LOD\paths.json` (đĩa 2–4 vẫn là zip, công cụ dựng không dùng).
+
+| Kiểm (26/10) | Kết quả |
+|---|---|
+| Dựng 2 lần | cùng SHA-256 `cdb78292399ad5f1e9a6b7781659294d2badbe34159dbce29f648124f5abb298` (133.078.173 byte); tự kiểm 13.276 câu, 0 lỗi; `vi/VERSION.txt` lod_sc_commit 657a3b2, lod_commit 40e91b8 |
+| Cài sạch `test_cai.ps1 -Dia <game/isos>` (gọi trong cùng phiên PowerShell: `-File` tách mảng `-Dia` sai) | lên game 183 s, classpath `vi/sc-vi.jar` đầu, log không lỗi; màn tựa tiếng Việt, Đồ họa có "Tiết kiệm pin (30 khung/giây)" tắt sẵn, thanh tiêu đề hiện biểu tượng chú rồng |
+| APK arm64 | dựng 2 lần cùng SHA-256 `22e9919cfbfae5b2ba35dfcf7b6919364994db597793a3f58fadc8d7aaea8622` (201.137.739 byte), versionCode 4001, dựng từ zip v0.4; `build_sc_android.ps1 -CheckOriginal` khớp 5 lớp gốc |
+| APK x86_64 (giả lập Android 15) | cài đè, giải nén payload, phim, màn tựa tiếng Việt; xuống nền/lên lại: logcat "audio paused" / "audio resumed" |
+| Tiết kiệm pin (trước khi phát hành, xem `android/README.md`) | PC đường ES cùng cảnh: ×4 CPU 77% → 28% một nhân, 26,3 W → 18,1 W; đi lại ×1 28% → ~20%; trận 13% → ~9%; thu nhỏ cửa sổ PC về mức nghỉ |
+
 Bẫy khi chạy từ xa: lúc người dùng nối Chrome Remote Desktop, cửa sổ ẩn của `remoting_desktop.exe` giữ quyền trên cùng, SC không lên
 được (cả bấm chuột giả lập) → `sc_ui.ps1` huỷ đúng như thiết kế. SC bỏ phím khi không có keyboard focus (`SdlPlatformManager`:
 sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng không dùng được; chuột thì SC vẫn nhận. Chờ phiên từ xa ngắt là chạy lại được.
@@ -156,4 +171,8 @@ sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng 
   ghi chú `release_notes/v0.3-android-sc-affcef0.md`); cả hai tải lại từ GitHub khớp SHA-256, tải được khi không đăng nhập.
   Gắn tag vào commit đã dựng gói (dựng lại từ commit khác thì
   `lod_sc_commit` trong `vi/VERSION.txt` đổi → SHA đổi).
+- v0.4-sc-affcef0 và v0.4-android-sc-affcef0 (26/10/2026, theo lời người dùng "Dựng và phát hành bản v0.4"; cả hai tag →
+  657a3b2; zip 133.078.173 byte SHA `cdb78292…`, APK arm64 201.137.739 byte SHA `22e9919c…`, versionCode 4001; ghi chú
+  `release_notes/v0.4-*.md`; mỗi bản kèm tệp SHA256SUMS chỉ một dòng). Tải lên bằng `tools/gh_release.py` (máy không có `gh`,
+  token lấy từ git credential manager); tải ngược về khớp SHA-256, tải được khi không đăng nhập (HTTP 200).
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
