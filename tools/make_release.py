@@ -177,6 +177,9 @@ TỐC ĐỘ VÀ HIỆU NĂNG (từ v0.3)
   nguyên). Phím tắt có sẵn của SC: "=" tăng, "-" giảm tốc độ.
 - Tùy chọn → Tùy chọn chung → Đồ họa → "Tự bỏ khung hình khi máy chậm" (mặc định bật): máy vẽ không kịp thì bỏ bớt
   khung hình để game vẫn đúng tốc độ, không bị chậm như quay chậm. Máy yếu nên hạ Độ phân giải xuống 720p hoặc 480p.
+- Tùy chọn → Tùy chọn chung → Đồ họa → "Tiết kiệm pin (30 khung/giây)" (từ v0.4, mặc định tắt): chỉ vẽ tối đa 30 khung
+  hình mỗi giây, game vẫn đúng tốc độ; đỡ tốn pin máy xách tay, đi lại kém mượt hơn một chút.
+- Từ v0.4: thu nhỏ cửa sổ thì game ngừng vẽ (game và nhạc vẫn chạy); khi tua nhanh hoặc khi im lặng game tốn ít máy hơn.
 
 LƯU Ý QUAN TRỌNG
 - Gói ghim theo một bản build SC nên đã tắt kiểm tra cập nhật (không hiện "Update Available"). Đừng cập nhật SC
@@ -197,7 +200,7 @@ Severed Chains và phần sửa mã trong vi/sc-vi.jar theo GNU AGPL-3.0 (vi/LIC
 The Legend of Dragoon © Sony Interactive Entertainment. Đây là bản dịch phi lợi nhuận của người hâm mộ.
 
 PHIÊN BẢN
-- Việt hoá: v{v} (LoD-SC commit {src}, dữ liệu dịch D:\\LOD commit {lod})
+- Việt hoá: v{v} (LoD-SC commit {src}, dữ liệu dịch: dự án bản vá PS1 commit {lod})
 - Severed Chains: 3.0.0 devbuild commit {sc}
 '''.format(v=version, sc=SC_COMMIT, sc7=SC_COMMIT[:7], pkg=PKG, src=src_commit[:7], lod=lod_commit[:7]))
 
