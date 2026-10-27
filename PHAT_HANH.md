@@ -141,6 +141,19 @@ Dự án bản vá PS1 giờ ở `E:\LOD` (bản sao git thật, cạnh repo nà
 | APK x86_64 (giả lập Android 15) | cài đè, giải nén payload, phim, màn tựa tiếng Việt; xuống nền/lên lại: logcat "audio paused" / "audio resumed" |
 | Tiết kiệm pin (trước khi phát hành, xem `android/README.md`) | PC đường ES cùng cảnh: ×4 CPU 77% → 28% một nhân, 26,3 W → 18,1 W; đi lại ×1 28% → ~20%; trận 13% → ~9%; thu nhỏ cửa sổ PC về mức nghỉ |
 
+## Đã kiểm (v0.4.1 — gói Windows sửa lỗi 27/10/2026, dựng từ 1d22934 + E:\LOD 40e91b8)
+
+Người dùng báo: cài v0.4 vào `…\Giả lập\Severed Chains (VN)` thì `launch-vi.bat` báo "could not find java.dll / Could not find
+Java SE Runtime Environment" (có từ v0.1; `java.exe` tự tìm thư mục bằng API ANSI, chữ ngoài bảng mã thành "?"). Sửa trong
+`make_release.launch_vi`: đường dẫn mất chữ qua `[Text.Encoding]::Default` thì `subst` ổ trống Z..P cho thư mục game, chạy từ đó,
+gỡ khi thoát. Android không dùng `launch-vi.bat` nên giữ v0.4.
+
+| Kiểm (27/10) | Kết quả |
+|---|---|
+| Dựng 2 lần | cùng SHA-256 `f1006dab0a2d7ae0fbbcd1d115527abe81e6845778fb6dda3c7ab644705602f0` (133.078.979 byte); so với v0.4 chỉ khác `launch-vi.bat`, `HUONG_DAN_VIET_HOA.txt`, `vi/VERSION.txt` (`sc-vi.jar` trùng từng byte) |
+| Cài sạch `test_cai.ps1 -Dia <game/isos>` (thư mục không dấu) | lên game 186 s, classpath đúng, log không lỗi, không tạo ổ ảo |
+| Cùng bản cài, chạy qua junction `test_cai\Giả lập\Severed Chains (VN)` | java chạy từ `Z:\jdk25\bin\java.exe`, màn tựa tiếng Việt; Thoát → `Z:` gỡ, cửa sổ lệnh đóng; log không lỗi. Junction gỡ bằng `rmdir` (không dùng `Remove-Item -Recurse`, dễ xoá luôn thư mục đích) |
+
 Bẫy khi chạy từ xa: lúc người dùng nối Chrome Remote Desktop, cửa sổ ẩn của `remoting_desktop.exe` giữ quyền trên cùng, SC không lên
 được (cả bấm chuột giả lập) → `sc_ui.ps1` huỷ đúng như thiết kế. SC bỏ phím khi không có keyboard focus (`SdlPlatformManager`:
 sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng không dùng được; chuột thì SC vẫn nhận. Chờ phiên từ xa ngắt là chạy lại được.
@@ -175,4 +188,7 @@ sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng 
   657a3b2; zip 133.078.173 byte SHA `cdb78292…`, APK arm64 201.137.739 byte SHA `22e9919c…`, versionCode 4001; ghi chú
   `release_notes/v0.4-*.md`; mỗi bản kèm tệp SHA256SUMS chỉ một dòng). Tải lên bằng `tools/gh_release.py` (máy không có `gh`,
   token lấy từ git credential manager); tải ngược về khớp SHA-256, tải được khi không đăng nhập (HTTP 200).
+- v0.4.1-sc-affcef0 (27/10/2026, chỉ Windows, theo lời người dùng "Commit bản sửa và phát hành v0.4.1 cho Windows"; tag →
+  1d22934; zip 133.078.979 byte SHA `f1006dab…`; ghi chú `release_notes/v0.4.1-sc-affcef0.md`); tải lại khớp, tải được khi không
+  đăng nhập. Bản Android vẫn là v0.4-android-sc-affcef0.
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.

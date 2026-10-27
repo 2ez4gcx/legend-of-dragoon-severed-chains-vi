@@ -14,7 +14,7 @@ Chains. Có bản cho **Windows** và bản thử nghiệm cho **Android**.
 
 | Nền tảng | Bản | Tệp | Ghi chú |
 |---|---|---|---|
-| Windows 64-bit | [v0.4](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4-sc-affcef0) | `LoD-SC-VN-v0.4-sc-affcef0-windows.zip` (133 MB) | Đã gồm Severed Chains |
+| Windows 64-bit | [v0.4.1](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.1-sc-affcef0) | `LoD-SC-VN-v0.4.1-sc-affcef0-windows.zip` (133 MB) | Đã gồm Severed Chains; sửa lỗi thư mục có dấu của v0.4 |
 | Android 10+ (arm64) | [v0.4 Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4-android-sc-affcef0) | `LoD-SC-VN-v0.4-android-arm64.apk` (201 MB) | Thử nghiệm, cần OpenGL ES 3.2 |
 
 Mã kiểm tra SHA-256 nằm trong tệp `SHA256SUMS*.txt` đính kèm mỗi bản phát hành. Cả hai bản đều ghim Severed Chains commit
@@ -22,8 +22,8 @@ Mã kiểm tra SHA-256 nằm trong tệp `SHA256SUMS*.txt` đính kèm mỗi b�
 
 ## Cài đặt trên Windows
 
-1. Tải `LoD-SC-VN-v0.4-sc-affcef0-windows.zip` và giải nén cả thư mục `Severed Chains (VN)`. Đường dẫn không chứa dấu `;`,
-   không để trong `Program Files`.
+1. Tải `LoD-SC-VN-v0.4.1-sc-affcef0-windows.zip` và giải nén cả thư mục `Severed Chains (VN)`. Đường dẫn không chứa dấu `;`,
+   không để trong `Program Files`, nên chỉ có chữ không dấu (ví dụ `C:\Games\LoD-VN`, không dùng `Giả lập`).
 2. Chép 4 file `.bin` đĩa gốc vào thư mục `isos`.
 3. Chạy **`launch-vi.bat`**. Lần đầu, Severed Chains tự tải Java 25 (khoảng 220 MB) và giải nén tài nguyên từ đĩa (khoảng 1,4 GB).
 4. Ngôn ngữ và phông chữ đã đặt sẵn tiếng Việt. Hướng dẫn chi tiết: `HUONG_DAN_VIET_HOA.txt` trong gói.
@@ -86,6 +86,11 @@ trong phim.
   thì không cần xoá: khi không đọc được đĩa cũ, ứng dụng báo lỗi và cho bấm **CHỌN 4 ĐĨA GỐC (.BIN)** lại.
 - **Game chạy chậm như quay chậm, giật**: dùng bản v0.3 trở lên, giữ bật "Tự bỏ khung hình khi máy chậm" và hạ Độ phân giải
   (Tùy chọn → Tùy chọn chung → Đồ họa) xuống 720p hoặc 480p. Bật "Hiện FPS" (Giao diện) để xem số khung hình mỗi giây.
+- **Windows báo "could not find java.dll" / "Could not find Java SE Runtime Environment"**: đường dẫn tới thư mục game có chữ
+  có dấu (ví dụ `D:\Giả lập\Severed Chains (VN)`). Java không chạy được từ những đường dẫn này trên Windows (dù tệp `java.dll`
+  vẫn có). Từ v0.4.1, `launch-vi.bat` tự xử lý: tạm gán một ổ ảo như `Z:` cho thư mục game trong lúc chơi, thoát game thì gỡ.
+  Đang dùng v0.4 trở về trước: chép `launch-vi.bat` của gói v0.4.1 đè lên tệp cũ, hoặc chuyển cả thư mục `Severed Chains (VN)`
+  tới chỗ chỉ có chữ không dấu, ví dụ `C:\Games\LoD-VN`.
 - **Bản lưu chuyển từ thẻ nhớ PS1 bị đen màn khi nạp**: Severed Chains gốc cũng bị như vậy, không do bản Việt hoá.
 - **Báo lỗi dịch hoặc lỗi chạy**: mở [Issues](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/issues), ghi rõ cảnh,
   câu thoại và (nếu là Android) tên máy.
