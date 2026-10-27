@@ -75,11 +75,17 @@ def config_dcnf():
 
 
 def launch_vi(launch_bat):
-    """launch-vi.bat từ launch.bat của bản build: giữ nguyên phần tải JDK, thêm kiểm jar + vi/sc-vi.jar."""
+    """launch-vi.bat từ launch.bat của bản build: giữ nguyên phần tải JDK, thêm kiểm jar + vi/sc-vi.jar.
+
+    Đường dẫn có chữ ngoài bảng mã ANSI của Windows (ví dụ "Giả lập" trên Windows tiếng Anh): java.exe tìm thư mục của chính
+    nó bằng API ANSI nên báo "could not find java.dll" dù tệp vẫn ở đó. Khi đó tạm gán một ổ ảo (subst, không cần quyền
+    admin) cho thư mục game, chạy từ ổ đó và gỡ ổ khi thoát; không gán được thì báo cách khắc phục.
+    """
     src = launch_bat.replace('\r\n', '\n')
     lines = src.split('\n')
     out = []
     java_seen = False
+    java_line = False
     for ln in lines:
         if ln.strip() == 'if exist ".\\jdk25\\bin\\java.exe" (' and not java_seen:
             out += [
@@ -88,9 +94,15 @@ def launch_vi(launch_bat):
                 '',
             ]
             java_seen = True
+        if java_line and ln.strip() == 'exit 0':
+            out.append('call :VI_UNSUBST')
+        java_line = False
         if ln.startswith('".\\jdk25\\bin\\java"'):
             assert '-cp "lod-game-' in ln, 'dong java khong nhu mong doi'
             ln = ln.replace('-cp "', '-cp "vi/sc-vi.jar;', 1)
+            java_line = True
+        if ln.strip() == 'exit 2':
+            out.append('call :VI_UNSUBST')   # tải Java lỗi
         out.append(ln)
         if ln.strip() == '@echo off':
             out += [
@@ -98,13 +110,24 @@ def launch_vi(launch_bat):
                 'cd /d "%~dp0"',
                 'rem Bản Việt hoá The Legend of Dragoon cho Severed Chains — chỉ chạy với SC commit ' + SC_COMMIT[:7],
                 'set "SC_JAR=' + SC_JAR + '"',
+                '',
+                'rem Đường dẫn có chữ mà bảng mã ANSI của Windows không có (ví dụ "Giả lập" trên Windows tiếng Anh): java.exe báo',
+                'rem "could not find java.dll". Tạm gán ổ ảo cho thư mục game rồi chạy từ đó (gỡ khi thoát).',
+                'set "VI_HOME=%CD%"',
+                'set "VI_DRIVE="',
+                'powershell -NoProfile -Command "$p=(Get-Location).Path; $e=[Text.Encoding]::Default; '
+                'if ($e.GetString($e.GetBytes($p)) -ne $p) { exit 1 }"',
+                'if errorlevel 1 call :VI_SUBST',
+                'if errorlevel 1 goto VI_PATH_FAILED',
             ]
     assert java_seen, 'khong tim thay cho kiem JDK trong launch.bat'
+    assert any(ln == 'call :VI_UNSUBST' for ln in out), 'khong tim thay dong exit sau lenh java'
     while out and not out[-1].strip():
         out.pop()
     out += [
         '',
         ': WRONG_SC',
+        'call :VI_UNSUBST',
         'echo Không thấy %SC_JAR%.',
         'echo Severed Chains đã được cập nhật (nút Update) hoặc đây không phải thư mục của gói Việt hoá.',
         'echo Bản Việt hoá này chỉ chạy với Severed Chains commit ' + SC_COMMIT[:7] + '.',
@@ -114,9 +137,34 @@ def launch_vi(launch_bat):
         'exit 1',
         '',
         ': NO_VI',
+        'call :VI_UNSUBST',
         'echo Thiếu vi\\sc-vi.jar. Hãy giải nén lại gói Việt hoá.',
         'pause',
         'exit 1',
+        '',
+        ': VI_PATH_FAILED',
+        'echo Thư mục game có chữ có dấu (hoặc ký tự đặc biệt) nên Java không chạy được:',
+        'echo   %VI_HOME%',
+        'echo Hãy chuyển cả thư mục "Severed Chains (VN)" tới chỗ chỉ có chữ không dấu, ví dụ C:\\Games\\LoD-VN, rồi chạy lại.',
+        'pause',
+        'exit 1',
+        '',
+        'rem Gán ổ ảo còn trống (Z: lùi về P:) cho thư mục game và chuyển vào đó',
+        ':VI_SUBST',
+        'for %%D in (Z Y X W V U T S R Q P) do if not defined VI_DRIVE if not exist %%D:\\ set "VI_DRIVE=%%D:"',
+        'if not defined VI_DRIVE exit /b 1',
+        'subst %VI_DRIVE% "%VI_HOME%" >nul 2>&1 || (set "VI_DRIVE=" & exit /b 1)',
+        'cd /d %VI_DRIVE%\\',
+        'echo Thư mục game có chữ có dấu nên Java không mở được trực tiếp. Tạm dùng ổ %VI_DRIVE% cho thư mục này trong lúc',
+        'echo chơi (tự gỡ khi thoát game). Muốn khỏi bước này: chuyển thư mục tới chỗ chỉ có chữ không dấu.',
+        'exit /b 0',
+        '',
+        ':VI_UNSUBST',
+        'if not defined VI_DRIVE exit /b 0',
+        'cd /d "%VI_HOME%"',
+        'subst %VI_DRIVE% /d >nul 2>&1',
+        'set "VI_DRIVE="',
+        'exit /b 0',
         '',
     ]
     return '\r\n'.join(out).encode('utf-8')
@@ -162,7 +210,8 @@ CẦN CÓ
 
 CÀI ĐẶT
 1. Giải nén cả thư mục "{pkg}" ra chỗ không có dấu chấm phẩy (;) trong đường dẫn,
-   không đặt trong Program Files.
+   không đặt trong Program Files. Nên dùng đường dẫn chỉ có chữ không dấu (ví dụ C:\\Games\\LoD-VN): nếu đường dẫn có chữ
+   có dấu (ví dụ "Giả lập"), launch-vi.bat tự tạm gán một ổ ảo (Z: hoặc ổ trống khác) cho thư mục game trong lúc chơi.
 2. Chép 4 file .bin vào thư mục isos (tên file tuỳ ý).
 3. Chạy launch-vi.bat (KHÔNG chạy launch.bat — đó là bản tiếng Anh).
    Lần đầu: tải Java, rồi SC giải nén tài nguyên từ đĩa (~1,4 GB vào thư mục files, khoảng 1 phút).
