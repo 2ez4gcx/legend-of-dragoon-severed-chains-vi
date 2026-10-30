@@ -172,8 +172,10 @@ def main():
     ap.add_argument('--abi', default='arm64-v8a', choices=sorted(ABIS))
     a = ap.parse_args()
     zip_path = a.zip or os.path.join(ROOT, 'release', 'LoD-SC-VN-v%s-sc-affcef0-windows.zip' % a.version)
-    major, minor = (int(x) for x in a.version.split('.')[:2])
-    version_code = major * 100000 + minor * 1000 + a.build
+    parts = [int(x) for x in a.version.split('.')]
+    major, minor = parts[:2]
+    patch = parts[2] if len(parts) > 2 else 0   # 0.4 -> 4001, 0.4.1 -> 4101 (bản vá phải lớn hơn bản trước để cài đè)
+    version_code = major * 100000 + minor * 1000 + patch * 100 + a.build
     version_name = '%s-android%d' % (a.version, a.build)
 
     work = os.path.join(ROOT, 'out', 'android', 'apk')
