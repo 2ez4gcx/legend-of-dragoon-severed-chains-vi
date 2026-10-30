@@ -15,7 +15,7 @@ Chains. Có bản cho **Windows** và bản thử nghiệm cho **Android**.
 | Nền tảng | Bản | Tệp | Ghi chú |
 |---|---|---|---|
 | Windows 64-bit | [v0.4.1](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.1-sc-affcef0) | `LoD-SC-VN-v0.4.1-sc-affcef0-windows.zip` (133 MB) | Đã gồm Severed Chains; sửa lỗi thư mục có dấu của v0.4 |
-| Android 10+ (arm64) | [v0.4 Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4-android-sc-affcef0) | `LoD-SC-VN-v0.4-android-arm64.apk` (201 MB) | Thử nghiệm, cần OpenGL ES 3.2 |
+| Android 10+ (arm64) | [v0.4.1 Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.1-android-sc-affcef0) | `LoD-SC-VN-v0.4.1-android-arm64.apk` (201 MB) | Thử nghiệm, cần OpenGL ES 3.2; sửa văng game khi dùng Bạo Viêm của v0.4 |
 
 Mã kiểm tra SHA-256 nằm trong tệp `SHA256SUMS*.txt` đính kèm mỗi bản phát hành. Cả hai bản đều ghim Severed Chains commit
 `affcef0` (devbuild 3.0.0-1816).
@@ -36,7 +36,7 @@ nút cập nhật đã được tắt).
 ![Màn tựa tiếng Việt trên Android với tay cầm ảo](docs/anh/34_android_man_tua.png)
 
 1. Chép 4 file `.bin` vào điện thoại (ví dụ thư mục Download). Cần khoảng 2,4 GB cho đĩa và khoảng 2 GB cho ứng dụng.
-2. Cài `LoD-SC-VN-v0.4-android-arm64.apk` (cho phép "cài ứng dụng không rõ nguồn" nếu máy hỏi).
+2. Cài `LoD-SC-VN-v0.4.1-android-arm64.apk` (cho phép "cài ứng dụng không rõ nguồn" nếu máy hỏi).
 3. Mở **LoD tiếng Việt**, bấm **CHỌN 4 ĐĨA GỐC (.BIN)** và chọn cùng lúc cả 4 file (nhấn giữ file đầu để chọn nhiều), rồi
    bấm **CHƠI**. Lần đầu game giải nén tài nguyên từ đĩa mất vài phút.
 4. Điều khiển bằng tay cầm ảo trên màn hình hoặc tay cầm Bluetooth; nút Quay lại của Android là ○. Hàng nút giữa phía trên:
@@ -45,7 +45,7 @@ nút cập nhật đã được tắt).
 
 Khuyến nghị máy có từ 6 GB RAM. Đừng di chuyển hay xoá file đĩa sau khi đã chọn. Đang có bản cũ thì cài đè, đĩa và bản lưu
 được giữ. Chi tiết và lưu ý: ghi chú của
-[bản Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4-android-sc-affcef0).
+[bản Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.1-android-sc-affcef0).
 
 ![Tay cầm ảo: nút cài đặt ⚙ và tua nhanh ▶▶](docs/anh/36_android_cai_dat_tay_cam.png)
 
@@ -91,6 +91,9 @@ trong phim.
   vẫn có). Từ v0.4.1, `launch-vi.bat` tự xử lý: tạm gán một ổ ảo như `Z:` cho thư mục game trong lúc chơi, thoát game thì gỡ.
   Đang dùng v0.4 trở về trước: chép `launch-vi.bat` của gói v0.4.1 đè lên tệp cũ, hoặc chuyển cả thư mục `Severed Chains (VN)`
   tới chỗ chỉ có chữ không dấu, ví dụ `C:\Games\LoD-VN`.
+- **Android: game văng khi Dart hoá rồng dùng Bạo Viêm** (hoặc phép rồng khác có tiếng, phần Credits cuối game): lỗi của bản
+  Android v0.4 trở về trước (thiếu thư viện đọc âm thanh Opus), đã sửa ở v0.4.1. Cài đè v0.4.1 lên bản cũ, bản lưu được giữ;
+  bản lưu "Crash Recovery" do game tạo lúc văng vẫn tải được để chơi tiếp.
 - **Bản lưu chuyển từ thẻ nhớ PS1 bị đen màn khi nạp**: Severed Chains gốc cũng bị như vậy, không do bản Việt hoá.
 - **Báo lỗi dịch hoặc lỗi chạy**: mở [Issues](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/issues), ghi rõ cảnh,
   câu thoại và (nếu là Android) tên máy.

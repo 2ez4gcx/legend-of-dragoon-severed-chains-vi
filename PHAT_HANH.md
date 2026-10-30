@@ -158,6 +158,23 @@ Bẫy khi chạy từ xa: lúc người dùng nối Chrome Remote Desktop, cửa
 được (cả bấm chuột giả lập) → `sc_ui.ps1` huỷ đúng như thiết kế. SC bỏ phím khi không có keyboard focus (`SdlPlatformManager`:
 sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng không dùng được; chuột thì SC vẫn nhận. Chờ phiên từ xa ngắt là chạy lại được.
 
+## Đã kiểm (v0.4.1 Android — bản sửa lỗi 30/10/2026, dựng từ ea25d4b, gói Windows v0.4.1)
+
+Hai người chơi báo: Android, Dart hoá rồng dùng Bạo Viêm thì game văng (có bản Crash Recovery). Tái hiện trên giả lập bằng bản
+lưu tạo từ Debugger PC (New Campaign 2 → Warp cảnh 5 → Save Anywhere): `XaPlayer.loadXa` → LWJGL `OpusFile.op_open_memory` →
+"A required function is missing: opus_head_parse". LWJGL tìm hàm opusfile trong chính thư viện "opus"; `libopus.so` Android chỉ
+có Opus trơn. Sửa ở 9648800: `android/natives/opus` gộp opus + opusfile 0.12 + libogg 1.3.5. `make_apk.py` tính cả số vá vào
+versionCode (0.4.1 → 4101; trước đây trùng 4001 của v0.4).
+
+| Kiểm (30/10) | Kết quả |
+|---|---|
+| `build_sc_android.ps1 -CheckOriginal` | khớp 5 lớp gốc |
+| APK arm64 | dựng 2 lần cùng SHA-256 `56d1098f2dc82bdc06380240dc8997585c715d9454cde6ad969a4ce6ef40309f` (201.190.987 byte), versionCode 4101; `libopus.so` arm64 căn trang 16 KB, chỉ cần libc/libm/libdl; xuất đủ hàm Opus/OpusFile/OpusMultistream/OpusProjection của LWJGL |
+| APK x86_64 cùng commit (giả lập Android 15), cài đè v0.4 build 2 | không giải nén lại tài nguyên; nạp "Khu Rừng 1" → trận → Hoá Dragoon → Bạo Viêm: logcat "Playing XA archive 0 file 7", hết phép, không văng, không CRASHLOG mới. Cùng bước trên v0.4: văng với lỗi trên |
+
+Giả lập (`-gpu host`, GuestAngle) tự rò fd `sync_file` mỗi khung hình (app Đồng hồ của hệ thống cũng bị) → chết sau ~9 phút; mỗi
+lần thử nên ngắn. Mô hình 3D không hiện ngoài bản đồ nhưng hiện trong trận.
+
 ## Đổi sang commit SC mới (khi cần)
 
 1. `git -C Severed-Chains fetch && git checkout <commit>`; tải `Severed_Chains_Windows.zip` của devbuild **cùng commit** (tên jar
@@ -191,4 +208,7 @@ sự kiện phím không có cửa sổ thì bỏ qua) nên `PostMessage` cũng 
 - v0.4.1-sc-affcef0 (27/10/2026, chỉ Windows, theo lời người dùng "Commit bản sửa và phát hành v0.4.1 cho Windows"; tag →
   1d22934; zip 133.078.979 byte SHA `f1006dab…`; ghi chú `release_notes/v0.4.1-sc-affcef0.md`); tải lại khớp, tải được khi không
   đăng nhập. Bản Android vẫn là v0.4-android-sc-affcef0.
+- v0.4.1-android-sc-affcef0 (30/10/2026, theo lời người dùng "Đẩy + ra APK mới" sau khi duyệt bản sửa Bạo Viêm; tag → ea25d4b;
+  APK arm64 201.190.987 byte SHA `56d1098f…`, versionCode 4101, dựng từ zip Windows v0.4.1; ghi chú
+  `release_notes/v0.4.1-android-sc-affcef0.md`); tải ngược về khớp SHA-256, tải được khi không đăng nhập.
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
