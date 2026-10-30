@@ -6,7 +6,8 @@ Cách gọi:
     -Abi  arm64-v8a (mặc định, bản phát hành) hoặc x86_64 (chỉ để thử trên giả lập Android của máy tính)
 Cần: Android SDK (%LOCALAPPDATA%\Android\Sdk hoặc ANDROID_HOME) có ndk;28.2.13676358 và cmake;3.31.6; mã nguồn chính thức
      giải nén trong deps/android/src (android/README.md): SDL3 3.4.14 và LWJGL 3.4.3 (đúng bản mà build SC affcef0 dùng),
-     libffi 3.8.0, Opus 1.6.1 (LWJGL 3.4.3 cần opus_encode24), OpenAL Soft 1.25.2 (cùng bản build SC; vá nhỏ cho NDK r28: natives/patch_openal.py).
+     libffi 3.8.0, Opus 1.6.1 (LWJGL 3.4.3 cần opus_encode24) + opusfile 0.12 + libogg 1.3.5 (gộp vào libopus.so như bản LWJGL
+     máy tính: natives/opus/CMakeLists.txt), OpenAL Soft 1.25.2 (cùng bản build SC; vá nhỏ cho NDK r28: natives/patch_openal.py).
 Kết quả: deps/android/out/<abi>/*.so (libSDL3, libopenal, libopus, liblwjgl, liblwjgl_opengles, liblwjgl_stb, libsclauncher;
          đã strip, căn trang 16 KB) và deps/android/out/sdl-java (lớp Java SDLActivity... của SDL3).
 #>
@@ -65,8 +66,14 @@ if ($Only -contains 'openal') {
 }
 
 if ($Only -contains 'opus') {
-  $b = CMakeBuild 'opus' (Join-Path $src 'opus-1.6.1') @('-DBUILD_SHARED_LIBS=ON', '-DOPUS_BUILD_PROGRAMS=OFF', '-DOPUS_BUILD_TESTING=OFF',
-    '-DCMAKE_POLICY_VERSION_MINIMUM=3.5')
+  # LWJGL tìm hàm opusfile trong libopus.so (OpusFile.Functions dùng Opus.getLibrary()): thiếu là phát XA văng game
+  $b = CMakeBuild 'opus-opusfile' (Join-Path $PSScriptRoot 'natives\opus') @("-DOPUS_SRC=$(& $fwd (Join-Path $src 'opus-1.6.1'))",
+    "-DOPUSFILE_SRC=$(& $fwd (Join-Path $src 'opusfile-0.12'))", "-DOGG_SRC=$(& $fwd (Join-Path $src 'libogg-1.3.5'))")
+  $nm = Join-Path $ndk 'toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-nm.exe'
+  $syms = & $nm -D --defined-only (Join-Path $b 'libopus.so')
+  foreach ($f in 'opus_decode', 'opus_encode24', 'op_open_memory', 'opus_head_parse', 'op_read') {
+    if (-not ($syms -match " T $f$")) { throw "libopus.so thieu $f" }
+  }
   Copy-Item (Join-Path $b 'libopus.so') $out -Force
   Write-Output 'DAT opus'
 }

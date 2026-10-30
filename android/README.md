@@ -85,7 +85,8 @@ cửa sổ game trên máy tính `out/gfx/textures/icon.vi.png` (64×64; `--wind
 
 Cần: Android SDK (`cmdline-tools`, `build-tools;36.1.0`, `platforms;android-36`, `ndk;28.2.13676358`, `cmake;3.31.6`),
 JDK 17, thư mục `game/` (bản build SC affcef0) và gói Windows v0.2 trong `release/`. Mã nguồn chính thức giải nén vào
-`deps/android/src`: SDL3 3.4.14, LWJGL 3.4.3, libffi 3.8.0, Opus 1.6.1, OpenAL Soft 1.25.2. JRE 25 Android
+`deps/android/src`: SDL3 3.4.14, LWJGL 3.4.3, libffi 3.8.0, Opus 1.6.1, opusfile 0.12, libogg 1.3.5, OpenAL Soft 1.25.2
+(opusfile/libogg: downloads.xiph.org, SHA-256 `118d8601…3550b` / `0eb4b4b9…99b664`). JRE 25 Android
 (`deps/android/jre/jre25-android-arm64.tar.xz`, bản phát hành `download_jre25` của AngelAuraMC/angelauramc-openjdk-build,
 SHA-256 kiểm trong `make_apk.py`), `ffmpeg-8.0.1-1.5.13-android-arm64.jar` + `javacpp-1.5.13-android-arm64.jar` (Maven
 Central) trong `deps/android/maven`. Python dạng gói (MSIX) không đọc được `%LOCALAPPDATA%`: chép `build-tools/36.1.0`
@@ -96,6 +97,11 @@ powershell -ExecutionPolicy Bypass -File android/build_natives.ps1
 powershell -ExecutionPolicy Bypass -File android/build_sc_android.ps1 -CheckOriginal
 python android/make_apk.py --version 0.2
 ```
+
+`libopus.so` phải chứa cả opusfile (`natives/opus/CMakeLists.txt`, như thư viện opus của LWJGL trên máy tính): LWJGL tìm
+`op_open_memory`, `opus_head_parse`… trong chính thư viện "opus". Bản v0.4 trở về trước chỉ có Opus trơn → lần đầu phát
+âm thanh XA (phép rồng như Bạo Viêm, Credits) văng game với "A required function is missing: opus_head_parse";
+`build_natives.ps1` giờ kiểm các hàm này sau khi dựng.
 
 Khoá ký: `deps/android/keys/lodsc-release.jks` + `keystore.pass` (tạo lần đầu, **sao lưu** — bản cập nhật phải cùng khoá).
 Dựng 2 lần ra cùng SHA-256.
