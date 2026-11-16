@@ -35,6 +35,8 @@ Lớp đè chỉ dùng cho Android (`sc-android/`, đứng đầu classpath, mã
 | `legend.core.renderer.ShaderManager` | Dùng shader GLSL ES dịch sẵn `gfx/shaders_es` (sinh trên PC bằng `ShaderCacheTool`, shaderc + SPIRV-Cross) — không mang shaderc/SPIRV-Cross lên máy |
 | `legend.core.renderer.opengles.GlesTexture` | Texture độ sâu dùng `GL_DEPTH_COMPONENT32F` (ES 3 không nhận `GL_DEPTH_COMPONENT` + `GL_FLOAT`: "Render buffer is not complete!") |
 | `legend.game.unpacker.IsoReader` | Đọc đĩa từ fd đã mở sẵn (mở lại `/proc/self/fd/N` bị kiểm quyền chủ tệp `media_rw`) |
+| `legend.game.inventory.screens.controls.Textbox` | Thêm `setTextInput(false)`: ô nhập được chọn thì không bật nhập chữ của SDL (trên Android SDL không ghi nhận bàn phím nào nên luôn bật bàn phím ảo) |
+| `legend.game.inventory.screens.KeybindScreen` | Ô gán nút (Tùy chọn → Điều khiển → Thiết lập...) gọi `setTextInput(false)`: bàn phím ảo không còn bật lên che D-pad và × ○ □ △ trong 4 giây chờ bấm nút; ô đặt tên lượt chơi vẫn bật bàn phím ảo |
 | `legend.core.platform.AndroidBridge` (mới) | Hàm `fastForward()` do libsclauncher đăng ký; `SdlWindow.tick()` đọc mỗi khung, đặt `Config.setGameSpeedMultiplier` (tắt → `getLoadedGameSpeedMultiplier`) |
 
 Ngoài ra `config.conf` đặt sẵn `low_memory_unpacker=true` (heap điện thoại 1–2 GB; kiểu giải nén thường hết bộ nhớ).
