@@ -45,5 +45,13 @@
             android:alwaysRetainTaskState="true"
             android:configChanges="layoutDirection|locale|grammaticalGender|fontScale|fontWeightAdjustment|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:preferMinimalPostProcessing="true" />
+
+        <!-- Nhập bản lưu (.zip): trình chọn tệp + báo kết quả, rồi đưa game lên lại (SaveImportActivity) -->
+        <activity
+            android:name=".SaveImportActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
     </application>
 </manifest>

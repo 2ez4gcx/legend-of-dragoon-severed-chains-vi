@@ -29,6 +29,11 @@ import java.util.List;
 public class VnGameActivity extends SDLActivity {
   private TouchPad pad;
 
+  /** game đang chạy (SaveImportActivity chỉ đưa game lên lại khi có, không mở game mới khi chưa chọn đĩa) */
+  static boolean isRunning() {
+    return mSingleton != null;
+  }
+
   @Override
   protected String[] getLibraries() {
     return new String[] {"SDL3", "sclauncher"};

@@ -4,8 +4,8 @@ Cửa sổ SC PHẢI ở trên cùng: script tự đưa lên, kiểm lại trư�
 
 Cách gọi:
   powershell -File tools/sc_ui.ps1 [-Game game] [-Keys "Return,Down*3,S"] [-Ms 90] [-Gap 350] [-Shot out\x.png] [-Info]
-Phím mặc định SC: mũi tên = D-pad, Return = Start, Space = Select, W/A/S/D = các nút hình (S = X/xác nhận theo bố trí PS:
-  W tam giác, A vuông, S X, D tròn — kiểm lại trong menu Controls), Q/E = L1/R1, F11 tạm dừng, Tab = xem VRAM.
+Phím mặc định SC: mũi tên (và W/A/S/D) = di chuyển, Return/Space = xác nhận, Escape = quay lại, E = mở menu ngoài bản đồ,
+  F1 = bật/tắt toàn màn hình, F11 tạm dừng, F12 Debugger, Tab = xem VRAM.
 Ký hiệu "Phím*n" = bấm n lần; "wait:ms" = chờ.
 #>
 param(
@@ -71,7 +71,7 @@ function MouseAway {
 }
 
 $map = @{Up = 0x26; Down = 0x28; Left = 0x25; Right = 0x27; Return = 0x0D; Escape = 0x1B; Space = 0x20; Tab = 0x09;
-  W = 0x57; A = 0x41; S = 0x53; D = 0x44; Q = 0x51; E = 0x45; H = 0x48; V = 0x56; F11 = 0x7A; F12 = 0x7B; Back = 0x08}
+  W = 0x57; A = 0x41; S = 0x53; D = 0x44; Q = 0x51; E = 0x45; H = 0x48; V = 0x56; F1 = 0x70; F11 = 0x7A; F12 = 0x7B; Back = 0x08}
 if ($Keys) {
   if (-not (Focus)) { Write-Output 'ABORT: SC khong o tren cung'; exit 1 }
   MouseAway

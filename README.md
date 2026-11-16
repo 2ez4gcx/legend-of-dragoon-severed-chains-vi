@@ -15,7 +15,7 @@ Chains. Có bản cho **Windows** và bản thử nghiệm cho **Android**.
 | Nền tảng | Bản | Tệp | Ghi chú |
 |---|---|---|---|
 | Windows 64-bit | [v0.4.1](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.1-sc-affcef0) | `LoD-SC-VN-v0.4.1-sc-affcef0-windows.zip` (133 MB) | Đã gồm Severed Chains; sửa lỗi thư mục có dấu của v0.4 |
-| Android 10+ (arm64) | [v0.4.1 Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.1-android-sc-affcef0) | `LoD-SC-VN-v0.4.1-android-arm64.apk` (201 MB) | Thử nghiệm, cần OpenGL ES 3.2; sửa văng game khi dùng Bạo Viêm của v0.4 |
+| Android 10+ (arm64) | [v0.4.2 Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.2-android-sc-affcef0) | `LoD-SC-VN-v0.4.2-android-arm64.apk` (201 MB) | Thử nghiệm, cần OpenGL ES 3.2; có Xuất/Nhập bản lưu để chuyển sang máy tính |
 
 Mã kiểm tra SHA-256 nằm trong tệp `SHA256SUMS*.txt` đính kèm mỗi bản phát hành. Cả hai bản đều ghim Severed Chains commit
 `affcef0` (devbuild 3.0.0-1816).
@@ -36,16 +36,16 @@ nút cập nhật đã được tắt).
 ![Màn tựa tiếng Việt trên Android với tay cầm ảo](docs/anh/34_android_man_tua.png)
 
 1. Chép 4 file `.bin` vào điện thoại (ví dụ thư mục Download). Cần khoảng 2,4 GB cho đĩa và khoảng 2 GB cho ứng dụng.
-2. Cài `LoD-SC-VN-v0.4.1-android-arm64.apk` (cho phép "cài ứng dụng không rõ nguồn" nếu máy hỏi).
+2. Cài `LoD-SC-VN-v0.4.2-android-arm64.apk` (cho phép "cài ứng dụng không rõ nguồn" nếu máy hỏi).
 3. Mở **LoD tiếng Việt**, bấm **CHỌN 4 ĐĨA GỐC (.BIN)** và chọn cùng lúc cả 4 file (nhấn giữ file đầu để chọn nhiều), rồi
    bấm **CHƠI**. Lần đầu game giải nén tài nguyên từ đĩa mất vài phút.
 4. Điều khiển bằng tay cầm ảo trên màn hình hoặc tay cầm Bluetooth; nút Quay lại của Android là ○. Hàng nút giữa phía trên:
-   **⚙** chỉnh độ đậm, cỡ phím, rung khi bấm, tốc độ tua nhanh (×2, ×3, ×4); **▼** ẩn/hiện phím; **▶▶** tua nhanh (bấm lần
-   nữa để về tốc độ thường).
+   **⚙** chỉnh độ đậm, cỡ phím, rung khi bấm, tốc độ tua nhanh (×2, ×3, ×4), **Xuất/Nhập bản lưu**; **▼** ẩn/hiện phím;
+   **▶▶** tua nhanh (bấm lần nữa để về tốc độ thường).
 
 Khuyến nghị máy có từ 6 GB RAM. Đừng di chuyển hay xoá file đĩa sau khi đã chọn. Đang có bản cũ thì cài đè, đĩa và bản lưu
 được giữ. Chi tiết và lưu ý: ghi chú của
-[bản Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.1-android-sc-affcef0).
+[bản Android](https://github.com/2ez4gcx/legend-of-dragoon-severed-chains-vi/releases/tag/v0.4.2-android-sc-affcef0).
 
 ![Tay cầm ảo: nút cài đặt ⚙ và tua nhanh ▶▶](docs/anh/36_android_cai_dat_tay_cam.png)
 
@@ -81,8 +81,14 @@ trong phim.
 
 - **Game báo "Please place US ISOs/BINs in "isos" directory"**: chưa có đủ 4 đĩa bản Mỹ trong `isos` (Windows) hoặc chưa chọn
   đủ 4 file (Android). Đĩa bản châu Âu/Nhật và đĩa đã vá tiếng Việt bản PS1 không dùng được.
+- **Bản lưu nằm ở đâu**: Windows: thư mục `saves` trong `Severed Chains (VN)` (mỗi lượt chơi một thư mục con, các tệp `.dsav`).
+  Android: bộ nhớ riêng của ứng dụng, không chép ra trực tiếp được; dùng **⚙ → Xuất bản lưu** (từ Android v0.4.2).
+- **Chuyển bản lưu từ điện thoại sang máy tính**: cài đè Android v0.4.2, vào game bấm **⚙ → Xuất bản lưu** (tệp `.zip` trong
+  thư mục Download), chép tệp sang máy tính rồi giải nén vào thư mục `Severed Chains (VN)`. Lượt chơi từ điện thoại hiện trong
+  Chơi tiếp với chữ "(Android)" sau tên. Chiều ngược lại: nén thư mục `saves` trên máy tính thành `.zip`, chép vào điện thoại,
+  bấm **⚙ → Nhập bản lưu**. Hai bản dùng chung bản lưu; không ghi đè bản lưu sẵn có.
 - **Muốn chọn lại đĩa trên Android**: Cài đặt → Ứng dụng → LoD tiếng Việt → Bộ nhớ → Xoá dữ liệu (sẽ giải nén lại từ đầu).
-  **Thao tác này xoá luôn bản lưu và tùy chọn** vì chúng nằm trong dữ liệu ứng dụng. Nếu chỉ đổi chỗ hoặc đổi tên file đĩa
+  **Thao tác này xoá luôn bản lưu và tùy chọn** vì chúng nằm trong dữ liệu ứng dụng (hãy Xuất bản lưu trước). Nếu chỉ đổi chỗ hoặc đổi tên file đĩa
   thì không cần xoá: khi không đọc được đĩa cũ, ứng dụng báo lỗi và cho bấm **CHỌN 4 ĐĨA GỐC (.BIN)** lại.
 - **Game chạy chậm như quay chậm, giật**: dùng bản v0.3 trở lên, giữ bật "Tự bỏ khung hình khi máy chậm" và hạ Độ phân giải
   (Tùy chọn → Tùy chọn chung → Đồ họa) xuống 720p hoặc 480p. Bật "Hiện FPS" (Giao diện) để xem số khung hình mỗi giây.

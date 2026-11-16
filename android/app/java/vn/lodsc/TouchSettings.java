@@ -2,6 +2,10 @@ package vn.lodsc;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -11,7 +15,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 /**
- * Hộp cài đặt tay cầm ảo (nút ⚙ của TouchPad): độ đậm phím, cỡ phím, rung khi bấm, tốc độ của nút tua nhanh ▶▶.
+ * Hộp cài đặt tay cầm ảo (nút ⚙ của TouchPad): độ đậm phím, cỡ phím, rung khi bấm, tốc độ của nút tua nhanh ▶▶, xuất/nhập
+ * bản lưu (SaveTransfer).
  * Kéo/chọn là thấy ngay trên lớp phủ và lưu luôn (SharedPreferences của TouchPad). Trong lúc hộp mở, cửa sổ game mất tiêu
  * điểm nên SDL tạm dừng game; đóng hộp là chạy tiếp.
  */
@@ -84,6 +89,28 @@ final class TouchSettings {
     hint.setAlpha(0.75f);
     root.addView(hint);
 
+    // Bản lưu nằm trong bộ nhớ riêng của ứng dụng: xuất/nhập tệp .zip để chuyển sang máy tính hoặc máy khác (SaveTransfer)
+    final TextView savesLabel = new TextView(c);
+    savesLabel.setText("Bản lưu (chuyển sang máy tính hoặc điện thoại khác):");
+    root.addView(savesLabel);
+    final LinearLayout savesRow = new LinearLayout(c);
+    savesRow.setOrientation(LinearLayout.HORIZONTAL);
+    final Button exportSaves = new Button(c);
+    exportSaves.setText("Xuất bản lưu");
+    exportSaves.setOnClickListener(v -> exportSaves(c, exportSaves));
+    savesRow.addView(exportSaves);
+    final Button importSaves = new Button(c);
+    importSaves.setText("Nhập bản lưu");
+    importSaves.setOnClickListener(v -> c.startActivity(new Intent(c, SaveImportActivity.class)));
+    savesRow.addView(importSaves);
+    root.addView(savesRow);
+    final TextView savesHint = new TextView(c);
+    savesHint.setText("Xuất: tạo tệp .zip trong thư mục Download; trên máy tính giải nén vào thư mục \"Severed Chains (VN)\".\n"
+      + "Nhập: chọn tệp .zip có thư mục saves (trên máy tính: nén thư mục saves). Không ghi đè bản lưu sẵn có.");
+    savesHint.setPadding(0, 0, 0, gap);
+    savesHint.setAlpha(0.75f);
+    root.addView(savesHint);
+
     final ScrollView scroll = new ScrollView(c);
     scroll.addView(root);
 
@@ -101,6 +128,25 @@ final class TouchSettings {
       ff.check(1000 + TouchPad.DEFAULT_FF_SPEED);
     }));
     dialog.show();
+  }
+
+  /** Xuất bản lưu ra Download (đọc/ghi tệp ngoài luồng giao diện), báo kết quả bằng một hộp thoại */
+  private static void exportSaves(final Context c, final Button button) {
+    button.setEnabled(false);
+    final Handler ui = new Handler(Looper.getMainLooper());
+    new Thread(() -> {
+      String msg;
+      try {
+        msg = SaveTransfer.export(c);
+      } catch(final Exception e) {
+        msg = "Xuất bản lưu thất bại: " + e.getMessage();
+      }
+      final String text = msg;
+      ui.post(() -> {
+        button.setEnabled(true);
+        new AlertDialog.Builder(c).setTitle("Xuất bản lưu").setMessage(text).setPositiveButton("OK", null).show();
+      });
+    }, "SaveExport").start();
   }
 
   /** SeekBar chỉ cần báo giá trị mới */

@@ -17,6 +17,12 @@ libsclauncher  nạp trước thư viện của JRE, dlopen libjvm.so, JNI_Creat
 TouchPad       lớp phủ phím (D-pad, ✕○△□, L1/L2/R1/R2, SELECT/START); hàng giữa trên: ⚙ (TouchSettings: độ đậm 10–100%,
                cỡ phím 70–120%, rung khi bấm, tốc độ tua nhanh ×2/×3/×4; lưu SharedPreferences "touchpad"),
                ẩn/hiện, ▶▶ tua nhanh (bật/tắt; tắt thì về tốc độ chọn trong Tùy chọn → Lối chơi → Tốc độ game)
+SaveTransfer   (nút trong ⚙, từ v0.4.2) Xuất: game/saves/<lượt chơi>/{*.dsav, campaign_config.dcnf} -> Download/
+               LoD-ban-luu-<ngày giờ>.zip (MediaStore, không xin quyền), trong zip saves/<lượt chơi>_android/…, tên lượt chơi
+               trong campaign_config.dcnf (lod_core:campaign_name) thêm " (Android)" để giải nén vào bản Windows không đè gì.
+               Nhập (SaveImportActivity: activity riêng vì VnGameActivity singleInstance làm mất kết quả trình chọn tệp):
+               nhận saves/<lượt chơi>/<tệp> hoặc <lượt chơi>/<tệp>, chỉ .dsav + campaign_config.dcnf; trùng y hệt bỏ qua,
+               trùng tên khác nội dung thành <lượt chơi>_nhap (tên thêm " (nhập)"); ghi vào thư mục tạm rồi đổi tên.
 SC             SDL3 + OpenGL ES 3.2 (GlesApi) + OpenAL Soft + FFmpeg (JavaCPP) như bản PC
 ```
 
