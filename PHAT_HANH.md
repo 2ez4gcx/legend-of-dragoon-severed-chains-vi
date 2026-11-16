@@ -211,4 +211,11 @@ lần thử nên ngắn. Mô hình 3D không hiện ngoài bản đồ nhưng hi
 - v0.4.1-android-sc-affcef0 (30/10/2026, theo lời người dùng "Đẩy + ra APK mới" sau khi duyệt bản sửa Bạo Viêm; tag → ea25d4b;
   APK arm64 201.190.987 byte SHA `56d1098f…`, versionCode 4101, dựng từ zip Windows v0.4.1; ghi chú
   `release_notes/v0.4.1-android-sc-affcef0.md`); tải ngược về khớp SHA-256, tải được khi không đăng nhập.
+- v0.4.2-android-sc-affcef0 (16/11/2026, theo lời người dùng "Làm luôn" — nút Xuất/Nhập bản lưu để người chơi Android chuyển
+  bản lưu sang PC; tag → 2b4928e; APK arm64 201.215.563 byte SHA `4227d841…`, versionCode 4201, dựng 2 lần cùng SHA, dựng từ
+  zip Windows v0.4.1; ghi chú `release_notes/v0.4.2-android-sc-affcef0.md`). Kiểm: giả lập Android 15 (cài đè v0.4 giữ bản
+  lưu; xuất; nhập mới / nhập lại / trùng tên khác nội dung / zip có `../`; danh sách lượt chơi trong game), PC (giải nén tệp xuất
+  vào thư mục game → lượt chơi "(Android)" tải được). Giả lập chết sau ~9 phút và hết RAM khi dựng APK song song (máy 14 GB):
+  tắt giả lập trước khi dựng; trình chọn tệp đôi khi vẽ xoay 90° nên toạ độ uiautomator không khớp chỗ chạm. Tải ngược về khớp
+  SHA-256, tải được khi không đăng nhập. Bản Windows vẫn là v0.4.1 (không đổi).
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
