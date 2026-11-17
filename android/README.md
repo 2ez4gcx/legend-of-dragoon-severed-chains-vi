@@ -19,10 +19,15 @@ TouchPad       lớp phủ phím (D-pad, ✕○△□, L1/L2/R1/R2, SELECT/START
                ẩn/hiện, ▶▶ tua nhanh (bật/tắt; tắt thì về tốc độ chọn trong Tùy chọn → Lối chơi → Tốc độ game)
 SaveTransfer   (nút trong ⚙, từ v0.4.2) Xuất: game/saves/<lượt chơi>/{*.dsav, campaign_config.dcnf} -> Download/
                LoD-ban-luu-<ngày giờ>.zip (MediaStore, không xin quyền), trong zip saves/<lượt chơi>_android/…, tên lượt chơi
-               trong campaign_config.dcnf (lod_core:campaign_name) thêm " (Android)" để giải nén vào bản Windows không đè gì.
+               trong campaign_config.dcnf (lod_core:campaign_name) thêm " (Android)" để giải nén vào bản Windows không đè gì;
+               hai lượt chơi ra cùng thư mục (máy có cả "l1" và "l1_android") thì lượt đã có đuôi _android thêm _2, _3…
+               (v0.4.2–v0.4.3 báo "duplicate entry" và không xuất được). Xuất và nhập đều bỏ nút điều khiển đã đổi
+               (lod_core:controller_keybinds) khỏi campaign_config.dcnf: máy nhận dùng nút mặc định của nó.
                Nhập (SaveImportActivity: activity riêng vì VnGameActivity singleInstance làm mất kết quả trình chọn tệp):
-               nhận saves/<lượt chơi>/<tệp> hoặc <lượt chơi>/<tệp>, chỉ .dsav + campaign_config.dcnf; trùng y hệt bỏ qua,
-               trùng tên khác nội dung thành <lượt chơi>_nhap (tên thêm " (nhập)"); ghi vào thư mục tạm rồi đổi tên.
+               nhận saves/<lượt chơi>/<tệp> hoặc <lượt chơi>/<tệp>, chỉ .dsav + campaign_config.dcnf; bản lưu đã có y hệt ở
+               một lượt chơi sẵn có (kể cả khác tên thư mục, như nhập lại tệp xuất của chính máy này) thì bỏ qua, trùng tên
+               khác nội dung thành <lượt chơi>_nhap (tên thêm " (nhập)"); ghi vào thư mục tạm rồi đổi tên.
+               Kiểm trên máy tính: android/test/save_transfer_test.ps1 (SaveTransferTest, không cần điện thoại).
 SC             SDL3 + OpenGL ES 3.2 (GlesApi) + OpenAL Soft + FFmpeg (JavaCPP) như bản PC
 ```
 
@@ -37,6 +42,7 @@ Lớp đè chỉ dùng cho Android (`sc-android/`, đứng đầu classpath, mã
 | `legend.game.unpacker.IsoReader` | Đọc đĩa từ fd đã mở sẵn (mở lại `/proc/self/fd/N` bị kiểm quyền chủ tệp `media_rw`) |
 | `legend.game.inventory.screens.controls.Textbox` | Thêm `setTextInput(false)`: ô nhập được chọn thì không bật nhập chữ của SDL (trên Android SDL không ghi nhận bàn phím nào nên luôn bật bàn phím ảo) |
 | `legend.game.inventory.screens.KeybindScreen` | Ô gán nút (Tùy chọn → Điều khiển → Thiết lập...) gọi `setTextInput(false)`: bàn phím ảo không còn bật lên che D-pad và × ○ □ △ trong 4 giây chờ bấm nút; ô đặt tên lượt chơi vẫn bật bàn phím ảo |
+| `legend.core.platform.input.InputBindings` | Nạp nút của lượt chơi xong, thao tác nào không còn nút tay cầm nào (nút đổi trên máy tính chỉ còn phím bàn phím, vì ô gán nút xoá cả nút tay cầm cũ) thì trả nút tay cầm mặc định, giữ phím đã gán; logcat `[sc-android] <thao tác> had no gamepad binding, restored the default one`. Không có thì lượt chơi từ máy tính có "mở menu" = phím bàn phím không mở được menu, mà menu là đường duy nhất vào Cài đặt → Điều khiển để sửa |
 | `legend.core.platform.AndroidBridge` (mới) | Hàm `fastForward()` do libsclauncher đăng ký; `SdlWindow.tick()` đọc mỗi khung, đặt `Config.setGameSpeedMultiplier` (tắt → `getLoadedGameSpeedMultiplier`) |
 
 Ngoài ra `config.conf` đặt sẵn `low_memory_unpacker=true` (heap điện thoại 1–2 GB; kiểu giải nén thường hết bộ nhớ).
