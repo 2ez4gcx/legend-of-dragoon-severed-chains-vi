@@ -227,4 +227,16 @@ lần thử nên ngắn. Mô hình 3D không hiện ngoài bản đồ nhưng hi
   `gh_release.py` lỗi 422 vì chưa đẩy commit tag lên GitHub — đẩy trước rồi mới tạo release. Tải ngược về khớp SHA-256, tải
   được khi không đăng nhập. Gói APK (từ v0.4.2) có 2 mục trùng `vi/NGUON/android/gen_icon.py`, `icon_rong.webp` (zip Windows
   đã có, `make_apk.py` thêm lần nữa; nội dung giống hệt, vô hại) — chưa sửa. Bản Windows vẫn là v0.4.1 (không có lỗi này).
+- v0.4.4-android-sc-affcef0 (17/11/2026, theo lời người dùng "Sửa và phát hành" sau hai báo lỗi: ảnh "Xuất bản lưu thất bại:
+  duplicate entry: saves/l1_android/campaign_config.dcnf" (máy có cả l1 và l1_android — bản sao do nhập lại tệp xuất của
+  chính máy) và tester "bản PC save lại nếu nút menu bị sửa thì sang điện thoại không bật được" (nút đổi đi theo
+  campaign_config.dcnf; ô gán nút xoá cả nút tay cầm cũ; menu là đường duy nhất vào Cài đặt → Điều khiển). Sửa ở commit
+  7e5b9bf: SaveTransfer (thư mục xuất không trùng _2/_3; nhập bỏ qua bản lưu đã có y hệt ở lượt chơi bất kỳ; xuất và nhập
+  bỏ lod_core:controller_keybinds) + lớp đè sc-android InputBindings (thao tác không còn nút tay cầm thì trả nút mặc định) +
+  android/test/SaveTransferTest (26 mục, chạy trên máy tính; với cách đặt tên cũ báo đúng "duplicate entry"). Tag → 29ec511;
+  APK arm64 201.240.139 byte SHA `6b4bde70…`, versionCode 4401, dựng 2 lần cùng SHA, dựng từ zip Windows v0.4.1; ghi chú
+  `release_notes/v0.4.4-android-sc-affcef0.md`. Kiểm giả lập (x86_64, `-memory 4096` vì máy còn ~4,5 GB RAM trống): lượt chơi
+  PC có "mở menu" = I (đặt vào bằng run-as) → △ mở menu, danh sách nút "△, I", logcat báo restored; Xuất trên máy có
+  new_campaign + new_campaign_android → 4 lượt chơi, thư mục không trùng, không còn mục nút. Tải ngược về khớp SHA-256, tải
+  được khi không đăng nhập. Bản Windows vẫn là v0.4.1.
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
