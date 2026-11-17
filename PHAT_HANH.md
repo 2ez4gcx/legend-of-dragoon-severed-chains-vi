@@ -218,4 +218,13 @@ lần thử nên ngắn. Mô hình 3D không hiện ngoài bản đồ nhưng hi
   vào thư mục game → lượt chơi "(Android)" tải được). Giả lập chết sau ~9 phút và hết RAM khi dựng APK song song (máy 14 GB):
   tắt giả lập trước khi dựng; trình chọn tệp đôi khi vẽ xoay 90° nên toạ độ uiautomator không khớp chỗ chạm. Tải ngược về khớp
   SHA-256, tải được khi không đăng nhập. Bản Windows vẫn là v0.4.1 (không đổi).
+- v0.4.3-android-sc-affcef0 (17/11/2026, theo lời người dùng "Đẩy và phát hành" sau khi duyệt bản sửa — ô gán nút (Tùy chọn →
+  Điều khiển → Thiết lập...) bật bàn phím Android che D-pad và × ○ □ △; sửa ở lớp đè sc-android `Textbox`/`KeybindScreen`
+  (commit 2dc99d4); tag → 4f34a00; APK arm64 201.227.851 byte SHA `a1e12134…`, versionCode 4301, dựng 2 lần cùng SHA, dựng
+  từ zip Windows v0.4.1; ghi chú `release_notes/v0.4.3-android-sc-affcef0.md`). Kiểm: giả lập Android 15 với
+  `hw.keyboard=no` (AVD mặc định `yes` thì không bao giờ hiện bàn phím ảo — phải tắt để thấy lỗi như trên điện thoại): v0.4.2
+  bàn phím che phím; bản sửa không còn, gán □ △ bằng tay cầm ảo được, ô tên lượt chơi vẫn có bàn phím. Lần đầu gọi
+  `gh_release.py` lỗi 422 vì chưa đẩy commit tag lên GitHub — đẩy trước rồi mới tạo release. Tải ngược về khớp SHA-256, tải
+  được khi không đăng nhập. Gói APK (từ v0.4.2) có 2 mục trùng `vi/NGUON/android/gen_icon.py`, `icon_rong.webp` (zip Windows
+  đã có, `make_apk.py` thêm lần nữa; nội dung giống hệt, vô hại) — chưa sửa. Bản Windows vẫn là v0.4.1 (không có lỗi này).
 - Chỉ có gói Windows (bản build SC Windows). Linux/Mac: cần zip SC tương ứng + launcher `.sh` — chưa làm.
